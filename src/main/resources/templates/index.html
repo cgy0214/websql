@@ -76,6 +76,7 @@
     </div>
     <div class="layui-footer">
         © ITBoy-WEBSQL 简约而不简单.
+            <a id="my" style="color:#2991D9;"   target="_blank" href="https://gitee.com/boy_0214/WEBSQL">获取新版本</a><br>
     </div>
 </div>
 <script src="static/statics/libs/jquery-1.10.2.min.js"></script>
@@ -87,6 +88,13 @@
 <script src="static/statics/js/navTab.js"></script>
 <script src="static/statics/js/index.js"></script>
 <script>
+    $("#my").mouseout(function(){
+        layer.tips('<img  src="/statics/img/home.jpg" style="width: 300px;height: 300px;">', '#my', {
+            tips: [1, '#FFFFFF'],
+            time: 4000
+        });
+    });
+
 </script>
 </body>
 </html>
