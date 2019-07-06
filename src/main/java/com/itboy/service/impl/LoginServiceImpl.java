@@ -1,8 +1,6 @@
 package com.itboy.service.impl;
 
-import com.itboy.dao.SysSetUpRepository;
-import com.itboy.dao.SysUserLogRepository;
-import com.itboy.dao.SysUserRepository;
+import com.itboy.dao.*;
 import com.itboy.model.*;
 import com.itboy.security.MyShiroRealm;
 import com.itboy.service.LoginService;
@@ -23,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.Path;
@@ -48,6 +47,12 @@ public class LoginServiceImpl implements LoginService {
 
     @Autowired
     private SysSetUpRepository sysSetUpRepository;
+
+    @Autowired
+    private SysRoleRepository sysRoleRepository;
+
+    @Autowired
+    private SysMenuRepository sysMenuRepository;
 
     @Override
     public SysUser findByUserName(String userName) {
@@ -154,5 +159,42 @@ public class LoginServiceImpl implements LoginService {
         if(!StringUtils.isEmpty(sys.getCol2()))sysSetup.setCol2(sys.getCol2());
         if(!StringUtils.isEmpty(sys.getCol1()))sysSetup.setCol1(sys.getCol1());
         sysSetUpRepository.save(sysSetup);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void initSystem() {
+        try {
+            SysPermission menu = new SysPermission();
+            menu.setParentId(1l);
+            menu.setAvailable(true);
+            menu.setParentIds("1");
+            menu.setPermissionId(1);
+            menu.setResourceType("menu");
+            menu.setPermissionName("menu");
+            //sysMenuRepository.save(menu);
+            SysRole role = new SysRole();
+            role.setRole("1");
+            role.setRoleId(1);
+            //sysRoleRepository.save(role);
+            SysSetup sysSetup = SysSetup.getInstance();
+            sysSetup.setId(1l);
+            sysSetup.setCol2("1");
+            sysSetup.setCol3(1);
+            sysSetup.setCol4(1);
+            sysSetup.setCol1("1");
+            sysSetup.setInitDbsource(1);
+            sysSetUpRepository.save(sysSetup);
+            SysUser users = new SysUser();
+            users.setPassword("df655ad8d3229f3269fad2a8bab59b6c");
+            users.setUserId(1l);
+            users.setName("系统管理员");
+            users.setUserName("admin");
+            users.setSalt("1");
+            sysUserRepository.save(users);
+        } catch (Exception e) {
+            log.error("初始化系统报错"+e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

@@ -51,7 +51,7 @@ public class LoginController {
 
     @RequestMapping("main")
     public String main(){
-        return "/main";
+        return "main";
     }
 
     @RequestMapping("/userlogPage")

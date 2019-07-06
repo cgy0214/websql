@@ -23,4 +23,6 @@ public interface LoginService {
     void updateUsers(SysUser sysUser);
 
     void updateSysSetUp(SysSetup sys);
+
+    void initSystem();
 }

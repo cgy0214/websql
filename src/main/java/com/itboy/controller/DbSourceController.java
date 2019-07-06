@@ -39,7 +39,7 @@ public class DbSourceController {
 
     @RequestMapping("dbSource/sourceController/page")
     public String dbsourcePage() {
-        return "/dbsourcePage";
+        return "dbsourcePage";
     }
 
     @RequestMapping("dbSource/sqlController/sqlTextPage")

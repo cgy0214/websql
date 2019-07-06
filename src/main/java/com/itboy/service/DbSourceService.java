@@ -36,4 +36,5 @@ public interface DbSourceService {
     void delSysLog();
 
     void delUserLog();
+
 }

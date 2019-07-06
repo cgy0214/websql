@@ -4,6 +4,7 @@ import com.itboy.model.DbSourceModel;
 import com.itboy.model.Result;
 import com.itboy.model.SysSetup;
 import com.itboy.service.DbSourceService;
+import com.itboy.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -26,10 +27,17 @@ public class DbSourceFactory {
     @Autowired
     private DbSourceService dbSourceService;
 
+    @Autowired
+    private LoginService loginService;
 
     @PostConstruct
     private void initDbSource(){
         SysSetup sysSetup =  getSysSetUp();
+        if(sysSetup.getInitDbsource()==0){
+            log.info("Initializing System...");
+            loginService.initSystem();
+        }
+
         if(sysSetup.getInitDbsource()==1){
             log.info("Initializing DbSources...");
             DbSourceModel dbModel = new DbSourceModel();
@@ -39,7 +47,6 @@ public class DbSourceFactory {
             DataSourceFactory.initDataSource(dblist);
         }
     }
-
     @Cacheable(value = "sysSetUp")
     public SysSetup getSysSetUp(){
         SysSetup sysSetup = dbSourceService.initSysSetup();
