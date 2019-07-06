@@ -5,6 +5,8 @@ WEBSQL由JAVA语言纯编,H2内嵌数据库。完全开源,体积小,傻瓜式,�
 
 动态配置MYSQL,ORACLE等关系型数据库源,保存SQL文本实时获取,可控日志记录等功能网页版SQL执行工具。  
 
+可直接下载JAR文件夹下的 jar无需编译即可运行。
+
 
 
 #### 软件架构
@@ -29,17 +31,19 @@ JSON处理：fastjson
 
 
 
-#### 功能介绍
-![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index1.png)   
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3de6cc17c6cb74bdf82b61b16f4ef6e85f22952a
+#### 功能介绍
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0706/114810_62a5b9c9_1509614.png "1.png") 
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0706/115207_935b9c0c_1509614.png "00.png")
   
 
 
 1. 数据源管理    
 
-![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index2.png)  
-
-
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0706/114920_6b8b4578_1509614.png "3.png")
 
 
 数据源动态配置MYSQL,ORACLE数据库连接进行入池。  
@@ -51,10 +55,10 @@ JSON处理：fastjson
         
 2. SQL管理
 
-![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index3.png)  
 
-![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index4.png)
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0706/114943_ac844114_1509614.png "4.png")
 
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0706/115005_79aec273_1509614.png "6.png")
 
 SQL窗口我们每天都会用的功能,它强大无比;ctrl键智能提示,多行SQL查询 ","分割或换行,多行查询结果集导出,动态获取已保存的SQL文本。使用三步: 选择数据源 > 输入脚本 > 执行  
 SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
@@ -63,10 +67,7 @@ SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
 
 3. 日志管理    
 
-![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index6.png)   
-
-![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index7.png)    
-   
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0706/115108_4ea05dc4_1509614.png "7.png")
 
 
 
@@ -81,8 +82,7 @@ SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
 
 4. 系统管理       
 
-![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index8.png)  
-
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0706/115131_4472e186_1509614.png "8.png")
     
   
 
