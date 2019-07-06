@@ -31,10 +31,6 @@ JSON处理：fastjson
 
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 3de6cc17c6cb74bdf82b61b16f4ef6e85f22952a
 #### 功能介绍
 ![输入图片说明](https://images.gitee.com/uploads/images/2019/0706/114810_62a5b9c9_1509614.png "1.png") 
 ![输入图片说明](https://images.gitee.com/uploads/images/2019/0706/115207_935b9c0c_1509614.png "00.png")
