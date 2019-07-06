@@ -1,7 +1,6 @@
 # WEBSQL
 
 #### 介绍
-<<<<<<< HEAD
 WEBSQL由JAVA语言纯编,H2内嵌数据库。完全开源,体积小,傻瓜式,开箱即用。 ———简约而不简单  
 
 动态配置MYSQL,ORACLE等关系型数据库源,保存SQL文本实时获取,可控日志记录等功能网页版SQL执行工具。  
@@ -31,14 +30,14 @@ JSON处理：fastjson
 
 
 #### 功能介绍
-![Image text](https://gitee.com/boy_0214/webplsql/readmeFile/index1.png)   
+![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index1.png)   
 
   
 
 
 1. 数据源管理    
 
-![Image text](https://gitee.com/boy_0214/webplsql/readmeFile/index2.png)  
+![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index2.png)  
 
 
 
@@ -52,9 +51,9 @@ JSON处理：fastjson
         
 2. SQL管理
 
-![Image text](https://gitee.com/boy_0214/webplsql/readmeFile/index3.png)  
+![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index3.png)  
 
-![Image text](https://gitee.com/boy_0214/webplsql/readmeFile/index4.png)
+![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index4.png)
 
 
 SQL窗口我们每天都会用的功能,它强大无比;ctrl键智能提示,多行SQL查询 ","分割或换行,多行查询结果集导出,动态获取已保存的SQL文本。使用三步: 选择数据源 > 输入脚本 > 执行  
@@ -64,9 +63,9 @@ SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
 
 3. 日志管理    
 
-![Image text](https://gitee.com/boy_0214/webplsql/readmeFile/index6.png)   
+![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index6.png)   
 
-![Image text](https://gitee.com/boy_0214/webplsql/readmeFile/index7.png)    
+![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index7.png)    
    
 
 
@@ -82,7 +81,7 @@ SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
 
 4. 系统管理       
 
-![Image text](https://gitee.com/boy_0214/webplsql/readmeFile/index8.png)  
+![Image text](https://gitee.com/boy_0214/WEBSQL/blob/master/readmeFile/index8.png)  
 
     
   
@@ -118,39 +117,4 @@ jar部署启动命令： nohup java -jar jar名称  >>web.log &
 
 
 
-=======
-网页版sql管理工具，执行SQL，管理数据源，常用sql记录，体积小，傻瓜式便捷。
 
-#### 软件架构
-软件架构说明
-
-
-#### 安装教程
-
-1. xxxx
-2. xxxx
-3. xxxx
-
-#### 使用说明
-
-1. xxxx
-2. xxxx
-3. xxxx
-
-#### 参与贡献
-
-1. Fork 本仓库
-2. 新建 Feat_xxx 分支
-3. 提交代码
-4. 新建 Pull Request
-
-
-#### 码云特技
-
-1. 使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2. 码云官方博客 [blog.gitee.com](https://blog.gitee.com)
-3. 你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解码云上的优秀开源项目
-4. [GVP](https://gitee.com/gvp) 全称是码云最有价值开源项目，是码云综合评定出的优秀开源项目
-5. 码云官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6. 码云封面人物是一档用来展示码云会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
->>>>>>> 9a789672541438a580a07ca3139ca1e0790c5bb2
