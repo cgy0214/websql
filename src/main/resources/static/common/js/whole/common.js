@@ -331,6 +331,17 @@ function openIframe(title,url){
     });
 }
 
+function openViewText(title,content){
+    parent.layer.open({
+        type: 1,
+        title: title,
+        shadeClose: false,
+        shade: [0.3, '#000'],
+        maxmin: true, //开启最大化最小化按钮
+        area: ['700px', '700px'],
+        content: content
+    });
+}
 
 //保存或修改
 layui.use(['form'], function () {
@@ -382,6 +393,39 @@ layui.use(['form'], function () {
     });
 });
 
+function promptUpdate(msg,url,dates){
+
+    layer.prompt({
+        formType: 2,
+        value: dates,
+        anim: 2,
+        title: '请输入Cron表达式',
+        area: ['300px', '200px'] //自定义文本域宽高
+     } ,function(value, index) {
+            confirm("确认" + msg + "？", function () {
+                $.ajax({
+                    type: "post",
+                    url: url + "?cron=" + value,
+                    async: false,
+                    dataType: "json",
+                    success: function (result) {
+                        if (result.code == 0) {
+                            $(".search-btn").click();
+                            parent.layer.msg(result.msg, {icon: 1});
+                            layer.close(index);
+
+                        } else {
+                            parent.layer.msg(result.msg, {icon: 5});
+                            layer.close(index);
+                        }
+                    },
+                    error: function () {
+                        parent.layer.msg("系统繁忙", {icon: 5});
+                    }
+                });
+            });
+    });
+}
 
 $(function () {
     //数字过多时tips显示表格中数据

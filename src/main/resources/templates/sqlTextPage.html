@@ -44,9 +44,9 @@
         <tr>
             <th width="5%" param="{name:'id',isPrimary:'true',hide:'false'}">id</th>
             <th width="10%" param="{name:'title'}">标题</th>
-            <th  param="{name:'sqlText'}">内容</th>
-            <th  param="{name:'sqlCreateDate'}">创建时间</th>
-            <th width="10%" param="{operate:'true',buttons:'Render.delete'}">操作</th>
+            <th width="10%"  param="{name:'sqlCreateUser'}">创建人</th>
+            <th width="10%"  param="{name:'sqlCreateDate'}">创建时间</th>
+            <th width="10%" param="{operate:'true',buttons:'Render.viewSql,Render.delete'}">操作</th>
         </tr>
         </thead>
     </table>
@@ -55,9 +55,20 @@
 <script>
     var Render = {
         delete:function(rowdata){
-            var btn=' <button  onclick="deleteOne(\''+"删除SQL语句"+'\', \''+"/dbSource/sqlController/delsqlText/"+rowdata.id+'\',\''+rowdata.id+'\')" class="layui-btn layui-btn-mini layui-btn-danger ">删除</button>';
+            var btn=' <button  onclick="deleteOne(\''+"删除SQL语句"+'\', \''+"/dbSource/sqlController/delsqlText/"+rowdata.id+'\',\''+rowdata.id+'\')" class="layui-btn layui-btn-sm  layui-btn-danger ">删除</button>';
             return btn;
-        }
+        },
+        viewSql:function(rowdata){
+            var str = rowdata.sqlText;
+            str=str.replace(/\'/g,"’");
+            str=str.replace(/\"/g,"”");
+            str=str.replace(/</g,"《").replace(/>/g,"》");
+            str=str.replace(/\r/g,"&nbsp;");
+            str=str.replace(/\n/g,"<br />");
+            str=str.trim();
+            var btn=' <button  onclick="openViewText(\''+"查看SQL"+'\',\''+str+'\')" class="layui-btn layui-btn-sm  layui-btn-normal ">SQL</button>';
+            return btn;
+        },
     };
     layui.use(['form'], function(){
         var form = layui.form;

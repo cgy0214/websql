@@ -42,10 +42,11 @@
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label" pane>清除日志</label>
+            <label class="layui-form-label" pane>清空日志</label>
             <div class="layui-input-block">
-                <button class="layui-btn layui-btn-danger" onclick="deleteOne('清空SQL执行日志','dbSource/sqlController/delLog/1');return false;" >清空SQL执行日志</button>
-                <button class="layui-btn layui-btn-danger" onclick="deleteOne('清空用户登陆日志','dbSource/sqlController/delLog/2','1');return false;" >清空用户登陆日志</button>
+                <button class="layui-btn layui-btn-danger" onclick="deleteOne('清除SQL执行日志','dbSource/sqlController/delLog/1');return false;" >清空SQL执行记录</button>
+                <button class="layui-btn layui-btn-danger" onclick="deleteOne('清除用户登陆日志','dbSource/sqlController/delLog/2','1');return false;" >清空登陆系统记录</button>
+                <button class="layui-btn layui-btn-danger" onclick="deleteOne('清除作业日志','timing/jobLogDelete','1');return false;" >清空作业执行记录</button>
             </div>
         </div>
         <div class="layui-form-item">

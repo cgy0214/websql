@@ -44,6 +44,39 @@
     },
     {
       "children": null,
+      "icon": "fa fa-database",
+      "list": [
+        {
+          "children": null,
+          "icon": "",
+          "list": null,
+          "name": "新增作业任务",
+          "type": 1,
+          "url": "timing/addPage"
+        },
+        {
+          "children": null,
+          "icon": "",
+          "list": null,
+          "name": "作业任务列表",
+          "type": 1,
+          "url": "timing/timList"
+        },
+        {
+          "children": null,
+          "icon": "",
+          "list": null,
+          "name": "作业执行记录",
+          "type": 1,
+          "url": "timing/history"
+        }
+      ],
+      "name": "作业管理",
+      "type": 0,
+      "url": null
+    },
+    {
+      "children": null,
       "icon": "fa fa-file-o",
       "list": [
         {

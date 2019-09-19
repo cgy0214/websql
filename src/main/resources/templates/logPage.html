@@ -43,16 +43,15 @@
 </form>
 <div class="layui-form nowrap">
    <table class="layui-table" id="pageGrid" cyType="pageGrid"  lay-filter="pageGrid" table-id="pageGrid"
-           cyProps="url:'/dbSource/getLogList',checkbox:'true',pageColor:'#2991d9'">
+           cyProps="url:'/dbSource/getLogList',checkbox:'false',pageColor:'#2991d9'">
         <thead>
         <tr>
             <th width="5%" param="{name:'id',isPrimary:'true',hide:'false'}">id</th>
             <th width="10%" param="{name:'logName'}">日志名称</th>
-            <th  param="{name:'logDbSource'}">执行数据源</th>
-            <th width="5%" param="{name:'logContent'}">执行SQL</th>
-            <th width="1%" param="{name:'logResult'}">返回结果</th>
+            <th width="10%"  param="{name:'logDbSource'}">执行数据源</th>
             <th width="5%" param="{name:'userid'}">操作人</th>
             <th width="5%" param="{name:'logDate'}">操作时间</th>
+            <th width="10%" param="{operate:'true',buttons:'Render.viewSql,Render.results'}">操作</th>
         </tr>
         </thead>
     </table>
@@ -63,6 +62,30 @@
         var form = layui.form;
 
     });
+    var Render = {
+        viewSql:function(rowdata){
+            var str = rowdata.logContent;
+            str=str.replace(/\'/g,"’");
+            str=str.replace(/\"/g,"”");
+            str=str.replace(/</g,"《").replace(/>/g,"》");
+            str=str.replace(/\r/g,"&nbsp;");
+            str=str.replace(/\n/g,"<br />");
+            str=str.trim();
+            var btn=' <button  onclick="openViewText(\''+"查看执行SQL"+'\',\''+str+'\')" class="layui-btn layui-btn-sm  layui-btn-normal ">SQL</button>';
+            return btn;
+        },
+        results:function(rowdata){
+            var str = rowdata.logResult;
+            str=str.replace(/\'/g,"’");
+            str=str.replace(/\"/g,"”");
+            str=str.replace(/</g,"《").replace(/>/g,"》");
+            str=str.replace(/\r/g,"&nbsp;");
+            str=str.replace(/\n/g,"<br />");
+            str=str.trim();
+            var btn=' <button  onclick="openViewText(\''+"查看执行结果"+'\',\''+str+'\')" class="layui-btn layui-btn-sm layui-btn-danger ">结果</button>';
+            return btn;
+        }
+    };
     </script>
 </body>
 </html>

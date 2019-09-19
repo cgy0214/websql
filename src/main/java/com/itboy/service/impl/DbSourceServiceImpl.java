@@ -3,6 +3,8 @@ package com.itboy.service.impl;
 import com.itboy.dao.*;
 import com.itboy.model.*;
 import com.itboy.service.DbSourceService;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
@@ -167,12 +169,13 @@ public class DbSourceServiceImpl implements DbSourceService {
                 ).list();
         return dbList;
     }
-
     @Override
     public void saveSqlText(DbSqlText model) {
+        Subject currentUser = SecurityUtils.getSubject();
+        SysUser user = (SysUser) currentUser.getPrincipal();
+        model.setSqlCreateUser(user.getUserName());
         dbSqlTextRepository.save(model);
     }
-
     @Override
     public List<DbSourceModel> sqlTextList(DbSourceModel model) {
         List dbList = em.createNativeQuery("select title as value ,to_char(sql_text)  as code  from sql_text ").unwrap(SQLQuery.class)
