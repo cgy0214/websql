@@ -8,8 +8,8 @@
         <version>2.1.5.RELEASE</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.itboy.webplsql</groupId>
-    <artifactId>webplsql</artifactId>
+    <groupId>com.itboy.websql</groupId>
+    <artifactId>websql</artifactId>
     <version>1.0-Release</version>
     <name>webplsql</name>
     <description>webplsql project for Spring Boot</description>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <scope>runtime</scope>
+            <version>8.0.17</version>
         </dependency>
         <dependency>
             <groupId>com.oracle</groupId>

@@ -43,6 +43,7 @@ public class SqlDruidParser {
         Object method = getFirstOrNull(visitor.getTables());
         resultMap.put("tables",visitor.getCurrentTable());
         resultMap.put("fields",visitor.getColumns());
+        resultMap.put("tableName",getTable(visitor.getTables()));
         resultMap.put("sqlContent",stmt);
         if (method != null) {
             resultMap.put("executeType", method.toString().toUpperCase());
@@ -77,6 +78,18 @@ public class SqlDruidParser {
             }
         }
         return  obj;
+    }
+
+    private static Object getTable(Map<TableStat.Name, TableStat> map) {
+        String tableName = null;
+        for (Map.Entry<TableStat.Name, TableStat> entry : map.entrySet()) {
+            TableStat.Name keys  = entry.getKey();
+            tableName =  keys.getName();
+            if (tableName != null) {
+                break;
+            }
+        }
+        return  tableName;
     }
 
 
