@@ -30,6 +30,9 @@ public class DbSourceFactory {
     @Autowired
     private LoginService loginService;
 
+    /**
+     * 初始化数据源
+     */
     @PostConstruct
     private void initDbSource(){
         SysSetup sysSetup =  getSysSetUp();
@@ -47,6 +50,11 @@ public class DbSourceFactory {
             DataSourceFactory.initDataSource(dblist);
         }
     }
+
+    /**
+     * 初始化系统配置
+     * @return
+     */
     @Cacheable(value = "sysSetUp")
     public SysSetup getSysSetUp(){
         SysSetup sysSetup = dbSourceService.initSysSetup();

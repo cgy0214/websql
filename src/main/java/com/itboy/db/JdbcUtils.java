@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,7 +70,8 @@ public class JdbcUtils {
             String cols_name;
             Object cols_value;
             while (resultSet.next()) {
-                JSONObject json = new JSONObject();
+                //update 2020.06.12 感谢Mr.Guo 提出顺序展示问题
+                JSONObject json = new JSONObject(new LinkedHashMap());
                 for (int i = 0; i < cols_len; i++) {
                     cols_name = metaData.getColumnLabel(i + 1);
                     cols_value = resultSet.getObject(cols_name);

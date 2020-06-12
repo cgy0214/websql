@@ -65,7 +65,6 @@ public class DataSourceFactory {
     /**
      * 插入数据源连接池到缓存
      */
-
     public static void saveDataSource(DbSourceModel config)throws SQLException {
         if (config != null) {
                  DruidDataSource ds = new DruidDataSource();
@@ -93,8 +92,10 @@ public class DataSourceFactory {
      */
     public static void removeDataSource(String sourceKey){
         DruidDataSource ds = map.get(sourceKey.trim());
-        if(ds==null)return;
-        shutdownDataSource(ds);//先关闭
+        if(ds==null){
+            return;
+        }
+        shutdownDataSource(ds);
         map.remove(sourceKey.trim());
         dbType.remove(sourceKey.trim());
         DruidDataSourceStatManager.removeDataSource(ds);
@@ -109,7 +110,8 @@ public class DataSourceFactory {
 
     public static void updateDataSource(DbSourceModel config) throws Exception {
         if (config != null) {
-            removeDataSource(config.getDbname());//先将原有数据源连接池从缓存中删除
+            //先将原有数据源连接池从缓存中删除
+            removeDataSource(config.getDbname());
             DruidDataSource ds = new DruidDataSource();
             ds.setDriverClassName(config.getDriverClass().trim());
             ds.setUsername(config.getDbaccount().trim());
@@ -138,7 +140,6 @@ public class DataSourceFactory {
         DruidDataSource ds = map.get(sourceKey.trim());
         return ds;
     }
-
 
     public static Connection getConnection(DruidDataSource source) {
         Connection con = null;

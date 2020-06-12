@@ -55,7 +55,9 @@ public class SqlDruidParser {
 
     private static String jdbcConstants(){
         String dsName = DataSourceFactory.getDbType(dbType);
-        if (dsName == null)throw new NullPointerException(dbType + "未获取到有效数据源");
+        if (dsName == null){
+            throw new NullPointerException(dbType + "未获取到有效数据源");
+        }
         switch (dsName) {
             case "mysql":
                 dbType = JdbcConstants.MYSQL;

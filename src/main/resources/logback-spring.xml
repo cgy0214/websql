@@ -125,30 +125,6 @@
         </filter>
     </appender>
 
-    <!--
-        <logger>用来设置某一个包或者具体的某一个类的日志打印级别、
-        以及指定<appender>。<logger>仅有一个name属性，
-        一个可选的level和一个可选的addtivity属性。
-        name:用来指定受此logger约束的某一个包或者具体的某一个类。
-        level:用来设置打印级别，大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF，
-              还有一个特俗值INHERITED或者同义词NULL，代表强制执行上级的级别。
-              如果未设置此属性，那么当前logger将会继承上级的级别。
-        addtivity:是否向上级logger传递打印信息。默认是true。
-    -->
-    <!--<logger name="org.springframework.web" level="info"/>-->
-    <!--<logger name="org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor" level="INFO"/>-->
-    <!--
-        使用mybatis的时候，sql语句是debug下才会打印，而这里我们只配置了info，所以想要查看sql语句的话，有以下两种操作：
-        第一种把<root level="info">改成<root level="DEBUG">这样就会打印sql，不过这样日志那边会出现很多其他消息
-        第二种就是单独给dao下目录配置debug模式，代码如下，这样配置sql语句会打印，其他还是正常info级别：
-     -->
-    <!--
-        root节点是必选节点，用来指定最基础的日志输出级别，只有一个level属性
-        level:用来设置打印级别，大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF，
-        不能设置为INHERITED或者同义词NULL。默认是DEBUG
-        可以包含零个或多个元素，标识这个appender将会添加到这个logger。
-    -->
-
     <logger name="org.springframework.web" level="info"/>
     <logger name="com.alibaba.druid.filter.stat.StatFilter" level="ERROR">
         <appender-ref ref="DruidFILE" />
