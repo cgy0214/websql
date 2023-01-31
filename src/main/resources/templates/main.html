@@ -1,0 +1,29 @@
+<html>
+<head>
+    <script src="/statics/libs/jquery-1.10.2.min.js"></script>
+    <link rel="stylesheet" href="/statics/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/statics/plugins/layui/css/layui.css" media="all">
+    <script src="/statics/plugins/layer/layer.js"></script>
+    <script src="/statics/plugins/layui/layui.js"></script>
+    <link rel="stylesheet" href="/common/css/cyStyle.css">
+    <link rel="stylesheet" href="/common/css/cyType.css">
+    <script src="/static/common/js/whole/common.js"></script>
+</head>
+<body>
+
+
+<div style="text-align: center; width: 100%;">
+    <div id="msg"></div>
+    <img src="/statics/img/indexHome.png" style="margin: 0 auto;cursor:default">
+</div>
+</body>
+<script th:inline="javascript">
+    //没有权限时进行页面提示
+    $("#msg").hide();
+    let errorMsg = [[${errorMsg}]];
+    if (errorMsg != null && errorMsg != undefined) {
+        $("#msg").show();
+        $("#msg").html("<span style='color: red;font-size: 20px;'>" + errorMsg + "</span>");
+    }
+</script>
+</html>

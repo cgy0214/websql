@@ -1,0 +1,160 @@
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>系统设置</title>
+    <script src="/static/statics/libs/jquery-1.7.2.js"></script>
+    <link rel="stylesheet" href="/static/statics/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/statics/plugins/layui/css/layui.css" media="all">
+    <script src="/static/statics/plugins/layer/layer.js"></script>
+    <script src="/static/statics/plugins/layui/layui.js"></script>
+    <link rel="stylesheet" href="/static/common/css/cyStyle.css">
+    <link rel="stylesheet" href="/static/common/css/cyType.css">
+    <script src="/static/common/js/whole/cyLayer.js"></script>
+    <script src="/static/common/js/whole/common.js"></script>
+    <script src="/static/common/js/selectTool.js"></script>
+    <script src="/static/common/js/whole/utils.js"></script>
+</head>
+<style>
+    .layui-input-inline b {
+        color: rgba(68, 65, 30, 0.44);
+        font-size: 13px;
+        margin: 0 10px;
+        font-weight: normal;
+    }
+
+    .lg-width {
+        width: 250px;
+    }
+
+    .menus {
+        padding: 10px 30px;
+        box-sizing: border-box;
+    }
+</style>
+<body>
+
+<div class="menus">
+    <form class="layui-form layui-form-pane" action="">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label" pane>登录账号</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input lg-width" disabled id="userName" th:value="${user.userName}">
+                <input type="hidden" id="userId" th:value="${user.userId}">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label" pane>用户名称</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input lg-width" id="name" th:value="${user.name}">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label" pane>用户邮箱</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input lg-width" id="email" th:value="${user.email}">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label" pane>状态</label>
+            <div class="layui-input-inline">
+                <select name="state" id="state">
+                    <option value="0" selected>有效</option>
+                    <option value="1">无效</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label" pane>角色设置</label>
+            <div class="layui-input-inline" style="width: 500px;" id="checkboxId"></div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" id="saveBtn">保存</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script th:inline="javascript">
+    layui.use(['form', 'table', 'element'], function () {
+        form = layui.form;
+        table = layui.table;
+        element = layui.element;
+        var form = layui.form;
+
+        //加载角色信息
+        $.ajax({
+            type: 'POST',
+            url: "/settingManager/queryRolesSelect",
+            dataType: "json",
+            async: false,
+            success: function (result) {
+                if (result.code == 0) {
+                    for (let i in result.data) {
+                        let item = result.data[i];
+                        $("#checkboxId").append('<input type="checkbox" name="roles" value="' + item.role + '" title="' + "(" + item.role + ")" + item.description + '"><b>' + item.remark + '</b>');
+                    }
+                } else {
+                    layer.msg(data.msg, {icon: 2});
+                }
+                form.render();
+            },
+            error: function (data) {
+                Loading.close(indexOpen);
+                Msg.error("执行异常!");
+            }
+        });
+
+        //设置回显
+        let sysRoleName = [[${user.sysRoleName}]];
+        $(sysRoleName.split(",")).each(function (i, dom) {
+            $("input:checkbox[value='" + dom + "']").attr('checked', 'true');
+        });
+        form.render();
+
+        $("#saveBtn").click(function () {
+            let roles = document.getElementsByName("roles");
+            let value = [];
+            $.each(roles, function (i) {
+                if (roles[i].checked) {
+                    value.push(roles[i].value);
+                }
+            });
+            let url = "/settingManager/updateUserRole";
+            let params = {
+                'userId': $("#userId").val(),
+                'name': $("#name").val(),
+                'state': $("#state").val(),
+                'sysRoleName': value.toString(),
+                'email': $("#email").val()
+            };
+            let indexOpen = Loading.open(2, true);
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: params,
+                dataType: "json",
+                success: function (data) {
+                    Loading.close(indexOpen);
+                    if (data.code == 200) {
+                        $t.Refresh();
+                        Msg.success(data.msg);
+                    } else {
+                        layer.msg(data.msg, {icon: 2});
+                    }
+                },
+                error: function (data) {
+                    Loading.close(indexOpen);
+                    Msg.error("执行异常!");
+                }
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>
