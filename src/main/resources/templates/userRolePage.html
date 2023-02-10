@@ -1,0 +1,88 @@
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>用户管理列表</title>
+    <script src="/static/statics/libs/jquery-1.7.2.js"></script>
+    <link rel="stylesheet" href="/static/statics/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/statics/plugins/layui/css/layui.css" media="all">
+    <script src="/static/statics/plugins/layer/layer.js"></script>
+    <script src="/static/statics/plugins/layui/layui.js"></script>
+    <script src="/static/common/js/pageGrid1.js"></script>
+    <script src="/static/common/js/tplTool.js"></script>
+    <script src="/static/common/js/editGrid.js"></script>
+    <script src="/static/common/js/whole/cyLayer.js"></script>
+    <script src="/static/common/js/whole/common.js"></script>
+    <script src="/static/common/js/whole/utils.js"></script>
+    <script src="/static/common/js/whole/monitor.js"></script>
+    <link rel="stylesheet" href="/static/common/css/cyStyle.css">
+    <link rel="stylesheet" href="/static/common/css/cyType.css">
+</head>
+<body>
+<form class="layui-form" action="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户名称:</label>
+        <div class="layui-input-inline">
+            <input type="text" name="name" id="name" placeholder="请输入用户名称" class="layui-input">
+        </div>
+        <label class="layui-form-label">登录账号:</label>
+        <div class="layui-input-inline">
+            <input type="text" name="userName" id="userName" placeholder="请输入登录账号" class="layui-input">
+        </div>
+        <div class="layui-input-normal">
+            <button class="layui-btn search-btn" table-id="pageGrid" lay-submit="" lay-filter="search">
+                <i class="fa fa-search"> </i>查询
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary">
+                <i class="fa fa-refresh">&nbsp;</i>重置
+            </button>
+            <button class="layui-btn layui-btn-normal"
+                    onclick="Page.open('新增用户','/settingManager/addUserPage')">
+                <i class="fa fa-user-plus">&nbsp;</i>新增
+            </button>
+            <button class="layui-btn layui-btn-warm"
+                    onclick="openViewText('角色说明','<blockquote class=\'layui-elem-quote layui-quote-nm\'\'>角色说明： 角色按照一级导航栏进行分配，预置5种不同菜单权限控制。</br>super-admin 超级管理员角色 至高无上的权利</br>database-admin 数据源管理角色 配置数据源权限</br>sql-admin SQL管理角色 执行sql，保存文本权限</br>log-admin 日志管理角色 查询日志权限</br>timing-admin 作业管理角色 配置同步任务权限</blockquote>')">
+                <i class="fa fa-file-word-o">&nbsp;</i>角色说明
+            </button>
+        </div>
+    </div>
+</form>
+<div class="layui-form nowrap">
+    <table class="layui-table" id="pageGrid" cyType="pageGrid" lay-filter="pageGrid" table-id="pageGrid"
+           cyProps="url:'/settingManager/userRoleList',checkbox:'false',pageColor:'#2991d9'">
+        <thead>
+        <tr>
+            <th width="5%" param="{name:'userId',isPrimary:'true',hide:'false'}">用户ID</th>
+            <th width="10%" param="{name:'userName'}">登录账号</th>
+            <th width="20%" param="{name:'name'}">名称</th>
+            <th width="5%" param="{name:'stateName'}">状态</th>
+            <th width="5%" param="{name:'createTime'}">创建时间</th>
+            <th width="5%" param="{name:'email'}">邮箱</th>
+            <th width="5%" param="{name:'sysRoleName'}">角色</th>
+            <th width="10%" param="{operate:'true',buttons:'Render.update,Render.resetPassword,Render.delete'}">
+                操作
+            </th>
+        </tr>
+        </thead>
+    </table>
+</div>
+
+<script>
+    var Render = {
+        resetPassword: function (rowdata, renderData) {
+            var btn = ' <button  onclick="updateUserPassword(\'' + "修改密码" + '\', \'' + "/settingManager/updateResetPassword/" + rowdata.userId + '\')" class="layui-btn layui-btn-mini layui-btn-warm "><i class="fa fa-wrench"></i>修改密码</button>';
+            return btn;
+        },
+        update: function (rowdata, renderData) {
+            var btn = ' <button  onclick="editOne(\'' + "修改角色" + '\', \'' + "/settingManager/updateUserRolesPage" + '\',\'' + rowdata.userId + '\')" class="layui-btn layui-btn-mini layui-btn-normal "><i class="fa fa-unlock-alt"></i>修改角色</button>';
+            return btn;
+        },
+        delete: function (rowdata, renderData) {
+            var btn = ' <button  onclick="deleteOne(\'' + "删除用户" + '\', \'' + "/settingManager/deleteUserRole/" + rowdata.userId + '\',\'' + rowdata.userId + '\')" class="layui-btn layui-btn-mini layui-btn-danger "><i class="fa fa-times"></i>删除</button>';
+            return btn;
+        }
+    };
+    layui.use(['form', 'table'], function () {
+        var form = layui.form;
+    });
+</script>
+</body>
+</html>

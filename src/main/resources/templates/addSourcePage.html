@@ -1,0 +1,213 @@
+<html>
+<head>
+    <title>新增数据源</title>
+    <script src="/static/statics/libs/jquery-1.7.2.js"></script>
+    <link rel="stylesheet" href="/static/statics/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/statics/plugins/layui/css/layui.css" media="all">
+    <script src="/static/statics/plugins/layui/layui.js"></script>
+    <script src="/static/common/js/selectTool.js"></script>
+    <script src="/static/common/js/whole/cyLayer.js"></script>
+    <script src="/static/common/js/whole/common.js"></script>
+    <script src="/static/common/js/whole/utils.js"></script>
+    <script src="/static/common/js/whole/monitor.js"></script>
+    <link rel="stylesheet" href="/static/common/css/cyStyle.css">
+    <link rel="stylesheet" href="/static/common/css/cyType.css">
+</head>
+<body>
+<div class="layui-field-box">
+    <form class="layui-form" action="" id="addFrom">
+        <div class="layui-inline">
+            <div class="layui-form-item">
+                <label class="layui-form-label">数据库类型</label>
+                <div class="layui-input-inline">
+                    <select name="dbType" lay-verify="required" lay-search="" lay-filter="dbType"
+                            cyProps="filter:'dbType'">
+                        <option value="">请选择</option>
+                        <option value="mysql">mysql</option>
+                        <option value="oracle">oracle</option>
+                        <option value="postgresql">postgresql</option>
+                        <option value="h2file">h2内嵌式</option>
+                        <option value="h2remote">h2远程</option>
+                        <option value="sqlite">sqlite</option>
+                        <option value="sqlserver">sqlserver</option>
+                    </select>
+                </div>
+                <div class="layui-input-inline">
+                    <button class="layui-btn layui-btn-warm" id="testUrl"><i class="fa fa-chain-broken">&nbsp;</i>测试连接
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">连接昵称</label>
+            <div class="layui-input-block">
+                <input type="text" name="dbName" id="dbName" lay-verify="title" autocomplete="off"
+                       placeholder="请输入数据源名称、昵称" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">驱动名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="driverClass" id="driverClass" lay-verify="required"
+                       placeholder="请输入驱动名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">连接地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="dbUrl" id="dbUrl" lay-verify="required" placeholder="请输入JDBC连接地址"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">验证语句</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="dbCheckUrl" id="dbCheckUrl" placeholder="请输入验证查询语句"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">登录账号</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="dbAccount" id="dbAccount" placeholder="请输入数据库登录账号"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">登录密码</label>
+                <div class="layui-input-inline">
+                    <input type="password" name="dbPassword" id="dbPassword" placeholder="请输入数据库登录密码"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">初始大小</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="initialSize" id="initialSize" value="2" placeholder="请输入initialSize"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">最大连接数</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="maxActive" id="maxActive" value="10" placeholder="请输入maxActive"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">最大空闲数</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="maxIdle" id="maxIdle" value="3" placeholder="请输入maxIdle"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">最大等待时间(ms)</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="maxWait" id="maxWait" value="200" placeholder="请输入maxWait"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-inline">
+                    <select name="dbState" lay-verify="required" lay-search="">
+                        <option value="有效">有效</option>
+                        <option value="无效">无效</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="page-footer">
+            <div class="btn-list">
+                <div class="btnlist">
+                    <button class="layui-btn" id="submitData"><i class="fa fa-floppy-o">&nbsp;</i>保存</button>
+                    <button class="layui-btn layui-btn-danger" onclick="$t.Refresh();"><i class="fa fa-minus-square-o">&nbsp;</i>关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+
+<script>
+    let templateArray = [];
+    $.getJSON("/statics/json/dataSourceTemplate.json", function (r) {
+        templateArray = r;
+    });
+    layui.use(['form'], function () {
+        var form = layui.form;
+        $("#submitData").click(function () {
+            var indexLod = Loading.open(2, true);
+            var url = "/dataSourceManager/addDataSource";
+            var params = $('#addFrom').serialize();
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: params,
+                dataType: "json",
+                success: function (data) {
+                    Loading.close(indexLod);
+                    if (data.code == 200) {
+                        $t.Refresh();
+                        Msg.success(data.msg);
+                    } else {
+                        Msg.error(data.msg);
+                    }
+                },
+                error: function (data) {
+                    Loading.close(indexLod);
+                    Msg.error(data.responseText);
+                }
+            });
+            return false;
+        });
+
+        $("#testUrl").click(function () {
+            var url = "/dataSourceManager/checkUrl";
+            var params = $('#addFrom').serialize();
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: params,
+                success: function (data) {
+                    if (data.code == 200) {
+                        Msg.success(data.msg);
+                    } else {
+                        Msg.error(data.msg);
+                    }
+                }
+            });
+            return false;
+        });
+
+        //切换数据源模板
+        form.on('select(dbType)', function (data) {
+            let thisValue = data.value;
+            for (const i in templateArray) {
+                let item = templateArray[i];
+                if (item.name == thisValue) {
+                    settingInputs(item);
+                }
+            }
+        });
+
+        //处理表单
+        function settingInputs(data) {
+            $("#dbName").val("websql-" + data.name);
+            $("#driverClass").val(data.driverClass);
+            $("#dbUrl").val(data.url);
+            $("#dbCheckUrl").val(data.dbCheckUrl);
+        }
+    });
+</script>
+</body>
+</html>
