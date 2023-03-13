@@ -1,13 +1,10 @@
 package com.itboy.controller;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.ObjectUtil;
-import com.itboy.config.DbSourceFactory;
-import com.itboy.config.JdbcUtils;
-import com.itboy.config.SqlDruidParser;
-import com.itboy.model.*;
+import com.itboy.model.AjaxResult;
+import com.itboy.model.DataSourceModel;
+import com.itboy.model.DbSqlText;
+import com.itboy.model.ExecuteSql;
 import com.itboy.service.DbSourceService;
-import com.itboy.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +29,6 @@ import java.util.Map;
 public class SqlManagerController {
 
 
-    @Resource
-    private DbSourceFactory dbSourceFactory;
 
     @Resource
     private DbSourceService dbSourceService;
@@ -123,49 +117,7 @@ public class SqlManagerController {
     @RequestMapping("/executeSql")
     @ResponseBody
     public Map executeSql(@RequestBody ExecuteSql sql) {
-        Map result = new HashMap(3);
-        result.put("code", 1);
-        SysUser user = StpUtils.getCurrentUser();
-        String userName = user.getUserId() + ":" + user.getUserName();
-        SysLog log = new SysLog().setLogName("sql执行记录").setLogDate(DateUtil.now()).setLogContent(sql.getSqlText()).setLogType("1").setLogType("sql执行记录").setLogDbSource(sql.getDataBaseName()).setUserid(userName);
-        try {
-            if (ObjectUtil.isEmpty(sql.getDataBaseName()) || ObjectUtil.isEmpty(sql.getSqlText())) {
-                throw new NullPointerException("请选择数据源或编写SQL!");
-            }
-            Map<String, Object> sqlParser = SqlDruidParser.sqlParser(sql.getDataBaseName(), sql.getSqlText());
-            if (sqlParser.get("executeType") == null) {
-                throw new NullPointerException("SQL解析异常");
-            }
-            result.put("sqlExecuteType", sqlParser.get("executeType"));
-            List<String> executeSqlList = (List<String>) sqlParser.get("executeSql");
-            List dataList = new ArrayList();
-            if (sqlParser.get("executeType").equals("SELECT")) {
-                for (String executeSql : executeSqlList
-                ) {
-                    Map<String, Object> resultData = JdbcUtils.findMoreResult(sql.getDataBaseName(), executeSql, new ArrayList<>());
-                    dataList.add(resultData);
-                }
-            } else {
-                for (String executeSql : executeSqlList
-                ) {
-                    Map<String, Object> resultData = JdbcUtils.updateByPreparedStatement(sql.getDataBaseName(), executeSql, new ArrayList<>());
-                    dataList.add(resultData);
-                }
-            }
-            log.setLogResult(dataList.toString());
-            result.put("dataList", dataList);
-        } catch (Exception e) {
-            log.setLogResult(e.getMessage());
-            e.printStackTrace();
-            result.put("code", 2);
-            result.put("msg", e.getMessage());
-        } finally {
-            SysSetup sysSetup = dbSourceFactory.getSysSetUp();
-            if (sysSetup.getCol3() == 1) {
-                dbSourceService.insertLog(log);
-            }
-        }
-        return result;
+        return dbSourceService.executeSql(sql);
     }
 
 }

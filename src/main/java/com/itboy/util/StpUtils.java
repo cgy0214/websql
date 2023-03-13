@@ -1,7 +1,13 @@
 package com.itboy.util;
 
+import cn.dev33.satoken.exception.ApiDisabledException;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.itboy.model.SysUser;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @ClassName : StpUtils
@@ -45,4 +51,24 @@ public class StpUtils {
     }
 
 
+    /**
+     * 检查开放平台权限
+     */
+    public static void checkOpenAuth() {
+        if (!EnvBeanUtil.getBoolean("open-api-enabled")) {
+            throw new ApiDisabledException("openApi服务未开启!");
+        }
+        if (!ObjectUtil.equal(getRequest().getHeader("auth"), EnvBeanUtil.getString("open-api-password"))) {
+            throw new ApiDisabledException("openApi密码错误!");
+        }
+        SysUser sysUser = new SysUser();
+        sysUser.setName("openApi");
+        sysUser.setUserId(999L);
+        sysUser.setUserName("openApi");
+        login(sysUser);
+    }
+
+    private static HttpServletRequest getRequest() {
+        return ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
+    }
 }

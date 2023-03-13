@@ -13,9 +13,12 @@ public class VersionModel {
 
     private String version;
 
+    private String localVersion;
+
     private String date;
 
     private String link;
 
     private Boolean push = false;
+
 }

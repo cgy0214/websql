@@ -1,7 +1,5 @@
 package com.itboy.model;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import javax.persistence.Transient;
@@ -15,22 +13,16 @@ import javax.persistence.Transient;
 @Data
 public class ExecuteSql {
 
+    /**
+     * 执行的数据源名称
+     */
     @Transient
     private String dataBaseName;
 
+    /**
+     * 执行的sql文本
+     */
     @Transient
     private String sqlText;
-
-    @Transient
-    private String code;
-
-    @Transient
-    private String msg;
-
-    @Transient
-    private JSONArray dataJson;
-
-    @Transient
-    private JSONObject dataObj;
 
 }
