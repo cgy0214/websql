@@ -25,6 +25,7 @@ public class JdbcUtils {
         Map<String, Object> map = new HashMap<>();
         map.put("code", "1");
         map.put("msg", "执行成功");
+        map.put("rawSql",sql);
         Connection connection = getConnections(sourceKey);
         int result = -1;
         PreparedStatement pstmt = null;
@@ -55,6 +56,7 @@ public class JdbcUtils {
         JSONArray list = new JSONArray();
         map.put("code", "1");
         map.put("msg", "执行成功");
+        map.put("rawSql",sql);
         int index = 1;
         PreparedStatement pstmt = null;
         ResultSet resultSet = null;
@@ -113,6 +115,7 @@ public class JdbcUtils {
         Map<String, Object> map = new HashMap<>();
         map.put("code", "1");
         map.put("msg", "执行成功");
+        map.put("rawSql", sql);
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement(sql);

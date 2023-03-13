@@ -1,6 +1,10 @@
 package com.itboy.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.itboy.config.DbSourceFactory;
+import com.itboy.config.JdbcUtils;
+import com.itboy.config.SqlDruidParser;
 import com.itboy.dao.*;
 import com.itboy.model.*;
 import com.itboy.service.DbSourceService;
@@ -40,6 +44,9 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Resource
     private SysUserLogRepository sysUserLogRepository;
+
+    @Resource
+    private DbSourceFactory dbSourceFactory;
 
     @Override
     public Result<DataSourceModel> selectDbSourceList(DataSourceModel result) {
@@ -110,11 +117,6 @@ public class DbSourceServiceImpl implements DbSourceService {
     }
 
     @Override
-    public void insertLog(SysLog logs) {
-        sysLogRepository.save(logs);
-    }
-
-    @Override
     public Result<SysLog> getLogList(SysLog model) {
         Result<SysLog> result = new Result<SysLog>();
         Specification<SysLog> spec = (root, query, cb) -> {
@@ -145,6 +147,53 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Override
     public void delUserLog() {
         sysUserLogRepository.deleteAll();
+    }
+
+    @Override
+    public Map executeSql(ExecuteSql sql) {
+        Map result = new HashMap(3);
+        result.put("code", 1);
+        SysUser user = StpUtils.getCurrentUser();
+        String userName = user.getUserId() + ":" + user.getUserName();
+        SysLog log = new SysLog().setLogName("sql执行记录").setLogDate(DateUtil.now()).setLogContent(sql.getSqlText()).setLogType("1").setLogType("sql执行记录").setLogDbSource(sql.getDataBaseName()).setUserid(userName);
+        try {
+            if (ObjectUtil.isEmpty(sql.getDataBaseName()) || ObjectUtil.isEmpty(sql.getSqlText())) {
+                throw new NullPointerException("请选择数据源或编写SQL!");
+            }
+            Map<String, Object> sqlParser = SqlDruidParser.sqlParser(sql.getDataBaseName(), sql.getSqlText());
+            if (sqlParser.get("executeType") == null) {
+                throw new NullPointerException("SQL解析异常");
+            }
+            result.put("sqlExecuteType", sqlParser.get("executeType"));
+            List<String> executeSqlList = (List<String>) sqlParser.get("executeSql");
+            List dataList = new ArrayList();
+            if (sqlParser.get("executeType").equals("SELECT")) {
+                for (String executeSql : executeSqlList
+                ) {
+                    Map<String, Object> resultData = JdbcUtils.findMoreResult(sql.getDataBaseName(), executeSql, new ArrayList<>());
+                    dataList.add(resultData);
+                }
+            } else {
+                for (String executeSql : executeSqlList
+                ) {
+                    Map<String, Object> resultData = JdbcUtils.updateByPreparedStatement(sql.getDataBaseName(), executeSql, new ArrayList<>());
+                    dataList.add(resultData);
+                }
+            }
+            log.setLogResult(dataList.toString());
+            result.put("dataList", dataList);
+        } catch (Exception e) {
+            log.setLogResult(e.getMessage());
+            e.printStackTrace();
+            result.put("code", 2);
+            result.put("msg", e.getMessage());
+        } finally {
+            SysSetup sysSetup = dbSourceFactory.getSysSetUp();
+            if (sysSetup.getCol3() == 1) {
+                sysLogRepository.save(log);
+            }
+        }
+        return result;
     }
 
     @Override
