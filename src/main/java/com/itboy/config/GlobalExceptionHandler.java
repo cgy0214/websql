@@ -1,5 +1,6 @@
 package com.itboy.config;
 
+import cn.dev33.satoken.exception.ApiDisabledException;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.exception.NotRoleException;
@@ -7,6 +8,7 @@ import com.itboy.model.AjaxResult;
 import com.itboy.util.StpUtils;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +47,12 @@ public class GlobalExceptionHandler {
             modelAndView.addObject("errorMsg", "您没有[" + e.getRole() + "]角色不允许访问此功能，请联系管理员开通!");
             return modelAndView;
         }
+    }
+
+    @ExceptionHandler(ApiDisabledException.class)
+    @ResponseBody
+    public AjaxResult handlerException(HttpServletRequest request, ApiDisabledException e) {
+        return AjaxResult.error(e.getMessage(),"请联系管理员处理!");
     }
 
 

@@ -3,6 +3,7 @@ package com.itboy.security;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpUtil;
+import com.itboy.util.StpUtils;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -27,6 +28,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                     .notMatch("/static/**")
                     .notMatch("/login")
                     .notMatch("/error")
+                    .notMatch("/openApiManager/**")
                     .check(r -> StpUtil.checkLogin());
             SaRouter.match("/dataSourceManager/**")
                     .notMatch("/dataSourceManager/findDataSourceList")
@@ -35,6 +37,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
             SaRouter.match("/sqlManager/**", r -> StpUtil.checkRole("sql-admin"));
             SaRouter.match("/timingManager/**", r -> StpUtil.checkRole("timing-admin"));
             SaRouter.match("/settingManager/**", r -> StpUtil.checkRole("super-admin"));
+            SaRouter.match("/openApiManager/**", r -> StpUtils.checkOpenAuth());
         })).addPathPatterns("/**");
     }
 }

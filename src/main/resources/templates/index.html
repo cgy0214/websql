@@ -77,7 +77,7 @@
         </div>
     </div>
     <div class="layui-footer">
-        © WEBSQL V2.0 简约而不简单.
+        © WEBSQL<span id="versionSpan"></span> 简约而不简单.
         <a id="version" target="_blank" style="color: red"></a>
         <br>
     </div>
@@ -99,6 +99,7 @@
             dataType: "json",
             success: function (result) {
                 let data = result.data;
+                $("#versionSpan").text(data.localVersion);
                 if (data.push) {
                     $("#version").show();
                     $("#version").attr("href", data.link);

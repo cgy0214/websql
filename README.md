@@ -8,9 +8,9 @@
 
 #### 介绍
 
-websql v2.0JAVA语言开发,H2内嵌管理数据库。重构底层，执行效率更快、完全开源、体积小傻瓜式,开箱即用。 ———简约而不简单
+websql v2JAVA语言开发,H2内嵌管理数据库。重构底层，执行效率更快、完全开源、体积小傻瓜式,开箱即用。 ———简约而不简单
 
-支持动态配置`数据库多数据源`,`权限控制`,在线`执行sql`，常用`sql文本实时获取`,`导出`结果集、可控的`日志记录`，生产环境`数据`
+支持动态配置`多数据源`,`权限控制`,在线`执行sql`，常用`sql文本实时获取`,`导出`结果集、可控的`日志记录`，生产环境`数据`,`openapi`，
 同步测试环境等功能；众多功能集一身的`SQL在线执行工具`。
 
 #### 支持的数据库
@@ -49,7 +49,7 @@ JSON处理：fastjson
 
 ![输入图片说明](https://images.gitee.com/uploads/images/2019/0706/114920_6b8b4578_1509614.png "3.png")
 
-数据源动态配置MYSQL,ORACLE数据库连接进行入池。
+数据源动态配置多种数据库连接进行入池。
 
 系统管理-系统设置中数据源选项控制是否项目启动时进行加载数据源。
 
@@ -90,6 +90,12 @@ SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
 
 连接池管理可查看数据源是否加载配置信息等
 
+5. openapi
+
+支持http调用系统接口形式执行SQL动作 <a href='https://gitee.com/boy_0214/websql/wikis/openapi'>查看示例</a>
+
+
+
 #### 应用部署
 
 运行环境：jdk8  
@@ -102,8 +108,8 @@ SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
 
 ##### Docker部署
 
-    docker pull cgycms/websql:2.0
+    docker pull cgycms/websql:2.1
     
-    docker run -di --name websql -p 80:80 cgycms/websql:2.0
+    docker run -di --name websql -p 80:80 cgycms/websql:2.1
     
     docker logs websql

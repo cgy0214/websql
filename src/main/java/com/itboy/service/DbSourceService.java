@@ -30,12 +30,12 @@ public interface DbSourceService {
 
     void deleteSqlText(String id);
 
-    void insertLog(SysLog logs);
-
     Result<SysLog> getLogList(SysLog model);
 
     void delSysLog();
 
     void delUserLog();
+
+    Map executeSql(ExecuteSql sql);
 
 }
