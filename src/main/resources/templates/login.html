@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>WebSql管理系统</title>
+    <link rel="shortcut icon" type="image/x-icon" href="statics/img/favicon.ico" media="screen"/>
+    <link rel="stylesheet" href="/static/statics/plugins/layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="/static/statics/css/login.css" media="all"/>
+</head>
+<body>
+<video class="video-player" preload="auto" autoplay="autoplay" loop="loop" data-height="1080"
+       data-width="1920" height="1080" width="1920" muted="true">
+    <source src="/statics/login/login1.mp4" muted="true" type="video/mp4">
+</video>
+
+<div class="video_mask"></div>
+<div class="login">
+    <h1>WEBSQL</h1>
+    <form class="layui-form">
+        <div class="layui-form-item">
+            <input class="layui-input" name="userName" id="userName" placeholder="用户名" value="" lay-verify="required"
+                   lay-verType="tips" type="text" autocomplete="off">
+        </div>
+        <div class="layui-form-item">
+            <input class="layui-input" name="password" id="password" placeholder="密码" value="" lay-verify="required"
+                   lay-verType="tips" type="password" autocomplete="off">
+        </div>
+        <div class="layui-form-item form_code">
+            <input class="layui-input" style="width: 140px;" name="captcha" id="captchaCode" placeholder="验证码"
+                   lay-verify="required" lay-verType="tips" type="text" autocomplete="off">
+            <div class="code"><img id="captcha" src="/login/captcha" width="116" height="36"
+                                   onclick="refreshCode(this)"></div>
+        </div>
+        <button class="layui-btn login_btn" id="loginBtn">登录</button>
+        <div class="layui-form-item copyright" style="text-align: center;color: #2b542c;margin: 3%;">
+        </div>
+    </form>
+</div>
+<script src="/static/statics/libs/jquery-1.7.2.js"></script>
+<script type="text/javascript" src="/static/statics/plugins/layui/layui.js"></script>
+<script type="text/javascript" src="/static/common/js/whole/cyLayer.js"></script>
+
+</body>
+<script th:inline="javascript">
+    const captchaEnabled = [[${@environment.getProperty('login-captcha-enabled')}]].toLowerCase() === 'true';
+    const loginEnabled = [[${@environment.getProperty('login-enabled')}]].toLowerCase() === 'true';
+    const loginCopyright = [[${@environment.getProperty('login-copyright')}]];
+    $(".copyright").html("©"+loginCopyright);
+    if (!captchaEnabled) {
+        $(".form_code").css("display", "none");
+        $(".login").css("height", "22%");
+    }
+    layui.use(['form', 'table', 'element'], function () {
+        $("#loginBtn").click(function () {
+            var userName = $("#userName").val();
+            var password = $("#password").val();
+            var captcha = $("#captchaCode").val();
+            if (!loginEnabled) {
+                Msg.error("系统已关闭登录入口,请联系管理员!");
+                return false;
+            }
+            if (userName == null || userName === "") {
+                Msg.error("账号不能为空!");
+                return false;
+            }
+            if (password == null || password === "") {
+                Msg.error("密码不能为空!");
+                return false;
+            }
+            if ((captchaEnabled !== false) && (captcha == null || captcha === "")) {
+                Msg.error("验证码不能为空!");
+                return false;
+            }
+            $.ajax({
+                type: 'post',
+                url: "/login",
+                data: JSON.stringify({"userName": userName, "password": password, "captcha": captcha}),
+                cache: false,
+                async: true,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (data) {
+                    if (data.code !== 200) {
+                        Msg.error(data.msg);
+                        refreshCode();
+                    } else {
+                        Msg.success("登录成功！");
+                        location.href = "/index";
+                    }
+                },
+                error: function (data) {
+                    Msg.error("登录异常!");
+                }
+            });
+            return false;
+        });
+
+    });
+
+    function refreshCode() {
+        if (!captchaEnabled) {
+            return;
+        }
+        var captcha = document.getElementById("captcha");
+        captcha.src = "/login/captcha?t=" + new Date().getTime();
+    }
+</script>
+</html>

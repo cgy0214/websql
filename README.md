@@ -108,8 +108,8 @@ SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
 
 ##### Docker部署
 
-    docker pull cgycms/websql:2.1
+    docker pull cgycms/websql:2.2
     
-    docker run -di --name websql -p 80:80 cgycms/websql:2.1
+    docker run -di --name websql -p 80:80 cgycms/websql:2.2
     
     docker logs websql
