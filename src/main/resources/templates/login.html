@@ -32,6 +32,8 @@
                                    onclick="refreshCode(this)"></div>
         </div>
         <button class="layui-btn login_btn" id="loginBtn">登录</button>
+        <div class="layui-form-item copyright" style="text-align: center;color: #2b542c;margin: 3%;">
+        </div>
     </form>
 </div>
 <script src="/static/statics/libs/jquery-1.7.2.js"></script>
@@ -39,21 +41,33 @@
 <script type="text/javascript" src="/static/common/js/whole/cyLayer.js"></script>
 
 </body>
-<script>
+<script th:inline="javascript">
+    const captchaEnabled = [[${@environment.getProperty('login-captcha-enabled')}]].toLowerCase() === 'true';
+    const loginEnabled = [[${@environment.getProperty('login-enabled')}]].toLowerCase() === 'true';
+    const loginCopyright = [[${@environment.getProperty('login-copyright')}]];
+    $(".copyright").html("©"+loginCopyright);
+    if (!captchaEnabled) {
+        $(".form_code").css("display", "none");
+        $(".login").css("height", "22%");
+    }
     layui.use(['form', 'table', 'element'], function () {
         $("#loginBtn").click(function () {
             var userName = $("#userName").val();
             var password = $("#password").val();
             var captcha = $("#captchaCode").val();
-            if (userName == null || userName == "") {
+            if (!loginEnabled) {
+                Msg.error("系统已关闭登录入口,请联系管理员!");
+                return false;
+            }
+            if (userName == null || userName === "") {
                 Msg.error("账号不能为空!");
                 return false;
             }
-            if (password == null || password == "") {
+            if (password == null || password === "") {
                 Msg.error("密码不能为空!");
                 return false;
             }
-            if (captcha == null || captcha == "") {
+            if ((captchaEnabled !== false) && (captcha == null || captcha === "")) {
                 Msg.error("验证码不能为空!");
                 return false;
             }
@@ -66,7 +80,7 @@
                 dataType: "json",
                 contentType: "application/json",
                 success: function (data) {
-                    if (data.code != 200) {
+                    if (data.code !== 200) {
                         Msg.error(data.msg);
                         refreshCode();
                     } else {
@@ -84,6 +98,9 @@
     });
 
     function refreshCode() {
+        if (!captchaEnabled) {
+            return;
+        }
         var captcha = document.getElementById("captcha");
         captcha.src = "/login/captcha?t=" + new Date().getTime();
     }

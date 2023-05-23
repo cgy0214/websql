@@ -6,6 +6,7 @@ import com.itboy.config.ExamineVersionFactory;
 import com.itboy.model.AjaxResult;
 import com.itboy.model.SysUser;
 import com.itboy.service.LoginService;
+import com.itboy.util.EnvBeanUtil;
 import com.itboy.util.IpUtil;
 import com.itboy.util.StpUtils;
 import com.wf.captcha.GifCaptcha;
@@ -86,10 +87,15 @@ public class LoginController {
         String userName = map.get("userName");
         String password = map.get("password");
         String code = map.get("captcha");
+        Boolean loginEnabled = EnvBeanUtil.getBoolean("login-enabled");
+        if (!loginEnabled) {
+            return AjaxResult.error("系统已关闭登录入口,请联系管理员!");
+        }
         if (ObjectUtil.isEmpty(userName) || ObjectUtil.isEmpty(password)) {
             return AjaxResult.error("账号或密码不能为空!");
         }
-        if (ObjectUtil.isEmpty(code) || !CaptchaUtil.ver(code.trim().toLowerCase(), request)) {
+        Boolean captchaEnabled = EnvBeanUtil.getBoolean("login-captcha-enabled");
+        if (captchaEnabled && (ObjectUtil.isEmpty(code) || !CaptchaUtil.ver(code.trim().toLowerCase(), request))) {
             CaptchaUtil.clear(request);
             return AjaxResult.error("验证码不正确!");
         }

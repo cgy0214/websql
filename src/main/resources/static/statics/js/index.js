@@ -36,7 +36,7 @@ function lockPage() {
 // 解锁
 $("body").on("click", "#unlock", function () {
     if ($(this).siblings(".admin-header-lock-input").val() == '') {
-        Tips.tips("请输入websql解锁！", $("#lockPwd"), 1, '#4fcef1');
+        Tips.tips("请输入密码解锁！", $("#lockPwd"), 1, '#4fcef1');
         $(this).siblings(".admin-header-lock-input").focus();
     } else {
         //验证密码是否正确
@@ -45,7 +45,7 @@ $("body").on("click", "#unlock", function () {
             $(this).siblings(".admin-header-lock-input").val('');
             layer.closeAll("page");
         } else {
-            Tips.tips("密码错误，请重新输入websql解锁！！", $("#lockPwd"), 1, '#4fcef1');
+            Tips.tips("密码错误，请重新输入密码解锁！！", $("#lockPwd"), 1, '#4fcef1');
             $(this).siblings(".admin-header-lock-input").val('').focus();
         }
     }
