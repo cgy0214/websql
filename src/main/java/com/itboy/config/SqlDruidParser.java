@@ -1,14 +1,14 @@
 package com.itboy.config;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
 import com.alibaba.druid.stat.TableStat;
+import com.itboy.model.SysSetup;
+import com.itboy.util.CacheUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @ClassName SqlDruidParser
@@ -19,26 +19,30 @@ import java.util.Map;
 @Slf4j
 public class SqlDruidParser {
 
+
+    /**
+     * sql解析
+     *
+     * @param dbName 数据源
+     * @param sql    sql文本
+     * @return
+     * @throws Exception
+     */
     public static Map<String, Object> sqlParser(String dbName, String sql) throws Exception {
         Map<String, Object> resultMap = new HashMap<>(6);
         String dbType = DataSourceFactory.getDbType(dbName);
         String sqlFormat = com.itboy.config.SQLUtils.format(sql, dbType);
         String[] sqlParam = sqlFormat.split(";");
-        List<String> sqlList = Arrays.asList(sqlParam);
-        resultMap.put("executeSql", sqlList);
-        List<SQLStatement> stmtList = SQLUtils.parseStatements(sql, dbType);
-        SQLStatement stmt = stmtList.get(0);
-        SchemaStatVisitor visitor = SQLUtils.createSchemaStatVisitor(dbType);
-        stmt.accept(visitor);
+        SchemaStatVisitor visitor = checkRiskMethod(sql, dbType);
         Object method = getFirstOrNull(visitor.getTables());
         resultMap.put("tables", visitor.getCurrentTable());
         resultMap.put("fields", visitor.getColumns());
         resultMap.put("tableName", getTable(visitor.getTables()));
-        resultMap.put("sqlContent", stmt);
-        if (method != null) {
-            resultMap.put("executeType", method.toString().toUpperCase());
+        resultMap.put("executeType", method == null ? "SELECT" : method.toString().toUpperCase());
+        if (method != null && "SELECT".equalsIgnoreCase(method.toString())) {
+            resultMap.put("executeSql", pageLimitSql(sqlParam, dbType));
         } else {
-            resultMap.put("executeType", "SELECT");
+            resultMap.put("executeSql", Arrays.asList(sqlParam));
         }
         return resultMap;
     }
@@ -64,6 +68,71 @@ public class SqlDruidParser {
             }
         }
         return tableName;
+    }
+
+    /**
+     * 分页判断限制最大条数,暂时写死处理
+     *
+     * @param sqlParam sql文本集合
+     * @param dbType   数据源类型
+     * @return
+     */
+    private static List<String> pageLimitSql(String[] sqlParam, String dbType) {
+        List<String> executeSql = new ArrayList<>(sqlParam.length);
+        Integer limitMax = 1000;
+        SysSetup sysSetup = CacheUtils.get("sys_setup", SysSetup.class);
+        if (ObjectUtil.isNotNull(sysSetup) && ObjectUtil.isNotNull(sysSetup.getPageLimitMax())) {
+            limitMax = sysSetup.getPageLimitMax();
+        }
+        String page = "select * from (";
+        String size = ") where rownum <= " + limitMax;
+        //需要使用rownum分页的数据库
+        List<String> pageType = Arrays.asList("h2", "oracle");
+        for (String item : sqlParam) {
+            if (pageType.contains(dbType)) {
+                if (!item.toUpperCase().contains("ROWNUM") && !item.toUpperCase().contains("ROW_NUMBER")) {
+                    executeSql.add(page + item + size);
+                } else {
+                    executeSql.add(item);
+                }
+            } else {
+                if (!item.toUpperCase().contains("LIMIT")) {
+                    executeSql.add(item + "  LIMIT " + limitMax);
+                } else {
+                    executeSql.add(item);
+                }
+            }
+        }
+        return executeSql;
+    }
+
+    /**
+     * 检查有分析的语句
+     *
+     * @param sql
+     * @param dbType
+     * @return
+     */
+    private static SchemaStatVisitor checkRiskMethod(String sql, String dbType) {
+        List<SQLStatement> stmtList = SQLUtils.parseStatements(sql, dbType);
+        SchemaStatVisitor result = null;
+        SysSetup sysSetup = CacheUtils.get("sys_setup", SysSetup.class);
+        List<String> methods = new ArrayList<>();
+        if (ObjectUtil.isNotNull(sysSetup) && ObjectUtil.isNotNull(sysSetup.getRiskText())) {
+            methods.addAll(Arrays.asList(sysSetup.getRiskText().split(",")));
+        }
+        for (SQLStatement sqlStatement : stmtList) {
+            SchemaStatVisitor visitor = SQLUtils.createSchemaStatVisitor(dbType);
+            sqlStatement.accept(visitor);
+            if (ObjectUtil.isNull(result)) {
+                result = visitor;
+            }
+            String method = getFirstOrNull(visitor.getTables()).toString().toLowerCase();
+            if (methods.contains(method)) {
+                throw new RuntimeException("不允许执行【" + method + "】SQL语句,请联系管理员!");
+            }
+        }
+        return result;
     }
 
 

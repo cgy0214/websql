@@ -10,7 +10,7 @@
 
 websql v2JAVA语言开发,H2内嵌管理数据库。重构底层，执行效率更快、完全开源、体积小傻瓜式,开箱即用。 ———简约而不简单
 
-支持动态配置`多数据源`,`权限控制`,在线`执行sql`，常用`sql文本实时获取`,`导出`结果集、可控的`日志记录`，生产环境`数据`,`openapi`，
+支持动态配置`多数据源`,`权限控制`,在线`执行sql`，常用`sql文本实时获取`,`导出`结果集、可控的`日志记录`，`危险`SQL限制运行，生产环境`数据`,`openapi`，
 同步测试环境等功能；众多功能集一身的`SQL在线执行工具`。
 
 #### 支持的数据库
@@ -102,14 +102,15 @@ SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
 默认端口：80  
 访问路径：http://localhost/index  
 默认登录账号：admin/admin  
-指定端口号： --server.port=8080
+指定端口号： --server.port=8080  
+使用内置H2不需要独立安装数据库及创建表结构，系统会自动创建
 
     nohup java -jar websql.jar  >>web.log &
 
 ##### Docker部署
 
-    docker pull cgycms/websql:2.2
+    docker pull cgycms/websql:2.3
     
-    docker run -di --name websql -p 80:80 cgycms/websql:2.2
+    docker run -di --name websql -p 80:80 cgycms/websql:2.3
     
     docker logs websql
