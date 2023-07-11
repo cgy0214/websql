@@ -60,6 +60,22 @@
         </div>
 
         <div class="layui-form-item">
+            <label class="layui-form-label" pane>分页条数</label>
+            <div class="layui-input-inline">
+                <input type="text" id="pageLimitMax" th:value="${obj.pageLimitMax}" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">默认查询时分页最大查询条数,目前支持mysql、oracle<br>SQL执行时没有分页条件会走此限制,sql中有分页条件不会走此限制</div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label" pane>语句限制</label>
+            <div class="layui-input-inline">
+                <input type="text" id="riskText" th:value="${obj.riskText}" class="layui-input">
+            </div>
+                <div class="layui-form-mid layui-word-aux">执行SQL时检查语句包含危险关键词不允许执行;<br>小写输入关键词支持多个用,分割</div>
+        </div>
+
+        <div class="layui-form-item">
             <label class="layui-form-label" pane>清空操作</label>
             <div class="layui-input-block">
                 <button class="layui-btn layui-btn-danger"
@@ -82,11 +98,9 @@
 </div>
 <script>
     layui.use(['form', 'table', 'element'], function () {
-        form = layui.form;
+        var form = layui.form;
         table = layui.table;
         element = layui.element;
-        var form = layui.form;
-
 
         $("#initDbsource").each(function () {
             $(this).children("option").each(function () {
@@ -128,7 +142,9 @@
                 'col3': $("#col3").val(),
                 'id': 1,
                 'enabledHelp': $("#enabledHelp").val(),
-                'enabledLockView': $("#enabledLockView").val()
+                'enabledLockView': $("#enabledLockView").val(),
+                'pageLimitMax':$("#pageLimitMax").val(),
+                'riskText':$("#riskText").val()
             };
             var indexOpen = Loading.open(2, true);
             $.ajax({

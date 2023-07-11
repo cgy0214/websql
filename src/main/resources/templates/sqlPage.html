@@ -1,7 +1,7 @@
 <html>
 <head>
     <title>WEBSQL-SQL执行窗口</title>
-    <script src="/static/statics/libs/jquery-1.7.2.js"></script>
+    <script src="/statics/libs/jquery-1.10.2.min.js"></script>
     <link rel="stylesheet" href="/static/statics/css/font-awesome.min.css">
     <link rel="stylesheet" href="/static/statics/plugins/layui/css/layui.css" media="all">
     <script src="/static/statics/plugins/layer/layer.js"></script>
@@ -20,6 +20,7 @@
     <script src="/static/code/sql.js"></script>
     <script src="/static/code/show-hint.js"></script>
     <script src="/static/code/sql-hint.js"></script>
+    <script src="/static/common/js/copy.js"></script>
     <style>
         .sqlText {
             border: 1px solid;
@@ -78,7 +79,7 @@
                     <i class="fa fa-save">&nbsp;</i>保存F9
                 </button>
                 <button id="exportData" class="layui-btn layui-btn-primary">
-                    <i class="fa fa-file-excel-o">&nbsp;</i>导出F10
+                    <i class="fa fa-file-excel-o">&nbsp;</i>导出全部F10
                 </button>
             </div>
         </div>
@@ -98,14 +99,13 @@
     <div class="layui-tab layui-tab-card" lay-filter="sqlTab">
         <ul class="layui-tab-title" id="lists">
         </ul>
-        <div class="layui-tab-content" id="listsContent">
+        <div class="layui-tab-content" id="listsContent" style="margin-top:-30px;">
         </div>
     </div>
     <div class="layui-form nowrap">
         <table id="sqlTable" lay-filter="test"></table>
     </div>
 </div>
-
 
 <script>
     layui.use(['form', 'table', 'element'], function () {
@@ -154,6 +154,9 @@
         element.on('tab(sqlTab)', function (data) {
             tabId = data.index;
         });
+
+
+
         //执行sql
         $("#queryBtn").click(function () {
             $("#msgDiv").show();
@@ -202,6 +205,7 @@
                         resultData = [];
                         resultData = data.dataList;
                         tableInit(table, resultData);
+                        window.scrollTo(0, document.documentElement.scrollHeight);
                     } else {
                         Loading.close(indexOpen);
                         window.clearInterval(t1);
@@ -217,9 +221,11 @@
 
             return false;
         });
+
     });
 
     //结果集
+
     function tableInit(table, data) {
         $(".resultLi").remove();
         $("#sqlTableDiv").hide();
@@ -242,13 +248,20 @@
             }
             var elId = "sqlTable" + i;
             $("#lists").append(" <li class='resultLi'>结果集" + (i + 1) + "</li>");
-            $("#listsContent").append("<div class='layui-tab-item resultLi'><table class='layui-table' id='" + elId + "'></table></div>");
+            $("#listsContent").append("<div class='layui-tab-item resultLi' style='padding-top:0px;'><table class='layui-table' id='" + elId + "'></table></div>");
+            var toolbarHtml = "<div><span class=\"layui-badge\">列数:" + head.length + " </span> <span class=\"layui-badge layui-bg-green\">条数："+data[i].data.length +"</span></div>";
             var elIds = table.render({
                 elem: '#' + elId
                 , cols: [head]
                 , data: data[i].data
                 , title: '结果集' + (i + 1)
                 , loading: true
+                , height: 535
+                , cellMinWidth: 150
+                , limit: 10
+                , limits: [10, 100, 1000, 10000]
+                , even: true
+                , toolbar: toolbarHtml
                 , page: {prev: '上一页', next: '下一页', groups: 6}
             });
             tabData[i] = elIds;
@@ -259,6 +272,7 @@
         Loading.close(indexOpen);
         return false;
     }
+
 
     //导出
     $("#exportData").click(function () {

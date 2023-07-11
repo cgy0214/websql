@@ -65,5 +65,15 @@ public class SysSetup {
     @Column
     private Integer enabledLockView;
 
+    /**
+     * 默认分页展示条数
+     */
+    @Column
+    private Integer pageLimitMax;
 
+    /**
+     * 检查非法SQL
+     */
+    @Column(length = 500)
+    private String riskText;
 }

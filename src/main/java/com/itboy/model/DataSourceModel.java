@@ -22,7 +22,7 @@ public class DataSourceModel extends Pages {
     private Long id;
     @Column
     private String dbName;
-    @Column
+    @Column(length = 500)
     private String dbUrl;
     @Transient
     private String dbPort;

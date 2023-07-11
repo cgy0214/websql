@@ -148,8 +148,15 @@ public class LoginServiceImpl implements LoginService {
         if (ObjectUtil.isNotEmpty(sys.getEnabledLockView())) {
             sysSetup.setEnabledLockView(sys.getEnabledLockView());
         }
+        if (ObjectUtil.isNotEmpty(sys.getPageLimitMax())) {
+            sysSetup.setPageLimitMax(sys.getPageLimitMax());
+        }
+        if (ObjectUtil.isNotEmpty(sys.getRiskText())) {
+            sysSetup.setRiskText(sys.getRiskText());
+        }
         CacheUtils.remove("sys_setup");
         sysSetUpRepository.save(sysSetup);
+        CacheUtils.put("sys_setup",sysSetup);
         return true;
     }
 
@@ -347,6 +354,8 @@ public class LoginServiceImpl implements LoginService {
             sysSetup.setInitDbsource(1);
             sysSetup.setEnabledHelp(0);
             sysSetup.setEnabledLockView(0);
+            sysSetup.setPageLimitMax(1000);
+            sysSetup.setRiskText("drop,truncate,delete,create");
             sysSetUpRepository.save(sysSetup);
 
             //初始化默认数据源H2

@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class DataSourceFactory {
 
-    private static ConcurrentHashMap<String, DruidDataSource> map = new ConcurrentHashMap<String, DruidDataSource>();
+    private static final ConcurrentHashMap<String, DruidDataSource> map = new ConcurrentHashMap<String, DruidDataSource>();
 
     /**
      * 根据jdbc参数获得数据源连接池dbcp，并放入ConcurrentHashMap

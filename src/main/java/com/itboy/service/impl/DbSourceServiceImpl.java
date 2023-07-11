@@ -216,6 +216,11 @@ public class DbSourceServiceImpl implements DbSourceService {
             }
             CacheUtils.put("data_source_model", dataSourceList);
         }
+        //按最近使用的数据源推荐
+        String source = sysLogRepository.querySysLogDataSource();
+        dataSourceList.stream().filter(s->s.get("code").equals(source)).forEach(s->s.put("short","1"));
+        dataSourceList.stream().filter(s->!s.get("code").equals(source)).forEach(s->s.put("short","2"));
+        dataSourceList.sort(Comparator.comparingInt((Map o) -> Integer.valueOf(o.get("short").toString())));
         return dataSourceList;
     }
 
