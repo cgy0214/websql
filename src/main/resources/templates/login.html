@@ -1,108 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <title>WebSql管理系统</title>
-    <link rel="shortcut icon" type="image/x-icon" href="statics/img/favicon.ico" media="screen"/>
-    <link rel="stylesheet" href="/static/statics/plugins/layui/css/layui.css" media="all"/>
-    <link rel="stylesheet" href="/static/statics/css/login.css" media="all"/>
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
+    <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
-<body>
-<video class="video-player" preload="auto" autoplay="autoplay" loop="loop" data-height="1080"
-       data-width="1920" height="1080" width="1920" muted="true">
-    <source src="/statics/login/login1.mp4" muted="true" type="video/mp4">
-</video>
-
-<div class="video_mask"></div>
-<div class="login">
-    <h1>WEBSQL</h1>
-    <form class="layui-form">
-        <div class="layui-form-item">
-            <input class="layui-input" name="userName" id="userName" placeholder="用户名" value="" lay-verify="required"
-                   lay-verType="tips" type="text" autocomplete="off">
-        </div>
-        <div class="layui-form-item">
-            <input class="layui-input" name="password" id="password" placeholder="密码" value="" lay-verify="required"
-                   lay-verType="tips" type="password" autocomplete="off">
-        </div>
-        <div class="layui-form-item form_code">
-            <input class="layui-input" style="width: 140px;" name="captcha" id="captchaCode" placeholder="验证码"
-                   lay-verify="required" lay-verType="tips" type="text" autocomplete="off">
-            <div class="code"><img id="captcha" src="/login/captcha" width="116" height="36"
-                                   onclick="refreshCode(this)"></div>
-        </div>
-        <button class="layui-btn login_btn" id="loginBtn">登录</button>
-        <div class="layui-form-item copyright" style="text-align: center;color: #2b542c;margin: 3%;">
-        </div>
-    </form>
-</div>
-<script src="/static/statics/libs/jquery-1.7.2.js"></script>
-<script type="text/javascript" src="/static/statics/plugins/layui/layui.js"></script>
-<script type="text/javascript" src="/static/common/js/whole/cyLayer.js"></script>
-
-</body>
-<script th:inline="javascript">
-    const captchaEnabled = [[${@environment.getProperty('login-captcha-enabled')}]].toLowerCase() === 'true';
-    const loginEnabled = [[${@environment.getProperty('login-enabled')}]].toLowerCase() === 'true';
-    const loginCopyright = [[${@environment.getProperty('login-copyright')}]];
-    $(".copyright").html("©"+loginCopyright);
-    if (!captchaEnabled) {
-        $(".form_code").css("display", "none");
-        $(".login").css("height", "22%");
+<style>
+    .login-container {
+        width: 320px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        margin: -150px 0 0 -150px;
+        z-index: 99;
+        border: 2px solid white;
+        padding: 20px;
+        background-color: white;
+        box-shadow: 0px 1px 10px #16baaa;
     }
-    layui.use(['form', 'table', 'element'], function () {
-        $("#loginBtn").click(function () {
-            var userName = $("#userName").val();
-            var password = $("#password").val();
-            var captcha = $("#captchaCode").val();
+</style>
+<body>
+<form class="layui-form">
+    <div class="login-container">
+        <div class="layui-form-item" style="text-align: center;font-size: 20px;">WEBSQL</div>
+        <div class="layui-form-item">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-username"></i>
+                </div>
+                <input type="text" name="userName" value="" lay-verify="required" placeholder="账    号"
+                       lay-reqtext="请填写账号" autocomplete="off" class="layui-input" lay-affix="clear">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-password"></i>
+                </div>
+                <input type="password" name="password" value="" lay-verify="required" placeholder="密   码"
+                       lay-reqtext="请填写密码" autocomplete="off" class="layui-input" lay-affix="eye">
+            </div>
+        </div>
+        <div class="layui-form-item captcha">
+            <div class="layui-row">
+                <div class="layui-col-xs7">
+                    <div class="layui-input-wrap">
+                        <div class="layui-input-prefix">
+                            <i class="layui-icon layui-icon-vercode"></i>
+                        </div>
+                        <input type="text" name="captcha" value="" lay-verify="required" placeholder="验证码"
+                               lay-reqtext="请填写验证码" autocomplete="off" class="layui-input" lay-affix="clear">
+                    </div>
+                </div>
+                <div class="layui-col-xs5">
+                    <div style="margin-left: 10px;">
+                        <img id="captcha" th:src="@{/login/captcha}" onclick="refreshCode(this)">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="login">登录</button>
+        </div>
+        <div class="layui-form-item copyright" style="text-align:center">
+        </div>
+    </div>
+</form>
+</body>
+<script th:src="@{/static/layui.js}"></script>
+<script th:replace="~{base::ctx}"/>
+<script th:inline="javascript">
+    layui.use(function () {
+        const layer = layui.layer;
+        const form = layui.form;
+        const $ = layui.jquery;
+        //init
+        $(".copyright").html("©" + loginCopyright);
+        if (!captchaEnabled) {
+            $(".captcha").css("display", "none");
+        }
+        form.on('submit(login)', function (data) {
             if (!loginEnabled) {
-                Msg.error("系统已关闭登录入口,请联系管理员!");
-                return false;
-            }
-            if (userName == null || userName === "") {
-                Msg.error("账号不能为空!");
-                return false;
-            }
-            if (password == null || password === "") {
-                Msg.error("密码不能为空!");
-                return false;
-            }
-            if ((captchaEnabled !== false) && (captcha == null || captcha === "")) {
-                Msg.error("验证码不能为空!");
+                layer.msg("系统已关闭登录入口,请联系管理员!");
                 return false;
             }
             $.ajax({
                 type: 'post',
-                url: "/login",
-                data: JSON.stringify({"userName": userName, "password": password, "captcha": captcha}),
+                url: ctx + "login",
+                data: JSON.stringify(data.field),
                 cache: false,
                 async: true,
                 dataType: "json",
                 contentType: "application/json",
                 success: function (data) {
-                    if (data.code !== 200) {
-                        Msg.error(data.msg);
-                        refreshCode();
-                    } else {
-                        Msg.success("登录成功！");
-                        location.href = "/index";
-                    }
+                    layer.msg(data.msg, function () {
+                        location.href = ctx;
+                    });
                 },
                 error: function (data) {
-                    Msg.error("登录异常!");
+                    layer.msg("登录失败!");
                 }
             });
             return false;
         });
 
+
     });
 
+    /**
+     * 刷新验证码，防止图片不变化
+     */
     function refreshCode() {
         if (!captchaEnabled) {
             return;
         }
-        var captcha = document.getElementById("captcha");
-        captcha.src = "/login/captcha?t=" + new Date().getTime();
+        const captcha = document.getElementById("captcha");
+        captcha.src = ctx + "login/captcha?t=" + new Date().getTime();
     }
 </script>
 </html>

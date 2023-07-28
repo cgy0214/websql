@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * @ClassName : SysUserRoleRepository
  * @Description :
- * @Author : 超
+ * @Author : 超 boy_0214@sina.com
  * @Date: 2023/1/28 23:14
  */
 public interface SysUserRoleRepository extends JpaRepository<SysUserRole, Long> {

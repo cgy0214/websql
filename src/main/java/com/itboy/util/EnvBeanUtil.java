@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * @ClassName : EnvBeanUtil
- * @Description : 超 boy_0214@sina.com
- * @Author : 王力超
+ * @Description : 获取环境变量
+ * @Author : 超 boy_0214@sina.com
  * @Date: 2023/3/13 15:35
  */
 @Component
