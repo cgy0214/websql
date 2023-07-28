@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <title>WebSql管理系统</title>
+  <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
+  <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+</head>
+<body>
+新页面模板
+</body>
+<script th:src="@{/static/layui.js}"></script>
+<script th:replace="~{base::ctx}"/>
+<script>
+  layui.use(function () {
+    const layer = layui.layer;
+    const form = layui.form;
+    const $ = layui.jquery;
+    form.on('submit(demo-login)', function(data){
+      var field = data.field; // 获取表单字段值
+      layer.alert(JSON.stringify(field), {
+        title: '当前填写的字段值'
+      });
+      return false;
+    });
+  });
+</script>
+</html>

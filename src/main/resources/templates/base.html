@@ -1,0 +1,13 @@
+<!--公共参数-->
+<script type="text/javascript" th:inline="javascript" th:fragment="ctx">
+  /*<![CDATA[*/
+  const ctx = /*[[@{/}]]*/ '';
+  const captchaEnabled = [[${@environment.getProperty('login-captcha-enabled')}]].toLowerCase() === 'true';
+  const loginEnabled = [[${@environment.getProperty('login-enabled')}]].toLowerCase() === 'true';
+  const loginCopyright = [[${@environment.getProperty('login-copyright')}]];
+  /*]]>*/
+</script>
+
+
+
+

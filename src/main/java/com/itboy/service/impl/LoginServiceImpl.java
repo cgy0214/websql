@@ -80,7 +80,7 @@ public class LoginServiceImpl implements LoginService {
                 return AjaxResult.error("账号或密码错误!");
             }
             log.setUserId(user.getUserId());
-            return AjaxResult.success(StpUtils.login(user));
+            return AjaxResult.success("欢迎您:" + StpUtils.login(user));
         } catch (Exception e) {
             e.printStackTrace();
             log.setLoginFlag(e.getMessage());
@@ -156,7 +156,7 @@ public class LoginServiceImpl implements LoginService {
         }
         CacheUtils.remove("sys_setup");
         sysSetUpRepository.save(sysSetup);
-        CacheUtils.put("sys_setup",sysSetup);
+        CacheUtils.put("sys_setup", sysSetup);
         return true;
     }
 
