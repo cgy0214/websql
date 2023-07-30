@@ -33,8 +33,8 @@ public class DataSourceManagerController {
 
 
     @RequestMapping("/page")
-    public String dbsourcePage() {
-        return "dbsourcePage";
+    public String dataSourcePage() {
+        return "dataSourcePage";
     }
 
 

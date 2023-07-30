@@ -1,11 +1,120 @@
 <!--公共参数-->
+<script th:src="@{/static/layui.js}"></script>
 <script type="text/javascript" th:inline="javascript" th:fragment="ctx">
-  /*<![CDATA[*/
-  const ctx = /*[[@{/}]]*/ '';
-  const captchaEnabled = [[${@environment.getProperty('login-captcha-enabled')}]].toLowerCase() === 'true';
-  const loginEnabled = [[${@environment.getProperty('login-enabled')}]].toLowerCase() === 'true';
-  const loginCopyright = [[${@environment.getProperty('login-copyright')}]];
-  /*]]>*/
+    /*<![CDATA[*/
+    const ctx = /*[[@{/}]]*/ '';
+
+    /**
+     * 是否启用验证码
+     * @type {boolean}
+     */
+    const captchaEnabled = [[${@environment.getProperty('login-captcha-enabled')}]].toLowerCase() === 'true';
+
+    /**
+     * 是否允许登录
+     * @type {boolean}
+     */
+    const loginEnabled = [[${@environment.getProperty('login-enabled')}]].toLowerCase() === 'true';
+
+    /**
+     * 版权信息
+     * @type {*[][]}
+     */
+    const loginCopyright = [[${@environment.getProperty('login-copyright')}]];
+
+    /**
+     * 数据表格返回值通用处理
+     * @param res
+     * @returns {{msg: *, code: number, data: *, count}}
+     */
+    function parseData(res) {
+        return {
+            "code": res.code == 200 ? 0 : 1,
+            "msg": res.msg,
+            "count": res.data.count,
+            "data": res.data.list
+        };
+    }
+
+    /**
+     * post请求
+     * @param url
+     * @param data
+     * @param callback
+     */
+    function post(url, data, callback) {
+        layui.use(function () {
+            const $ = layui.jquery;
+            const layer = layui.layer;
+            $.ajax({
+                type: "post",
+                url: url,
+                async: false,
+                data: data == null ? null : JSON.stringify(data),
+                dataType: "json",
+                contentType: "application/json",
+                success: function (result) {
+                    if (typeof (callback) === "function") {
+                        callback(result);
+                    } else {
+                        layer.msg(result.msg, {icon: 1});
+                    }
+                },
+                error: function () {
+                    layer.msg("系统繁忙", {icon: 5});
+                }
+            });
+        });
+    }
+
+    /**
+     * 弹出信息框
+     * @param title  标题
+     * @param content html内容
+     */
+    function openContent(title, content) {
+        layui.use(function () {
+            const $ = layui.jquery;
+            const layer = layui.layer;
+            layer.open({
+                type: 1,
+                title: title,
+                shadeClose: false,
+                shade: [0.3, '#000'],
+                area: ['auto', 'auto'],
+                anim: 'slideLeft',
+                isOutAnim: false,
+                offset: 'auto',
+                content: content
+            });
+
+        });
+    }
+
+    /**
+     * 弹窗页面框
+     * @param title 标题
+     * @param url 地址
+     */
+    function openPage(title, url) {
+        layui.use(function () {
+            const $ = layui.jquery;
+            const layer = layui.layer;
+            layer.open({
+                type: 2,
+                title: title,
+                shadeClose: false,
+                shade: [0.3, '#000'],
+                area: ['80%', '80%'],
+                anim: 'slideLeft',
+                content: url,
+                isOutAnim: false,
+                offset: 'auto'
+            });
+        });
+    }
+
+    /*]]>*/
 </script>
 
 

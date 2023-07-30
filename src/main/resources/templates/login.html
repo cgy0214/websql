@@ -7,6 +7,10 @@
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
 <style>
+    body {
+        background-color: #eae1e157;
+    }
+
     .login-container {
         width: 320px;
         position: absolute;
@@ -17,7 +21,20 @@
         border: 2px solid white;
         padding: 20px;
         background-color: white;
-        box-shadow: 0px 1px 10px #16baaa;
+        box-shadow: 0px 2px 10px;
+        animation: color-breath 2s infinite;
+    }
+
+    @keyframes color-breath {
+        0% {
+            border: 2px solid #16baaa;
+        }
+        50% {
+            border: 2px solid #55c06c;
+        }
+        100% {
+            border: 2px solid #27b4e0;
+        }
     }
 </style>
 <body>
@@ -79,33 +96,20 @@
         $(".copyright").html("©" + loginCopyright);
         if (!captchaEnabled) {
             $(".captcha").css("display", "none");
+            $("input[name='captcha']").remove();
         }
         form.on('submit(login)', function (data) {
             if (!loginEnabled) {
                 layer.msg("系统已关闭登录入口,请联系管理员!");
                 return false;
             }
-            $.ajax({
-                type: 'post',
-                url: ctx + "login",
-                data: JSON.stringify(data.field),
-                cache: false,
-                async: true,
-                dataType: "json",
-                contentType: "application/json",
-                success: function (data) {
-                    layer.msg(data.msg, function () {
-                        location.href = ctx;
-                    });
-                },
-                error: function (data) {
-                    layer.msg("登录失败!");
-                }
-            });
+            post(ctx + "login", data.field, (res) => {
+                layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, () => {
+                    location.href = ctx;
+                });
+            })
             return false;
         });
-
-
     });
 
     /**
