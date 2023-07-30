@@ -1,0 +1,162 @@
+<html>
+<head>
+    <title>新增用户</title>
+    <script src="/static/statics/libs/jquery-1.7.2.js"></script>
+    <link rel="stylesheet" href="/static/statics/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/statics/plugins/layui/css/layui.css" media="all">
+    <script src="/static/statics/plugins/layui/layui.js"></script>
+    <script src="/static/common/js/selectTool.js"></script>
+    <script src="/static/common/js/whole/cyLayer.js"></script>
+    <script src="/static/common/js/whole/common.js"></script>
+    <script src="/static/common/js/whole/utils.js"></script>
+    <script src="/static/common/js/whole/monitor.js"></script>
+    <link rel="stylesheet" href="/static/common/css/cyStyle.css">
+    <link rel="stylesheet" href="/static/common/css/cyType.css">
+</head>
+<style>
+    .layui-input-inline b {
+        color: rgba(68, 65, 30, 0.44);
+        font-size: 13px;
+        margin: 0 10px;
+        font-weight: normal;
+    }
+
+    .lg-width {
+        width: 250px;
+    }
+
+    .menus {
+        padding: 10px 30px;
+        box-sizing: border-box;
+    }
+</style>
+<body>
+<div class="layui-field-box">
+    <form class="layui-form" action="" id="addFrom">
+        <div class="layui-form-item">
+            <label class="layui-form-label">登录账号</label>
+            <div class="layui-input-inline">
+                <input type="text" name="userName" id="userName" lay-verify="title" autocomplete="off"
+                       placeholder="请输入登录账号" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户名称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="name" id="name" lay-verify="required"
+                       placeholder="请输入用户名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户密码</label>
+            <div class="layui-input-inline">
+                <input type="password" name="password" id="password" lay-verify="required" placeholder="请输入用户密码"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">用户邮箱</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="email" id="email" placeholder="请输入用户邮箱"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label" pane>角色设置</label>
+            <div class="layui-input-inline" style="width: 500px;" id="checkboxId"></div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select name="state" lay-verify="required" lay-search="">
+                    <option value="0">有效</option>
+                    <option value="1">无效</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="page-footer">
+            <div class="btn-list">
+                <div class="btnlist">
+                    <button class="layui-btn" id="submitData"><i class="fa fa-floppy-o">&nbsp;</i>保存</button>
+                    <button class="layui-btn layui-btn-danger" onclick="$t.Refresh();"><i class="fa fa-minus-square-o">&nbsp;</i>关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+
+<script>
+    layui.use(['form'], function () {
+        let form = layui.form;
+
+        //加载角色信息
+        $.ajax({
+            type: 'POST',
+            url: "/settingManager/queryRolesSelect",
+            dataType: "json",
+            async: false,
+            success: function (result) {
+                if (result.code == 0) {
+                    for (let i in result.data) {
+                        let item = result.data[i];
+                        $("#checkboxId").append('<input type="checkbox" name="roles" value="' + item.role + '" title="' + "(" + item.role + ")" + item.description + '"><b>' + item.remark + '</b>');
+                    }
+                } else {
+                    layer.msg(data.msg, {icon: 2});
+                }
+                form.render();
+            },
+            error: function (data) {
+                Loading.close(indexOpen);
+                Msg.error("执行异常!");
+            }
+        });
+
+
+        $("#submitData").click(function () {
+            var indexLod = Loading.open(2, true);
+            var url = "/settingManager/addUserRoleSource";
+            let roles = document.getElementsByName("roles");
+            let value = [];
+            $.each(roles, function (i) {
+                if (roles[i].checked) {
+                    value.push(roles[i].value);
+                }
+            });
+            let params = $('#addFrom').serialize() + "&sysRoleName=" + value.toString();
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: params,
+                dataType: "json",
+                success: function (data) {
+                    Loading.close(indexLod);
+                    if (data.code == 200) {
+                        $t.Refresh();
+                        Msg.success(data.msg);
+                    } else {
+                        Msg.error(data.msg);
+                    }
+                },
+                error: function (data) {
+                    Loading.close(indexLod);
+                    Msg.error(data.responseText);
+                }
+            });
+            return false;
+        });
+
+
+    });
+</script>
+</body>
+</html>

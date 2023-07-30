@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <title>数据源管理</title>
+    <title>SQL文本常用管理</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
@@ -11,27 +11,18 @@
     <div class="layui-panel">
         <div style="margin: 15px;">
             <div class="layui-form-item">
-                <label class="layui-form-label">连接名称:</label>
+                <label class="layui-form-label">名称:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbName" id="dbname" placeholder="请输入连接名称" class="layui-input">
+                    <input type="text" name="title" id="title" placeholder="请输入名称" class="layui-input">
                 </div>
-                <label class="layui-form-label">登录账号:</label>
+                <label class="layui-form-label">文本内容:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbAccount" id="dbAccount" placeholder="请输入登录账号" class="layui-input">
-                </div>
-                <label class="layui-form-label">连接地址:</label>
-                <div class="layui-input-inline">
-                    <input type="text" name="dbUrl" id="dbUrl" placeholder="请输入连接地址" class="layui-input">
+                    <input type="text" name="sqlText" id="sqlText" placeholder="请输入文本内容" class="layui-input">
                 </div>
                 <div class="layui-input-normal">
                     <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit
                             lay-filter="table-search">
                         <i class="layui-icon layui-icon-search"> </i>查 询
-                    </button>
-                    <button class="layui-btn layui-btn-primary layui-border-blue"
-                            onclick="openPage('添加数据源',ctx+'dataSourceManager/addSourcePage')
-                            return false;">
-                        <i class="layui-icon layui-icon-add-1">&nbsp;</i>添 加
                     </button>
                 </div>
             </div>
@@ -48,7 +39,7 @@
 <script th:replace="~{base::ctx}"/>
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
-        <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
+        <a class="layui-btn  layui-btn-xs" lay-event="view">查看</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
@@ -62,7 +53,7 @@
 
         table.render({
             elem: '#dataTable',
-            url: ctx + 'dataSourceManager/dataSourceList',
+            url: ctx + 'sqlManager/querySqlTextList',
             toolbar: true,
             defaultToolbar: ['filter', 'exports', 'print'],
             page: true,
@@ -70,14 +61,9 @@
             cols: [
                 [
                     {field: 'id', title: 'id', sort: true, fixed: true},
-                    {field: 'dbName', title: '连接名称', sort: true, fixed: true},
-                    {field: 'driverClass', title: '驱动类型', sort: true, fixed: true},
-                    {field: 'dbCheckUrl', title: '验证语句', sort: true, fixed: true},
-                    {field: 'initialSize', title: '初始连接数', sort: true, fixed: true},
-                    {field: 'maxActive', title: '最大连接数', sort: true, fixed: true},
-                    {field: 'maxIdle', title: '最大空闲数', sort: true, fixed: true},
-                    {field: 'maxWait', title: '最大等待时间', sort: true, fixed: true},
-                    {field: 'dbState', title: '状态', sort: true, fixed: true},
+                    {field: 'title', title: '名称', sort: true, fixed: true},
+                    {field: 'sqlCreateUser', title: '创建人', sort: true, fixed: true},
+                    {field: 'sqlCreateDate', title: '保存时间', sort: true, fixed: true},
                     {fixed: 'right', title: '操作', width: 134, minWidth: 125, toolbar: '#toolbarTable'}
                 ]
             ],
@@ -88,16 +74,21 @@
             var data = obj.data;
             switch (obj.event) {
                 case 'view':
-                    const content = laytpl('<div style="margin: 20px;">地址：{{= d.address }} <br> 账号：{{= d.name}} <br> 密码： {{= d.password}}</div>').render({
-                        address: data.dbUrl,
-                        name: data.dbAccount,
-                        password: data.dbPassword
+                    let str = data.sqlText || "";
+                    str = str.replace(/\'/g, "’");
+                    str = str.replace(/\"/g, "”");
+                    str = str.replace(/</g, "《").replace(/>/g, "》");
+                    str = str.replace(/\r/g, "&nbsp;");
+                    str = str.replace(/\n/g, "<br />");
+                    str = str.trim();
+                    const content = laytpl('<div style="margin: 20px;">{{= d.content}}</div>').render({
+                        content: str
                     });
-                    openContent("查看密钥", content);
+                    openContent("查看SQL内容", content);
                     break;
                 case 'delete':
                     layer.confirm('您确定要删除吗?', {icon: 3}, function () {
-                        post(ctx + "dataSourceManager/deleteDataSource/" + data.id, null, (res) => {
+                        post(ctx + "sqlManager/deleteSqlText/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });

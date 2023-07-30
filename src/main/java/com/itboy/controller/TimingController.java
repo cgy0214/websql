@@ -39,7 +39,7 @@ public class TimingController {
 
     @RequestMapping("/historyPage")
     public String historyPage() {
-        return "timingHistoryPage";
+        return "timingLogPage";
     }
 
     /**

@@ -63,6 +63,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             Predicate p2 = cb.like(dbAccount, "%" + account1 + "%");
             Predicate p3 = cb.like(dbUrl, "%" + dbUrl1 + "%");
             Predicate p = cb.and(p1, p2, p3);
+            query.orderBy(cb.desc(root.get("id")));
             return p;
         };
         Page<DataSourceModel> all = dbSourceRepository.findAll(spec, pageRequest);
@@ -83,6 +84,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             Predicate p2 = cb.like(sqlText, "%" + sqlText1 + "%");
             Predicate p3 = cb.like(title, "%" + title1 + "%");
             Predicate p = cb.and(p2, p3);
+            query.orderBy(cb.desc(root.get("id")));
             return p;
         };
         Page<DbSqlText> all = dbSqlTextRepository.findAll(spec, request);
