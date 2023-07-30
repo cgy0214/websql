@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <title>SQL文本常用管理</title>
+    <title>SQL执行日志</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
@@ -11,13 +11,10 @@
     <div class="layui-panel">
         <div style="margin: 15px;">
             <div class="layui-form-item">
-                <label class="layui-form-label">名称:</label>
+                <label class="layui-form-label">执行数据源:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="title" id="title" placeholder="请输入名称" class="layui-input">
-                </div>
-                <label class="layui-form-label">文本内容:</label>
-                <div class="layui-input-inline">
-                    <input type="text" name="sqlText" id="sqlText" placeholder="请输入文本内容" class="layui-input">
+                    <input type="text" name="logDbSource" id="logDbSource" placeholder="请输入数据源名称"
+                           class="layui-input">
                 </div>
                 <div class="layui-input-normal">
                     <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit
@@ -39,8 +36,8 @@
 <script th:replace="~{base::ctx}"/>
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
-        <a class="layui-btn  layui-btn-xs" lay-event="view">查看</a>
-        <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
+        <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
+        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="viewResult">结果</a>
     </div>
 </script>
 <script>
@@ -53,7 +50,7 @@
 
         table.render({
             elem: '#dataTable',
-            url: ctx + 'sqlManager/querySqlTextList',
+            url: ctx + 'logManager/getLogList',
             toolbar: true,
             defaultToolbar: ['filter', 'exports', 'print'],
             page: true,
@@ -61,9 +58,10 @@
             cols: [
                 [
                     {field: 'id', title: 'id', sort: true, fixed: true},
-                    {field: 'title', title: '名称', sort: true, fixed: true},
-                    {field: 'sqlCreateUser', title: '创建人', sort: true, fixed: true},
-                    {field: 'sqlCreateDate', title: '保存时间', sort: true, fixed: true},
+                    {field: 'logName', title: '日志类型', sort: true, fixed: true},
+                    {field: 'logDbSource', title: '执行数据源', sort: true, fixed: true},
+                    {field: 'userid', title: '执行人', sort: true, fixed: true},
+                    {field: 'logDate', title: '执行时间', sort: true, fixed: true},
                     {fixed: 'right', title: '操作', width: 134, minWidth: 125, toolbar: '#toolbarTable'}
                 ]
             ],
@@ -74,28 +72,30 @@
             var data = obj.data;
             switch (obj.event) {
                 case 'view':
-                    let str = data.sqlText || "";
+                    var str = data.logContent || "";
                     str = str.replace(/\'/g, "’");
                     str = str.replace(/\"/g, "”");
                     str = str.replace(/</g, "《").replace(/>/g, "》");
                     str = str.replace(/\r/g, "&nbsp;");
                     str = str.replace(/\n/g, "<br />");
                     str = str.trim();
-                    const content = laytpl('<div style="margin: 20px;">{{= d.content}}</div>').render({
+                    var content = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
                         content: str
                     });
-                    openContent("查看SQL内容", content);
+                    openContent("查看执行SQL内容", content);
                     break;
-                case 'delete':
-                    layer.confirm('您确定要删除吗?', {icon: 3}, function () {
-                        post(ctx + "sqlManager/deleteSqlText/" + data.id, null, (res) => {
-                            layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
-                            });
-                            return;
-                        })
-                    }, function () {
+                case 'viewResult':
+                    var str = data.logResult || "";
+                    str = str.replace(/\'/g, "’");
+                    str = str.replace(/\"/g, "”");
+                    str = str.replace(/</g, "《").replace(/>/g, "》");
+                    str = str.replace(/\r/g, "&nbsp;");
+                    str = str.replace(/\n/g, "<br />");
+                    str = str.trim();
+                    var content = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
+                        content: str
                     });
+                    openContent("查看执行SQL结果", content);
                     break;
             }
         });

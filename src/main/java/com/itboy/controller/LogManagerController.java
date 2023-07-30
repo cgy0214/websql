@@ -32,8 +32,8 @@ public class LogManagerController {
     private LoginService loginService;
 
     @RequestMapping("/logPage")
-    public String logPage() {
-        return "logPage";
+    public String sqlLogPage() {
+        return "sqlLogPage";
     }
 
     @RequestMapping("/userLogPage")
