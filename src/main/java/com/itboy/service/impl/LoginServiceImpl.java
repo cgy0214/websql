@@ -175,6 +175,12 @@ public class LoginServiceImpl implements LoginService {
             if (ObjectUtil.isNotEmpty(model.getUserId())) {
                 predicates.add(cb.equal(root.get("userId"), model.getUserId()));
             }
+            if (ObjectUtil.isNotEmpty(model.getState())) {
+                predicates.add(cb.equal(root.get("state"), model.getState()));
+            }
+            if (ObjectUtil.isNotEmpty(model.getEmail())) {
+                predicates.add(cb.equal(root.get("email"), model.getEmail()));
+            }
             query.orderBy(cb.desc(root.get("createTime")));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };
@@ -286,6 +292,18 @@ public class LoginServiceImpl implements LoginService {
         loginService.updateUserRoles(param);
         return AjaxResult.success();
     }
+
+    @Override
+    public AjaxResult unlock(String pass) {
+        SysUser currentUser = StpUtils.getCurrentUser();
+        SysUser user = this.findByUserName(currentUser.getUserName());
+        String loginPass = PasswordUtil.createPassword(pass, user.getUserName());
+        if (!user.getPassword().equals(loginPass)) {
+            return AjaxResult.error("密码错误!");
+        }
+        return AjaxResult.success();
+    }
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)

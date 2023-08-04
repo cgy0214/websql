@@ -1,17 +1,9 @@
-<html>
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>新增用户</title>
-    <script src="/static/statics/libs/jquery-1.7.2.js"></script>
-    <link rel="stylesheet" href="/static/statics/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/static/statics/plugins/layui/css/layui.css" media="all">
-    <script src="/static/statics/plugins/layui/layui.js"></script>
-    <script src="/static/common/js/selectTool.js"></script>
-    <script src="/static/common/js/whole/cyLayer.js"></script>
-    <script src="/static/common/js/whole/common.js"></script>
-    <script src="/static/common/js/whole/utils.js"></script>
-    <script src="/static/common/js/whole/monitor.js"></script>
-    <link rel="stylesheet" href="/static/common/css/cyStyle.css">
-    <link rel="stylesheet" href="/static/common/css/cyType.css">
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
+    <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
 <style>
     .layui-input-inline b {
@@ -20,37 +12,28 @@
         margin: 0 10px;
         font-weight: normal;
     }
-
-    .lg-width {
-        width: 250px;
-    }
-
-    .menus {
-        padding: 10px 30px;
-        box-sizing: border-box;
-    }
 </style>
 <body>
 <div class="layui-field-box">
-    <form class="layui-form" action="" id="addFrom">
+    <form class="layui-form layui-form-pane" action="">
         <div class="layui-form-item">
             <label class="layui-form-label">登录账号</label>
             <div class="layui-input-inline">
-                <input type="text" name="userName" id="userName" lay-verify="title" autocomplete="off"
+                <input type="text" name="userName" id="userName" lay-verify="required" autocomplete="off" lay-affix="clear"
                        placeholder="请输入登录账号" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">用户名称</label>
             <div class="layui-input-inline">
-                <input type="text" name="name" id="name" lay-verify="required"
+                <input type="text" name="name" id="name" lay-verify="required" lay-affix="clear"
                        placeholder="请输入用户名称" autocomplete="off" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">用户密码</label>
             <div class="layui-input-inline">
-                <input type="password" name="password" id="password" lay-verify="required" placeholder="请输入用户密码"
+                <input type="password" name="password" id="password" lay-verify="required" placeholder="请输入用户密码" lay-affix="eye"
                        autocomplete="off" class="layui-input">
             </div>
         </div>
@@ -59,8 +42,8 @@
             <div class="layui-inline">
                 <label class="layui-form-label">用户邮箱</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="email" id="email" placeholder="请输入用户邮箱"
-                           autocomplete="off" class="layui-input">
+                    <input type="text" name="email" id="email" placeholder="请输入用户邮箱" lay-affix="clear"
+                           autocomplete="off" class="layui-input" lay-verify="email">
                 </div>
             </div>
         </div>
@@ -84,8 +67,16 @@
         <div class="page-footer">
             <div class="btn-list">
                 <div class="btnlist">
-                    <button class="layui-btn" id="submitData"><i class="fa fa-floppy-o">&nbsp;</i>保存</button>
-                    <button class="layui-btn layui-btn-danger" onclick="$t.Refresh();"><i class="fa fa-minus-square-o">&nbsp;</i>关闭
+                    <button class="layui-btn layui-btn-primary layui-border-green" lay-submit lay-filter="save"
+                            lay-type="saveContinue">
+                        <i class="layui-icon  layui-icon-add-circle">&nbsp;</i>保存并继续
+                    </button>
+                    <button class="layui-btn layui-btn-primary layui-border-blue" lay-submit lay-filter="save"
+                            lay-type="saveClose">
+                        <i class="layui-icon layui-icon-add-1">&nbsp;</i>保存并关闭
+                    </button>
+                    <button class="layui-btn layui-btn-primary layui-border-red" onclick="refresh();">
+                        <i class="layui-icon layui-icon-close-fill">&nbsp;</i>关闭
                     </button>
                 </div>
             </div>
@@ -93,69 +84,57 @@
     </form>
 
 </div>
-
+<script th:src="@{/static/layui.js}"></script>
+<script th:replace="~{base::ctx}"></script>
 <script>
-    layui.use(['form'], function () {
-        let form = layui.form;
+
+    layui.use(function () {
+        const layer = layui.layer;
+        const form = layui.form;
+        const $ = layui.jquery;
+        const util = layui.util;
 
         //加载角色信息
-        $.ajax({
-            type: 'POST',
-            url: "/settingManager/queryRolesSelect",
-            dataType: "json",
-            async: false,
-            success: function (result) {
-                if (result.code == 0) {
-                    for (let i in result.data) {
-                        let item = result.data[i];
-                        $("#checkboxId").append('<input type="checkbox" name="roles" value="' + item.role + '" title="' + "(" + item.role + ")" + item.description + '"><b>' + item.remark + '</b>');
-                    }
-                } else {
-                    layer.msg(data.msg, {icon: 2});
+        post(ctx + "settingManager/queryRolesSelect", null, (res) => {
+            if (res.code === 200) {
+                for (let i in res.data) {
+                    let item = res.data[i];
+                    $("#checkboxId").append('<input type="checkbox" name="roles" value="' + item.role + '" title="' + "(" + item.role + ")" + item.description + '">');
                 }
                 form.render();
-            },
-            error: function (data) {
-                Loading.close(indexOpen);
-                Msg.error("执行异常!");
+            } else {
+                layer.msg(res.msg, {icon: 2});
             }
-        });
+        })
 
-
-        $("#submitData").click(function () {
-            var indexLod = Loading.open(2, true);
-            var url = "/settingManager/addUserRoleSource";
-            let roles = document.getElementsByName("roles");
+        /**
+         * 保存
+         */
+        form.on('submit(save)', function (data) {
+            const field = data.field;
+            const elem = data.elem;
+            var layType = elem.getAttribute("lay-type");
             let value = [];
+            let roles = document.getElementsByName("roles");
             $.each(roles, function (i) {
                 if (roles[i].checked) {
                     value.push(roles[i].value);
                 }
             });
-            let params = $('#addFrom').serialize() + "&sysRoleName=" + value.toString();
-            $.ajax({
-                type: 'POST',
-                url: url,
-                data: params,
-                dataType: "json",
-                success: function (data) {
-                    Loading.close(indexLod);
-                    if (data.code == 200) {
-                        $t.Refresh();
-                        Msg.success(data.msg);
-                    } else {
-                        Msg.error(data.msg);
+            field["sysRoleName"] = value.toString();
+            post(ctx + "settingManager/addUserRoleSource", field, (res) => {
+                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                    if (res.code === 200) {
+                        if (layType === "saveClose") {
+                            refresh();
+                        } else {
+                            location.reload();
+                        }
                     }
-                },
-                error: function (data) {
-                    Loading.close(indexLod);
-                    Msg.error(data.responseText);
-                }
-            });
+                });
+            })
             return false;
         });
-
-
     });
 </script>
 </body>

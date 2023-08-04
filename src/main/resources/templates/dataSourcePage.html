@@ -13,18 +13,18 @@
             <div class="layui-form-item">
                 <label class="layui-form-label">连接名称:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbName" id="dbname" placeholder="请输入连接名称" class="layui-input">
+                    <input type="text" name="dbName" id="dbname" placeholder="请输入连接名称" class="layui-input" lay-affix="clear">
                 </div>
                 <label class="layui-form-label">登录账号:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbAccount" id="dbAccount" placeholder="请输入登录账号" class="layui-input">
+                    <input type="text" name="dbAccount" id="dbAccount" placeholder="请输入登录账号" class="layui-input" lay-affix="clear">
                 </div>
                 <label class="layui-form-label">连接地址:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbUrl" id="dbUrl" placeholder="请输入连接地址" class="layui-input">
+                    <input type="text" name="dbUrl" id="dbUrl" placeholder="请输入连接地址" class="layui-input" lay-affix="clear">
                 </div>
                 <div class="layui-input-normal">
-                    <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit
+                    <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit id="search"
                             lay-filter="table-search">
                         <i class="layui-icon layui-icon-search"> </i>查 询
                     </button>
@@ -45,7 +45,7 @@
 </form>
 </body>
 <script th:src="@{/static/layui.js}"></script>
-<script th:replace="~{base::ctx}"/>
+<script th:replace="~{base::ctx}"></script>
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
         <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
@@ -101,7 +101,6 @@
                             layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });
-                            return;
                         })
                     }, function () {
                     });
@@ -117,6 +116,8 @@
             });
             return false;
         });
+
+
     });
 </script>
 </html>

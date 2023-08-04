@@ -12,12 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @ClassName : SettingConfigController
@@ -83,7 +81,7 @@ public class SettingConfigController {
 
     @RequestMapping("/updateSysSetUp")
     @ResponseBody
-    public AjaxResult updateSysSetUp(SysSetup sys) {
+    public AjaxResult updateSysSetUp(@RequestBody SysSetup sys) {
         return AjaxResult.success(loginService.updateSysSetUp(sys));
     }
 
@@ -121,22 +119,19 @@ public class SettingConfigController {
 
     @RequestMapping("/queryRolesSelect")
     @ResponseBody
-    public Map queryRolesSelect() {
-        Map result = new HashMap(2);
-        result.put("code", 0);
-        result.put("data", loginService.queryRolesSelect());
-        return result;
+    public AjaxResult queryRolesSelect() {
+        return AjaxResult.success(loginService.queryRolesSelect());
     }
 
     @RequestMapping("/updateUserRole")
     @ResponseBody
-    public AjaxResult updateUserRole(SysUser sysUser) {
+    public AjaxResult updateUserRole(@RequestBody SysUser sysUser) {
         return AjaxResult.success(loginService.updateUserRole(sysUser));
     }
 
     @RequestMapping("/addUserRoleSource")
     @ResponseBody
-    public AjaxResult addUserRoleSource(SysUser sysUser) {
+    public AjaxResult addUserRoleSource(@RequestBody SysUser sysUser) {
         if (ObjectUtil.isEmpty(sysUser.getName())) {
             return AjaxResult.error("名称不能为空!");
         }

@@ -40,4 +40,6 @@ public interface LoginService {
     Boolean updateUserRole(SysUser sysUser);
 
     AjaxResult addUserRoleSource(SysUser sysUser);
+
+    AjaxResult unlock(String pass);
 }

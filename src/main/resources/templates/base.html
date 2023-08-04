@@ -37,6 +37,19 @@
     }
 
     /**
+     * 下拉框返回值通用处理
+     * @param res
+     * @returns {{msg: *, code: (number), data: *, count}}
+     */
+    function parseSelectData(res) {
+        return {
+            "code": res.code,
+            "codeName": res.value,
+            "status": res.short
+        };
+    }
+
+    /**
      * post请求
      * @param url
      * @param data
@@ -46,13 +59,20 @@
         layui.use(function () {
             const $ = layui.jquery;
             const layer = layui.layer;
+            var loadIndex;
             $.ajax({
                 type: "post",
                 url: url,
-                async: false,
+                async: true,
                 data: data == null ? null : JSON.stringify(data),
                 dataType: "json",
                 contentType: "application/json",
+                beforeSend: function () {
+                    loadIndex = layer.load(2);
+                },
+                complete: function () {
+                    layer.close(loadIndex);
+                },
                 success: function (result) {
                     if (typeof (callback) === "function") {
                         callback(result);
@@ -112,6 +132,15 @@
                 offset: 'auto'
             });
         });
+    }
+
+    /**
+     * 弹窗页面关闭并刷新
+     */
+    function refresh() {
+        window.parent.document.getElementById("search").click();
+        var frameIndex = parent.layer.getFrameIndex(window.name);
+        parent.layer.close(frameIndex);
     }
 
     /*]]>*/

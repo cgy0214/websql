@@ -13,11 +13,11 @@
             <div class="layui-form-item">
                 <label class="layui-form-label">名称:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="title" id="title" placeholder="请输入名称" class="layui-input">
+                    <input type="text" name="title" id="title" placeholder="请输入名称" class="layui-input" lay-affix="clear">
                 </div>
                 <label class="layui-form-label">文本内容:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="sqlText" id="sqlText" placeholder="请输入文本内容" class="layui-input">
+                    <input type="text" name="sqlText" id="sqlText" placeholder="请输入文本内容" class="layui-input" lay-affix="clear">
                 </div>
                 <div class="layui-input-normal">
                     <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit
@@ -92,7 +92,6 @@
                             layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });
-                            return;
                         })
                     }, function () {
                     });

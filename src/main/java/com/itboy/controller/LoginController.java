@@ -15,10 +15,7 @@ import com.wf.captcha.utils.CaptchaUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -112,7 +109,7 @@ public class LoginController {
 
     @RequestMapping("userController/updateUsers")
     @ResponseBody
-    public AjaxResult updateUsers(SysUser sysUser) {
+    public AjaxResult updateUsers(@RequestBody SysUser sysUser) {
         return AjaxResult.success(loginService.updateUsers(sysUser));
     }
 
@@ -126,6 +123,21 @@ public class LoginController {
     @ResponseBody
     public AjaxResult queryVersion() {
         return AjaxResult.success(examineVersionFactory.getVersionModel());
+    }
+
+
+    /**
+     * 解锁登录
+     *
+     * @return
+     */
+    @RequestMapping("unlock")
+    @ResponseBody
+    public AjaxResult unlock(@RequestParam String pass) {
+        if (ObjectUtil.isEmpty(pass)) {
+            return AjaxResult.error("密码为空!");
+        }
+        return loginService.unlock(pass);
     }
 
 }
