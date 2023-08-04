@@ -11,7 +11,7 @@
     <form class="layui-form layui-form-pane" action="" lay-filter="val-filter">
 
         <div class="layui-form-item">
-            <label class="layui-form-label" pane>数据源设置</label>
+            <label class="layui-form-label" pane>数据加载</label>
             <div class="layui-input-inline">
                 <select name="initDbsource" id="initDataSource">
                     <option value="1" selected>开启</option>
@@ -26,7 +26,7 @@
         </div>
 
         <div class="layui-form-item">
-            <label class="layui-form-label" pane>日志设置</label>
+            <label class="layui-form-label" pane>日志记录</label>
             <div class="layui-input-inline">
                 <select name="col3" id="col3">
                     <option value="1" selected>开启</option>
@@ -40,7 +40,7 @@
         </div>
 
         <div class="layui-form-item">
-            <label class="layui-form-label" pane>锁屏设置</label>
+            <label class="layui-form-label" pane>锁屏展示</label>
             <div class="layui-input-inline">
                 <select name="enabledLockView" id="enabledLockView">
                     <option value="0" selected>开启</option>
@@ -54,7 +54,7 @@
         </div>
 
         <div class="layui-form-item">
-            <label class="layui-form-label" pane>文档设置</label>
+            <label class="layui-form-label" pane>文档展示</label>
             <div class="layui-input-inline">
                 <select name="enabledHelp" id="enabledHelp">
                     <option value="0" selected>开启</option>
@@ -84,6 +84,17 @@
                 <input type="text" id="riskText" name="riskText" th:value="${obj.riskText}" class="layui-input" lay-affix="clear">
             </div>
             <div class="layui-form-mid layui-text-em" lay-on="tips-right6">
+                <i class="layui-icon layui-icon-tips"></i>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label" pane>失败次数</label>
+            <div class="layui-input-inline" style="width: 400px;">
+                <input type="text" id="failLogin" name="failLogin" th:value="${obj.failLogin}" lay-affix="number"
+                       class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-text-em" lay-on="tips-right7">
                 <i class="layui-icon layui-icon-tips"></i>
             </div>
         </div>
@@ -175,6 +186,9 @@
             },
             'tips-right6': function () {
                 layer.tips('执行SQL时检查语句包含危险关键词不允许执行;<br>小写输入关键词支持多个用,分割', this, tipsConfig);
+            },
+            'tips-right7': function () {
+                layer.tips('账号登录失败次数,超过次数状态将被禁用!<br>普通账号使用超管账号修改用户状态<br>admin账号重置密码 <a target="_blank" href="https://gitee.com/boy_0214/websql/wikis/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98">gitee Wiki</a>', this, tipsConfig);
             }
         })
 

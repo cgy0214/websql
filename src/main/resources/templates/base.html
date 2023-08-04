@@ -81,7 +81,11 @@
                     }
                 },
                 error: function () {
-                    layer.msg("系统繁忙", {icon: 5});
+                    if (typeof (callback) === "function") {
+                        callback(false);
+                    } else {
+                        layer.msg("系统繁忙!", {icon: 2});
+                    }
                 }
             });
         });

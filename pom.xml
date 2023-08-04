@@ -25,7 +25,7 @@
         <hutool.version>5.8.11</hutool.version>
         <saToken.version>1.34.0</saToken.version>
         <easyCaptcha.version>1.6.2</easyCaptcha.version>
-        <fastjson.version>1.2.47</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
     </properties>
 
     <dependencies>

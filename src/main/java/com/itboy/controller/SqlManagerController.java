@@ -29,7 +29,6 @@ import java.util.Map;
 public class SqlManagerController {
 
 
-
     @Resource
     private DbSourceService dbSourceService;
 
@@ -81,13 +80,13 @@ public class SqlManagerController {
      */
     @RequestMapping("/saveSqlText")
     @ResponseBody
-    public String saveSqlText(DbSqlText model) {
+    public AjaxResult saveSqlText(@RequestBody DbSqlText model) {
         try {
             dbSourceService.saveSqlText(model);
         } catch (Exception e) {
-            return "新增失败！error：" + e.getMessage();
+            return AjaxResult.error(e.getMessage());
         }
-        return "新增成功！";
+        return AjaxResult.success();
     }
 
 
@@ -119,5 +118,4 @@ public class SqlManagerController {
     public Map executeSql(@RequestBody ExecuteSql sql) {
         return dbSourceService.executeSql(sql);
     }
-
 }
