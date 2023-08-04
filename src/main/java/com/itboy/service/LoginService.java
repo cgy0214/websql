@@ -42,4 +42,6 @@ public interface LoginService {
     AjaxResult addUserRoleSource(SysUser sysUser);
 
     AjaxResult unlock(String pass);
+
+    AjaxResult unlockLoginUser(String code);
 }

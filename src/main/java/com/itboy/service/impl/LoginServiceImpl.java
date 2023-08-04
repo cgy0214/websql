@@ -1,6 +1,7 @@
 package com.itboy.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.itboy.config.DataSourceFactory;
 import com.itboy.dao.*;
@@ -86,6 +87,9 @@ public class LoginServiceImpl implements LoginService {
             log.setLoginFlag(e.getMessage());
             return AjaxResult.error(e.getMessage());
         } finally {
+            if (!log.getLoginFlag().contains("登录成功")) {
+                ThreadUtil.execAsync(() -> checkLoginFail(log));
+            }
             sysUserLogRepository.save(log);
         }
     }
@@ -153,6 +157,9 @@ public class LoginServiceImpl implements LoginService {
         }
         if (ObjectUtil.isNotEmpty(sys.getRiskText())) {
             sysSetup.setRiskText(sys.getRiskText());
+        }
+        if (ObjectUtil.isNotEmpty(sys.getFailLogin())) {
+            sysSetup.setFailLogin(sys.getFailLogin());
         }
         CacheUtils.remove("sys_setup");
         sysSetUpRepository.save(sysSetup);
@@ -293,6 +300,12 @@ public class LoginServiceImpl implements LoginService {
         return AjaxResult.success();
     }
 
+    /**
+     * 锁定屏幕解锁
+     *
+     * @param pass
+     * @return
+     */
     @Override
     public AjaxResult unlock(String pass) {
         SysUser currentUser = StpUtils.getCurrentUser();
@@ -304,6 +317,36 @@ public class LoginServiceImpl implements LoginService {
         return AjaxResult.success();
     }
 
+    /**
+     * 检查账号是否超过失败错误，修改为无效状态
+     *
+     * @param userLog
+     */
+    public void checkLoginFail(SysUserLog userLog) {
+        Integer count = sysUserLogRepository.findUserLoginFail(userLog.getUserName());
+        SysSetup sysSetup = CacheUtils.get("sys_setup", SysSetup.class);
+        Integer failLogin = 3;
+        if (ObjectUtil.isNotNull(sysSetup) && ObjectUtil.isNotNull(sysSetup.getFailLogin())) {
+            failLogin = sysSetup.getFailLogin();
+        }
+        if (count >= failLogin) {
+            sysUserRepository.updateStateByUserName(userLog.getUserName(), 1);
+        }
+    }
+
+    /**
+     * 解锁超级管理源账号并重置密码
+     *
+     * @param code
+     * @return
+     */
+    @Override
+    public AjaxResult unlockLoginUser(String code) {
+        sysUserRepository.updateStateByUserName("admin", 0);
+        updateResetPassword(1L, code);
+        sysUserLogRepository.deleteFailUser("admin");
+        return AjaxResult.success();
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -373,6 +416,7 @@ public class LoginServiceImpl implements LoginService {
             sysSetup.setEnabledHelp(0);
             sysSetup.setEnabledLockView(0);
             sysSetup.setPageLimitMax(1000);
+            sysSetup.setFailLogin(3);
             sysSetup.setRiskText("drop,truncate,delete,create");
             sysSetUpRepository.save(sysSetup);
 

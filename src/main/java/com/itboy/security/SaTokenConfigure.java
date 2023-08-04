@@ -29,6 +29,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                     .notMatch("/login")
                     .notMatch("/error")
                     .notMatch("/openApiManager/**")
+                    .notMatch("/unlockLoginUser")
                     .check(r -> StpUtil.checkLogin());
             SaRouter.match("/dataSourceManager/**")
                     .notMatch("/dataSourceManager/findDataSourceList")

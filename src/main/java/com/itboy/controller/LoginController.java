@@ -6,6 +6,7 @@ import com.itboy.config.ExamineVersionFactory;
 import com.itboy.model.AjaxResult;
 import com.itboy.model.SysUser;
 import com.itboy.service.LoginService;
+import com.itboy.util.CheckLoginUserResetUtils;
 import com.itboy.util.EnvBeanUtil;
 import com.itboy.util.IpUtil;
 import com.itboy.util.StpUtils;
@@ -138,6 +139,27 @@ public class LoginController {
             return AjaxResult.error("密码为空!");
         }
         return loginService.unlock(pass);
+    }
+
+
+    /**
+     * 解锁登录
+     *
+     * @return
+     */
+    @RequestMapping("unlockLoginUser")
+    @ResponseBody
+    public AjaxResult unlockLoginUser(@RequestParam(required = false) String code) {
+        if (ObjectUtil.isEmpty(code)) {
+            log.info("==========================生成重置验证码开始==================================");
+            log.info(CheckLoginUserResetUtils.get());
+            log.info("===========================用验证码重新请求此接口,重置admin账户登录密码为此验证码！！！=================================");
+            return AjaxResult.error("验证码生成完成,请查看日志!");
+        }
+        if (!CheckLoginUserResetUtils.check(code)) {
+            return AjaxResult.error("验证码错误,请重新生成!");
+        }
+        return loginService.unlockLoginUser(code);
     }
 
 }

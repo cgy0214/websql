@@ -167,6 +167,7 @@ public class DbSourceServiceImpl implements DbSourceService {
                 throw new NullPointerException("SQL解析异常");
             }
             result.put("sqlExecuteType", sqlParser.get("executeType"));
+            result.put("tableName", sqlParser.get("tableName"));
             List<String> executeSqlList = (List<String>) sqlParser.get("executeSql");
             List dataList = new ArrayList();
             if (sqlParser.get("executeType").equals("SELECT")) {

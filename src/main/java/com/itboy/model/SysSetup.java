@@ -76,4 +76,10 @@ public class SysSetup {
      */
     @Column(length = 500)
     private String riskText;
+
+    /**
+     * 登录失败次数
+     */
+    @Column(length = 500)
+    private Integer failLogin;
 }
