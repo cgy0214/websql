@@ -9,6 +9,7 @@ import com.itboy.service.DbSourceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -64,7 +65,7 @@ public class DataSourceManagerController {
      */
     @RequestMapping("/checkUrl")
     @ResponseBody
-    public AjaxResult checkUrl(DataSourceModel model) {
+    public AjaxResult checkUrl(@RequestBody DataSourceModel model) {
         Connection conn = null;
         Statement pre = null;
         ResultSet rs = null;
@@ -106,16 +107,20 @@ public class DataSourceManagerController {
      */
     @RequestMapping("/addDataSource")
     @ResponseBody
-    public AjaxResult addDataSource(DataSourceModel model) {
+    public AjaxResult addDataSource(@RequestBody DataSourceModel model) {
         try {
             if (ObjectUtil.isEmpty(model.getDbName())) {
-                return AjaxResult.error("连接昵称不能为空！");
+                return AjaxResult.error("连接名称不能为空！");
             }
             if (ObjectUtil.isEmpty(model.getDriverClass())) {
                 return AjaxResult.error("驱动名称不能为空！");
             }
             if (ObjectUtil.isEmpty(model.getDbUrl())) {
                 return AjaxResult.error("连接地址不能为空！");
+            }
+            Integer count = dbSourceService.selectDbByName(model.getDbName());
+            if(count>0){
+                return AjaxResult.error("连接名称已经存在,请换一个！");
             }
             DataSourceFactory.saveDataSource(model);
             dbSourceService.addDbSource(model);

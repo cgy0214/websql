@@ -90,13 +90,13 @@ public class SqlDruidParser {
         List<String> pageType = Arrays.asList("h2", "oracle");
         for (String item : sqlParam) {
             if (pageType.contains(dbType)) {
-                if (!item.toUpperCase().contains("ROWNUM") && !item.toUpperCase().contains("ROW_NUMBER")) {
+                if (!item.toUpperCase().contains("ROWNUM") && !item.toUpperCase().contains("ROW_NUMBER") && limitMax > 0) {
                     executeSql.add(page + item + size);
                 } else {
                     executeSql.add(item);
                 }
             } else {
-                if (!item.toUpperCase().contains("LIMIT")) {
+                if (!item.toUpperCase().contains("LIMIT") && limitMax > 0) {
                     executeSql.add(item + "  LIMIT " + limitMax);
                 } else {
                     executeSql.add(item);

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>新增用户</title>
+    <title>用户修改</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
@@ -12,68 +12,66 @@
         margin: 0 10px;
         font-weight: normal;
     }
+
+    .lg-width {
+        width: 250px;
+    }
+
+    .menus {
+        padding: 10px 30px;
+        box-sizing: border-box;
+    }
 </style>
 <body>
-<div class="layui-field-box">
+
+<div class="menus">
     <form class="layui-form layui-form-pane" action="">
+
         <div class="layui-form-item">
-            <label class="layui-form-label">登录账号</label>
+            <label class="layui-form-label" pane>登录账号</label>
             <div class="layui-input-inline">
-                <input type="text" name="userName" id="userName" lay-verify="required" autocomplete="off" lay-affix="clear"
-                       placeholder="请输入登录账号" class="layui-input">
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">用户名称</label>
-            <div class="layui-input-inline">
-                <input type="text" name="name" id="name" lay-verify="required" lay-affix="clear"
-                       placeholder="请输入用户名称" autocomplete="off" class="layui-input">
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">用户密码</label>
-            <div class="layui-input-inline">
-                <input type="password" name="password" id="password" lay-verify="required" placeholder="请输入用户密码" lay-affix="eye"
-                       autocomplete="off" class="layui-input">
+                <input type="text" class="layui-input lg-width" disabled id="userName" th:value="${user.userName}">
+                <input type="hidden" id="userId" name="userId" th:value="${user.userId}">
             </div>
         </div>
 
         <div class="layui-form-item">
-            <div class="layui-inline">
-                <label class="layui-form-label">用户邮箱</label>
-                <div class="layui-input-inline">
-                    <input type="text" name="email" id="email" placeholder="请输入用户邮箱" lay-affix="clear"
-                           autocomplete="off" class="layui-input" lay-verify="email">
-                </div>
+            <label class="layui-form-label" pane>用户名称</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input lg-width" id="name" name="name" th:value="${user.name}"
+                       lay-verify="required" lay-affix="clear">
             </div>
         </div>
 
-
         <div class="layui-form-item">
-            <label class="layui-form-label" pane>角色设置</label>
-            <div class="layui-input-inline" style="width: 500px;" id="checkboxId"></div>
+            <label class="layui-form-label" pane>用户邮箱</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input lg-width" id="email" name="email" th:value="${user.email}"
+                       lay-verify="email" lay-affix="clear">
+            </div>
         </div>
 
         <div class="layui-form-item">
-            <label class="layui-form-label">状态</label>
+            <label class="layui-form-label" pane>状态</label>
             <div class="layui-input-inline">
-                <select name="state" lay-verify="required" lay-search="">
+                <select name="state" id="state">
                     <option value="0">有效</option>
                     <option value="1">无效</option>
                 </select>
             </div>
         </div>
 
+        <div class="layui-form-item">
+            <label class="layui-form-label" pane>角色设置</label>
+            <div class="layui-input-inline" style="width: 500px;" id="checkboxId"></div>
+        </div>
+
         <div class="page-footer">
             <div class="btn-list">
                 <div class="btnlist">
-                    <button class="layui-btn layui-btn-primary layui-border-green" lay-submit lay-filter="save"
-                            lay-type="saveContinue">
-                        <i class="layui-icon  layui-icon-add-circle">&nbsp;</i>保存并继续
-                    </button>
                     <button class="layui-btn layui-btn-primary layui-border-blue" lay-submit lay-filter="save"
                             lay-type="saveClose">
-                        <i class="layui-icon layui-icon-add-1">&nbsp;</i>保存并关闭
+                        <i class="layui-icon layui-icon-edit">&nbsp;</i>修改
                     </button>
                     <button class="layui-btn layui-btn-primary layui-border-red" onclick="refresh();">
                         <i class="layui-icon layui-icon-close-fill">&nbsp;</i>关闭
@@ -82,19 +80,17 @@
             </div>
         </div>
     </form>
-
 </div>
 <script th:src="@{/static/layui.js}"></script>
 <script th:replace="~{base::ctx}"></script>
-<script>
+<script th:inline="javascript">
 
     layui.use(function () {
         const layer = layui.layer;
         const form = layui.form;
         const $ = layui.jquery;
-        const util = layui.util;
 
-        //加载角色信息
+        //加载角色信息并回显
         post(ctx + "settingManager/queryRolesSelect", null, (res) => {
             if (res.code === 200) {
                 for (let i in res.data) {
@@ -102,18 +98,29 @@
                     $("#checkboxId").append('<input type="checkbox" name="roles" value="' + item.role + '" title="' + "(" + item.role + ")" + item.description + '">');
                 }
                 form.render();
+                let sysRoleName = [[${user.sysRoleName}]];
+                $(sysRoleName.split(",")).each(function (i, dom) {
+                    $("input:checkbox[value='" + dom + "']").attr('checked', 'true');
+                });
+                form.render();
             } else {
                 layer.msg(res.msg, {icon: 2});
             }
         })
 
         /**
+         * 状态回显
+         * @type {*[][]}
+         */
+        let state = [[${user.state}]];
+        $('#state').val(state);
+        form.render();
+
+        /**
          * 保存
          */
         form.on('submit(save)', function (data) {
             const field = data.field;
-            const elem = data.elem;
-            var layType = elem.getAttribute("lay-type");
             let value = [];
             let roles = document.getElementsByName("roles");
             $.each(roles, function (i) {
@@ -122,14 +129,10 @@
                 }
             });
             field["sysRoleName"] = value.toString();
-            post(ctx + "settingManager/addUserRoleSource", field, (res) => {
+            post(ctx + "settingManager/updateUserRole", field, (res) => {
                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                     if (res.code === 200) {
-                        if (layType === "saveClose") {
-                            refresh();
-                        } else {
-                            location.reload();
-                        }
+                        refresh();
                     }
                 });
             })

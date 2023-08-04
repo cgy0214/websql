@@ -1,112 +1,235 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>WEBSQL-管理系统</title>
-    <link rel="shortcut icon" type="image/x-icon" href="/statics/img/favicon.ico" media="screen"/>
-    <link rel="stylesheet" href="/static/statics/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/static/statics/plugins/layui/css/layui.css" media="all">
-    <link rel="stylesheet" href="/static/statics/plugins/layer/skin/default/layer.css">
-    <link rel="stylesheet" href="/static/statics/css/index.css">
-    <link rel="stylesheet" href="/static/common/css/cyStyle.css">
-    <link rel="stylesheet" href="/static/statics/plugins/ContextJS/css/context.standalone.green.css">
-
+    <title>WEBSQL管理系统</title>
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
+    <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/static/css/layuimini.css}" media="all">
+    <link rel="stylesheet" th:href="@{/static/css/default.css}" media="all">
 </head>
-<body class="layui-layout-body">
+<body class="layui-layout-body layuimini-all">
 <div class="layui-layout layui-layout-admin">
-    <div class="layui-header">
-        <div class="layui-logo"><b>WEBSQL</b></div>
-        <ul class="layui-nav layui-layout-left">
-            <li class="layui-nav-item layui-this"><a
-                    href="javascript:createMenu('/statics/json/layuiMenu.json');">首页</a>
-            </li>
-            <li class="layui-nav-item">
-                <a href="javascript:;">快捷菜单</a>
-                <dl class="layui-nav-child">
-                    <dd><a data-url="/sqlManager/sqlPage" href="javascript:;" class="cy-page">SQL窗口</a></dd>
-                    <dd><a data-url="/sqlManager/sqlTextPage" href="javascript:;" class="cy-page">SQL列表</a></dd>
-                </dl>
-            </li>
-        </ul>
-        <ul class="layui-nav layui-layout-right">
-            <li class="layui-nav-item" th:if="${siteConfig.enabledLockView==0 ?true:false}">
-                <a href="javascript:lockScreen();"><i class="fa fa-lock"></i>锁屏</a>
-            </li>
-            <li class="layui-nav-item" th:if="${siteConfig.enabledHelp==0 ?true:false}">
-                <a href="javascript:openIframe('帮助文档','/getHelpPage');">帮助</a>
-            </li>
-            <li class="layui-nav-item">
-                <a href="javascript:;">
-                    [[${users.name}]]
-                </a>
-                <dl class="layui-nav-child">
-                    <dd><a href="javascript:;" class="cy-page" data-url="/getUsersPage">基本资料</a></dd>
-                </dl>
-            </li>
-            <li class="layui-nav-item"><a href="javascript:;window.location.href='/logout'">退出</a></li>
-        </ul>
-    </div>
-    <div class="toggle-collapse"></div>
-    <div class="layui-side layui-bg-black">
-        <div class="layui-side-scroll">
-            <div class="layui-form component">
-                <div class="search-menu-back">
-                    <input type="text" placeholder="菜单名称" value="" autocomplete="true" id="menuSearch"
-                           class="layui-input menu-search" style="text-align: center;">
-                    <span class="menu-search-clear" style="display: none"><i class="layui-icon">&#x1006;</i>  </span>
-                </div>
-            </div>
-            <ul class="layui-nav layui-nav-tree">
+    <div class="layui-header header">
+        <div class="layui-logo layuimini-logo"></div>
+
+        <div class="layuimini-header-content">
+            <a>
+                <div class="layuimini-tool"><i title="展开" class="layui-icon layui-icon-shrink-right"
+                                               data-side-fold="1"></i></div>
+            </a>
+
+            <ul class="layui-nav layui-layout-left layuimini-header-menu layuimini-menu-header-pc layuimini-pc-show">
+            </ul>
+
+            <ul class="layui-nav layui-layout-left layuimini-header-menu layuimini-mobile-show">
+                <li class="layui-nav-item">
+                    <a href="javascript:;"><i class="layui-icon layui-icon-eye"></i> 选择模块</a>
+                    <dl class="layui-nav-child layuimini-menu-header-mobile">
+                    </dl>
+                </li>
+            </ul>
+
+            <ul class="layui-nav layui-layout-right">
+                <li class="layui-nav-item version" style="display: none"></li>
+                <li class="layui-nav-item" lay-unselect>
+                    <a href="javascript:;" data-refresh="刷新"><i class="layui-icon layui-icon-refresh-3"></i> </a>
+                </li>
+                <li class="layui-nav-item" lay-unselect th:if="${siteConfig.enabledHelp==0 ?true:false}">
+                    <a href="javascript:openPage('帮助文档',ctx+'getHelpPage')"><i
+                            class="layui-icon layui-icon-help"></i> </a>
+                </li>
+                <li class="layui-nav-item mobile layui-hide-xs" th:if="${siteConfig.enabledLockView==0 ?true:false}"
+                    lay-on="more-lockscreen">
+                    <a href="javascript:;">
+                        <i class="layui-icon layui-icon-lock"></i>
+                    </a>
+                </li>
+                <li class="layui-nav-item mobile layui-hide-xs" lay-unselect>
+                    <a href="javascript:;" data-check-screen="full"><i class="layui-icon layui-icon-screen-full"></i>
+                    </a>
+                </li>
+                <li class="layui-nav-item layuimini-setting">
+                    <a href="javascript:;"> [[${users.name}]] </a>
+                    <dl class="layui-nav-child">
+                        <dd>
+                            <a href="javascript:;" layuimini-content-href="getUsersPage"
+                               data-title="基本资料">基本资料</a>
+                        </dd>
+                        <dd>
+                            <hr>
+                        </dd>
+                        <dd>
+                            <a href="javascript:;" class="login-out">退出登录</a>
+                        </dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item layuimini-select-bgcolor" lay-unselect>
+                    <a href="javascript:;"><i class="fa fa-ellipsis-v"></i></a>
+                </li>
             </ul>
         </div>
     </div>
+
+    <!--无限极左侧菜单-->
+    <div class="layui-side layui-bg-black layuimini-menu-left">
+    </div>
+
+    <!--初始化加载层-->
+    <div class="layuimini-loader">
+        <div class="layuimini-loader-inner"></div>
+    </div>
+
+    <!--手机端遮罩层-->
+    <div class="layuimini-make"></div>
+
+    <!-- 移动导航 -->
+    <div class="layuimini-site-mobile"><i class="layui-icon"></i></div>
+
     <div class="layui-body">
-        <div style="padding: 1px;">
-            <div id="navTab" class="layui-tab layui-tab-brief" lay-allowClose="true" lay-filter="tabs">
-                <div class="layui-tab-left"><i class="layui-icon">&#xe65a;</i></div>
-                <ul class="layui-tab-title ">
-                    <li class="layui-this main-tab" data-url="/main">我的主页</li>
-                </ul>
-                <div class="layui-tab-right"><i class="layui-icon">&#xe65b;</i></div>
+        <div class="layuimini-tab layui-tab-rollTool layui-tab" lay-filter="layuiminiTab" lay-allowclose="true">
+            <ul class="layui-tab-title">
+                <li class="layui-this" id="layuiminiHomeTabId" lay-id=""></li>
+            </ul>
+            <div class="layui-tab-control">
+                <li class="layuimini-tab-roll-left layui-icon layui-icon-left"></li>
+                <li class="layuimini-tab-roll-right layui-icon layui-icon-right"></li>
+                <li class="layui-tab-tool layui-icon layui-icon-down">
+                    <ul class="layui-nav close-box">
+                        <li class="layui-nav-item">
+                            <a href="javascript:;"><span class="layui-nav-more"></span></a>
+                            <dl class="layui-nav-child">
+                                <dd><a href="javascript:;" layuimini-tab-close="current">关 闭 当 前</a></dd>
+                                <dd><a href="javascript:;" layuimini-tab-close="other">关 闭 其 他</a></dd>
+                                <dd><a href="javascript:;" layuimini-tab-close="all">关 闭 全 部</a></dd>
+                            </dl>
+                        </li>
+                    </ul>
+                </li>
+            </div>
+            <div class="layui-tab-content">
+                <div id="layuiminiHomeTabIframe" class="layui-tab-item layui-show cy-show"></div>
             </div>
         </div>
-        <div id="main">
-            <iframe scrolling="yes" frameborder="0" class="cy-show" src="/main"></iframe>
-        </div>
-    </div>
-    <div class="layui-footer">
-        © WEBSQL<span id="versionSpan"></span> 简约而不简单.
-        <a id="version" target="_blank" style="color: red"></a>
-        <br>
     </div>
 </div>
-<script src="/static/statics/libs/jquery-1.7.2.js"></script>
-<script src="/static/statics/plugins/ContextJS/js/context.js"></script>
-<script src="/static/statics/plugins/layer/layer.js"></script>
-<script src="/static/statics/plugins/layui/layui.js"></script>
-<script src="/static/common/js/whole/cyLayer.js"></script>
-<script src="/static/common/js/whole/common.js"></script>
-<script src="/static/common/js/whole/utils.js"></script>
-<script src="/static/statics/js/navTab.js"></script>
-<script src="/static/statics/js/index.js"></script>
+<script th:src="@{/static/layui.js}"></script>
+<script th:src="@{/static/lay-config.js}"></script>
+<script th:replace="~{base::ctx}"></script>
 <script>
-    $(function () {
-        $("#version").hide();
-        $.ajax({
-            type: "get",
-            url: "queryVersion",
-            dataType: "json",
-            success: function (result) {
-                let data = result.data;
-                $("#versionSpan").text(data.localVersion);
-                if (data.push) {
-                    $("#version").show();
-                    $("#version").attr("href", data.link);
-                    $("#version").html("最新版本【" + data.version + "】，请更新下载!");
-                }
+    layui.use(['jquery', 'layer', 'miniAdmin'], function () {
+        const $ = layui.jquery,
+            layer = layui.layer,
+            miniAdmin = layui.miniAdmin,
+            util = layui.util,
+            form = layui.form,
+            laytpl = layui.laytpl,
+            lockKey = "lockscreen";
+
+        let options = {
+            iniUrl: ctx + "api/init.json",
+            urlHashLocation: false,      // 是否打开hash定位
+            bgColorDefault: false,      // 主题默认配置
+            multiModule: true,          // 是否开启多模块
+            menuChildOpen: false,       // 是否默认展开菜单
+            loadingTime: 0,             // 初始化加载时间
+            pageAnim: true,             // iframe窗口动画
+            maxTabNum: 20,              // 最大的tab打开数量
+        };
+        miniAdmin.render(options);
+
+        //退出
+        $('.login-out').on("click", function () {
+            layer.msg('退出登录成功', function () {
+                window.location = ctx + 'logout';
+            });
+        });
+
+        /**
+         * 锁屏
+         */
+        util.on('lay-on', {
+            'more-lockscreen': function () {
+                lockPage();
             }
         });
+
+
+        /**
+         * 检查上锁
+         * @type {string}
+         */
+        let itemLock = localStorage.getItem(lockKey);
+        if (itemLock != null && itemLock != undefined && itemLock == 'true') {
+            lockPage();
+        }
+
+        /**
+         * 检查最新版本
+         */
+        post(ctx + "queryVersion", null, (res) => {
+            let data = res.data;
+            if (data.push) {
+                const content = laytpl('<a href="{{= d.url}}" target="_blank"><i class="layui-badge" style="margin-left: -20px;">{{= d.content}}</i></a>').render({
+                    content: data.version,
+                    url: data.link
+                });
+                $(".version").show();
+                $(".version").html(content);
+            }
+        })
+
+        /**
+         * 锁定屏幕
+         */
+        function lockPage() {
+            layer.open({
+                type: 1,
+                title: false,
+                closeBtn: false,
+                area: ['100%', '100%'],
+                scrollbar: false,
+                anim: -1,
+                isOutAnim: false,
+                id: 'ID-layer-inst',
+                skin: 'class-layer-lockscreen',
+                content: ['<div class="layui-form">',
+                    '<div class="layui-input-wrap">',
+                    '<input type="password" class="class-layer-pin" lay-affix="eye">',
+                    '<div class="layui-input-suffix">',
+                    '<i class="layui-icon layui-icon-right" id="ID-layer-unlock"></i>',
+                    '</div>',
+                    '</div>',
+                    '<div>输入您的登录密码回车。</div>',
+                    '</div>'].join(''),
+                success: function (layero, index) {
+                    localStorage.setItem(lockKey, true);
+                    var input = layero.find('input');
+                    form.render();
+                    input.focus();
+                    var elemUnlock = layero.find('#ID-layer-unlock');
+                    elemUnlock.on('click', function () {
+                        post(ctx + "unlock?pass=" + $.trim(input[0].value), null, (res) => {
+                            if (res.code === 200) {
+                                localStorage.removeItem(lockKey);
+                                layer.close(index);
+                                layer.closeLast('dialog');
+                            } else {
+                                layer.msg('锁屏密码输入有误', {icon: 2, offset: '16px', anim: 'slideDown'})
+                                input.focus();
+                            }
+                        });
+                    });
+                    input.on('keyup', function (e) {
+                        var elem = this;
+                        var keyCode = e.keyCode;
+                        if (keyCode === 13) {
+                            elemUnlock.trigger('click');
+                        }
+                    });
+                }
+            })
+        }
     });
 </script>
 </body>

@@ -1,17 +1,11 @@
 <html>
 <head>
     <title>帮助</title>
-    <script src="/static/statics/libs/jquery-1.7.2.js"></script>
-    <link rel="stylesheet" href="/static/statics/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/static/statics/plugins/layui/css/layui.css" media="all">
-    <script src="/static/statics/plugins/layer/layer.js"></script>
-    <script src="/static/statics/plugins/layui/layui.js"></script>
-    <link rel="stylesheet" href="/static/common/css/cyStyle.css">
-    <link rel="stylesheet" href="/static/common/css/cyType.css">
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
+    <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
 <body>
-
-<div class="menus" style="margin:5px;">
+<div style="margin:5px;">
     <blockquote class="layui-elem-quote">
         websql v2由JAVA语言纯编,H2内嵌数据库。重构底层，速度更快、完全开源、体积小傻瓜式一站式,开箱即用。 ———简约而不简单
         <br>
@@ -97,14 +91,8 @@
             <br>
         </div>
     </fieldset>
-
-
 </div>
-<script>
-    layui.use(['form', 'table', 'element'], function () {
-        form = layui.form;
-        table = layui.table;
-    });
-</script>
+<script th:src="@{/static/layui.js}"></script>
+<script th:replace="~{base::ctx}"/>
 </body>
 </html>

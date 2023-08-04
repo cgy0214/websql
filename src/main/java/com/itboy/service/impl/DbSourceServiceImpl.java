@@ -199,6 +199,11 @@ public class DbSourceServiceImpl implements DbSourceService {
     }
 
     @Override
+    public Integer selectDbByName(String paramName) {
+        return dbSourceRepository.findDataSourceByName(paramName);
+    }
+
+    @Override
     public void addDbSource(DataSourceModel model) {
         CacheUtils.remove("data_source_model");
         dbSourceRepository.save(model);
@@ -249,6 +254,9 @@ public class DbSourceServiceImpl implements DbSourceService {
         }
         return sqlTextModelList;
     }
+
+
+
 
 
 }
