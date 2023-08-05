@@ -45,7 +45,8 @@
         return {
             "code": res.code,
             "codeName": res.value,
-            "status": res.short
+            "status": res.short,
+            "select":res.select ==null ? 'false':res.select
         };
     }
 
