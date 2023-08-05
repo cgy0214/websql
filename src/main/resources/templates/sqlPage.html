@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>WEBSQL-SQL执行窗口</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
@@ -11,6 +12,11 @@
             border-radius: 12px;
             box-shadow: 2px 2px 5px #bbb;
             font-size: 20px;
+            margin: 5px;
+        }
+
+        .CodeMirror {
+            border-radius: 12px;
         }
 
         .sqlTab {
@@ -33,6 +39,25 @@
             margin-bottom: 5px;
             margin-top: 5px;
         }
+
+        .layui-tab-content {
+            margin-top: -36px;
+        }
+
+        .layui-tab {
+            margin: 0;
+        }
+
+        .nav-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, .1);
+            z-index: 999;
+            transition: all 0.2s ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -48,15 +73,21 @@
                 <select name="sqlTexts" id="sqlTexts" lay-filter="sqlTexts" lay-search="" lay-affix="clear"></select>
             </div>
             <div class="">
-                <button class="layui-btn " id="execute" lay-submit lay-filter="execute">
-                    <i class="fa fa-search">&nbsp;</i>执行F8
+                <button class="layui-btn layui-btn-primary layui-border-green " id="execute" lay-submit
+                        lay-filter="execute">
+                    <i class="layui-icon layui-icon-play">&nbsp;</i>执行F8
                 </button>
                 <button id="newSqlOpen" onclick="window.open(ctx+'sqlManager/sqlPage');return false"
-                        class="layui-btn  layui-btn-normal">
-                    <i class="fa fa-link">&nbsp;</i>大窗口F7
+                        class="layui-btn layui-btn-primary layui-border-blue">
+                    <i class="layui-icon layui-icon-layer">&nbsp;</i>大窗口F7
                 </button>
-                <button id="saveSqlText" class="layui-btn layui-btn-warm" lay-submit lay-filter="saveSqlText">
-                    <i class="fa fa-save">&nbsp;</i>保存F9
+                <button id="saveSqlText" class="layui-btn layui-btn-primary layui-border-orange" lay-submit
+                        lay-filter="saveSqlText">
+                    <i class="layui-icon layui-icon-add-1">&nbsp;</i>保存F9
+                </button>
+                <button id="showSqlDiv" class="layui-btn layui-btn-primary layui-border-purple" lay-submit
+                        lay-filter="showSqlDiv">
+                    <i class="layui-icon layui-icon-up">&nbsp;</i>收起
                 </button>
             </div>
         </div>
@@ -64,23 +95,22 @@
 </div>
 
 <div class="sqlText">
-    <textarea id='sqlText' style="width: 100%;height: 500px;display:block;"></textarea>
+    <textarea id='sqlText' style="width: 100%;height: 500px;align-content: center;"></textarea>
 </div>
+
 <div id="msgDiv" class="layui-row sqlTab" style="display: none;">
     <div style="font-size: 15px;color: #843534;display:block;">
         <span id="msgSpan"
               style="margin-left: 10px;display:block;width:95%;word-wrap:break-word;white-space:normal;"></span>
     </div>
 </div>
+
 <div class="layui-row sqlTab" style="display: none;" id="sqlTableDiv">
-    <div class="layui-tab layui-tab-card" lay-filter="sqlTab">
+    <div class="layui-tab layui-tab-brief" lay-filter="sqlTableTab" lay-allowclose="true">
         <ul class="layui-tab-title" id="lists">
         </ul>
-        <div class="layui-tab-content" id="listsContent" style="margin-top:-30px;">
+        <div class="layui-tab-content" id="listsContent">
         </div>
-    </div>
-    <div class="layui-form nowrap">
-        <table id="sqlTable" lay-filter="test"></table>
     </div>
 </div>
 <script th:src="@{/static/layui.js}"></script>
@@ -91,8 +121,16 @@
 <script th:src="@{/static/code/sql.js}"></script>
 <script th:src="@{/static/code/show-hint.js}"></script>
 <script th:src="@{/static/code/sql-hint.js}"></script>
+<script type="text/html" id="table-page-pageBar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-event="footerBtn1">编辑区
+        </button>
+        <button class="layui-btn layui-btn-primary layui-border-purple layui-btn-sm" lay-event="footerBtn2">结果区
+        </button>
+    </div>
+</script>
 <script>
-    layui.use(['jquery', 'layer', 'form', 'element', 'laySelect', 'table','dropdown','util'], function () {
+    layui.use(['jquery', 'layer', 'form', 'element', 'laySelect', 'table', 'dropdown', 'util'], function () {
         const layer = layui.layer;
         const form = layui.form;
         const $ = layui.jquery;
@@ -117,16 +155,13 @@
             smartIndent: true,
             lineNumbers: true,
             spellcheck: true,
+            lineWrapping: true,
             extraKeys: {
                 'Ctrl': 'autocomplete',
                 Tab: function (cm) {
-                    var spaces = Array(cm.getOption('indentUnit') + 1).join(' ');
+                    let spaces = Array(cm.getOption('indentUnit') + 1).join(' ');
                     cm.replaceSelection(spaces);
                 }
-            },
-            hintOptions: {
-                tables: {app: [], version: []},
-                completeSingle: false
             }
         });
 
@@ -142,7 +177,9 @@
             format: function (data) {
                 return parseSelectData(data);
             },
-            success: function (data) {
+            success: function (data, activeData) {
+                //默认选中的数据源需要单独赋值，不会走onSelect
+                activeDataSource = activeData == null ? null : activeData[0].code;
             },
             onselect: function (data) {
                 activeDataSource = data;
@@ -157,11 +194,11 @@
                 elem: "#sqlTexts",
                 url: ctx + 'sqlManager/querySqlTextSelect',
                 select: 10000,
-                title: '无保存的SQL文本',
+                title: '请选择SQL文本',
                 format: function (data) {
                     return parseSelectData(data);
                 },
-                success: function (data) {
+                success: function (data, activeData) {
                 },
                 onselect: function (data) {
                     let oldContent = editor.getValue();
@@ -197,10 +234,27 @@
 
 
         /**
+         * sql执行窗口隐藏
+         */
+        form.on('submit(showSqlDiv)', function (data) {
+            let display = $('.sqlText').css('display');
+            if (display == 'none') {
+                $('.sqlText').css('display', 'block');
+                $("#msgDiv").css('display', 'block');
+                $("#showSqlDiv").html('<i class="layui-icon layui-icon-up">&nbsp;</i>收起');
+            } else {
+                $('.sqlText').css('display', 'none');
+                $("#msgDiv").css('display', 'none');
+                $("#showSqlDiv").html('<i class="layui-icon layui-icon-down">&nbsp;</i>展开');
+            }
+            return false;
+        });
+
+
+        /**
          * 执行SQL
          */
         form.on('submit(execute)', function (data) {
-            var sqlContent = editor.getValue().trim();
             $("#msgDiv").show();
             $("#msgSpan").text("");
 
@@ -210,6 +264,7 @@
                 $("#msgSpan").text("ERROR:请先选择数据源~");
                 return false;
             }
+            var sqlContent = editor.getValue().trim();
             if (sqlContent == "" || sqlContent == null) {
                 layer.msg("请输入要执行的SQL~", {icon: 2});
                 $("#msgDiv").show();
@@ -220,18 +275,16 @@
             let interval = setInterval(function () {
                 intervalTime++;
                 $("#msgSpan").text("执行耗时:" + intervalTime + "毫秒");
-            }, 200);
+            }, 1);
             post(ctx + "sqlManager/executeSql", {'dataBaseName': activeDataSource, 'sqlText': sqlContent}, (res) => {
                 window.clearInterval(interval);
                 if (!res) {
-                    $("#msgDiv").show();
                     $("#msgSpan").text("ERROR:未知异常!");
                     $("#sqlTableDiv").hide();
                     return false;
                 }
                 if (res.code != "1") {
                     layer.msg(res.msg, {icon: 2});
-                    $("#msgDiv").show();
                     $("#msgSpan").text("ERROR:" + data.msg);
                     $("#sqlTableDiv").hide();
                     return false;
@@ -253,10 +306,16 @@
          * @param data
          * @returns {boolean}
          */
+        let elementTabCount = 0;//tab总数
+
         function tableInit(res) {
-            $(".resultLi").remove();
+            //删除历史所有tab
+            for (var i = 0; i < elementTabCount; i++) {
+                element.tabDelete('sqlTableTab', "sqlTable" + i);
+            }
             $("#sqlTableDiv").hide();
             let data = res.dataList;
+            elementTabCount = data.length;
             for (var i = 0; i < data.length; i++) {
                 if (data[i].code != 1) {
                     $("#msgSpan").append("结果集" + (i + 1) + "ERROR:" + data[i].msg + " \n ");
@@ -273,10 +332,14 @@
                 for (var key in headArr) {
                     head.push({field: headArr[key], title: headArr[key], sort: true});
                 }
-                //表格
+                //add Tab
                 let elId = "sqlTable" + i;
-                $("#lists").append(" <li class='resultLi'>结果集" + (i + 1) + "</li>");
-                $("#listsContent").append("<div class='layui-tab-item resultLi' style='padding-top:0px;'><table class='layui-table' id='" + elId + "'></table></div>");
+                element.tabAdd('sqlTableTab', {
+                    title: '结果集' + (i + 1),
+                    content: "<table class='layui-table' id='" + elId + "'></table>",
+                    id: elId,
+                    change: true
+                })
                 let toolbarHtml = "<div><span class=\"layui-badge\">" + head.length + "列</span> <span class=\"layui-badge layui-bg-green\">" + data[i].data.length + "条</span></div>";
                 table.render({
                     elem: '#' + elId
@@ -284,28 +347,46 @@
                     , data: data[i].data
                     , title: '结果集' + (i + 1)
                     , loading: true
-                    , height: 525
+                    , height: 935
                     , cellMinWidth: 150
-                    , limit: 10
-                    , limits: [10, 500, 800, 1000, 3000, 5000, 10000]
+                    , limit: 20
+                    , limits: [20, 500, 800, 1000, 3000, 5000, 10000]
                     , even: true
                     , toolbar: toolbarHtml
                     , defaultToolbar: ['filter', 'exports', 'print']
                     , page: {prev: '上一页', next: '下一页', groups: 6}
                     , defaultContextmenu: false
+                    , pagebar: '#table-page-pageBar'
                 });
-                rowContextmenu(elId,res);
+                table.resize(elId);
+                rowContextmenu(elId, res);
+                pageBar(elId, res);
             }
-            $("#lists li:first").attr("class", "layui-this resultLi");
-            $("#listsContent div:eq(0)").attr("class", "layui-tab-item layui-show resultLi");
             return false;
+        }
+
+        /**
+         * 分页btn 增加返回顶部
+         */
+        function pageBar(id, res) {
+            table.on('pagebar(' + id + ')', function (obj) {
+                let eventValue = obj.event;
+                if (eventValue == "footerBtn1") {
+                    window.scrollTo(0, 0);
+                    return false;
+                }
+                if (eventValue == "footerBtn2") {
+                    window.scrollTo(0, 70);
+                    return false;
+                }
+            });
         }
 
         /**
          * 表格增加点击事件
          */
-        function rowContextmenu(id,res) {
-            table.on('rowContextmenu('+id+')', function (obj) {
+        function rowContextmenu(id, res) {
+            table.on('rowContextmenu(' + id + ')', function (obj) {
                 let data = obj.data;
                 let index = obj.index;
                 dropdown.render({
@@ -316,39 +397,66 @@
                         //{title: 'INSERT语句', id: 'insert'}
                     ],
                     click: function (menuData, othis) {
-                        if(menuData.id==="json"){
+                        if (menuData.id === "json") {
                             layer.alert(util.escape(JSON.stringify({data})));
                             return false;
                         }
                         //TODO 待处理拼接，暂时无法应对多条sql执行
-                        if(menuData.id==="insert"){
-                            layer.alert("insert into "+res.tableName+" values.....");
+                        if (menuData.id === "insert") {
+                            layer.alert("insert into " + res.tableName + " values.....");
                             return false;
                         }
                     }
                 });
-
-                // obj.del() // 删除当前行
-                // obj.update(fields, related);  // 修改行数据
-                obj.setRowChecked({selectedStyle: true}); // 标注行选中状态样式
             });
         }
 
+        /**
+         * tab删除事件,最后一个被删除是隐藏tableDiv
+         */
+        element.on('tabDelete(sqlTableTab)', function (data) {
+            if ($("#lists li").length == 0) {
+                $("#sqlTableDiv").hide();
+            }
+        });
+
+        /**
+         * tab切换事件,修正table表格单元格不对齐问题
+         */
+        element.on('tab(sqlTableTab)', function (data) {
+            table.resize("sqlTable" + data.index);
+        });
+
+        /**
+         * 动态悬浮功能菜单
+         */
+        document.addEventListener('scroll', function () {
+            var navContainer = document.querySelector('.menus');
+            if (window.pageYOffset > 0) {
+                navContainer.classList.add('nav-container');
+            } else {
+                navContainer.classList.remove('nav-container');
+            }
+        });
+
+        /**
+         * 快捷键
+         * @param event
+         */
+        document.onkeydown = function (event) {
+            var e = event || window.event || arguments.callee.caller.arguments[0];
+            if (e && e.keyCode == 119) {
+                $("#execute").trigger('click');
+            }
+            if (e && e.keyCode == 118) {
+                $("#newSqlOpen").trigger('click');
+            }
+            if (e && e.keyCode == 120) {
+                $("#saveSqlText").trigger('click');
+            }
+        };
     });
 
-    //快捷键
-    document.onkeydown = function (event) {
-        var e = event || window.event || arguments.callee.caller.arguments[0];
-        if (e && e.keyCode == 119) {
-            $("#execute").trigger('click');
-        }
-        if (e && e.keyCode == 118) {
-            $("#newSqlOpen").trigger('click');
-        }
-        if (e && e.keyCode == 120) {
-            $("#saveSqlText").trigger('click');
-        }
-    };
 </script>
 </body>
 </html>

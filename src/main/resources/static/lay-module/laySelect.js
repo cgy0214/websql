@@ -65,8 +65,6 @@ layui.define(['element', 'form', 'jquery'], function (exports) {
                         that._init(eid, param, data.data)
                     },
                     error: function (e) {
-                        //加载失败执行回调函数
-                        console.log("Ajax request " + param.url + " error! ");
                         if (param.fail) {
                             param.fail(e);//加载失败回调函数，请求URL时才会触发
                         }
@@ -153,20 +151,14 @@ layui.define(['element', 'form', 'jquery'], function (exports) {
                     }
                 }//选择指定选中项
 
-                //var k = eid.replace('#','');
-                var multiple = $(eid).attr('multiple');//多选控制，暂时无用
-                //console.log(eid,that.selectValues);
-                if (that.selectValues.length > 0) {//默认选中数据在循环外部，提高渲染效率
+                if (that.selectValues.length > 0) {
                     that.selectValues.forEach(function (item, index) {
                         $(eid).find("option[value = '" + item.code + "']").attr("selected", "selected");
                     });
-                } else {
-                    //$(eid).find("option[value = '']").attr("selected","selected");//默认选中请选择
                 }
                 //加载成功执行回调函数
                 if (param.success) {
-                    //console.log(k+" call success",option);
-                    param.success(option);
+                    param.success(option,that.selectValues);
                     option = null;
                 }
                 //监听事件：这里做自己想做的事情

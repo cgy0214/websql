@@ -220,15 +220,20 @@ public class DbSourceServiceImpl implements DbSourceService {
                 Map<String, String> item = new HashMap<>(2);
                 item.put("code", dataSourceModel.getDbName());
                 item.put("value", dataSourceModel.getDbName());
+                item.put("select", "false");
                 dataSourceList.add(item);
             }
             CacheUtils.put("data_source_model", dataSourceList);
         }
-        //按最近使用的数据源推荐
+        //按最近使用的数据源推荐并选中此数据源
         String source = sysLogRepository.querySysLogDataSource();
-        dataSourceList.stream().filter(s->s.get("code").equals(source)).forEach(s->s.put("short","1"));
-        dataSourceList.stream().filter(s->!s.get("code").equals(source)).forEach(s->s.put("short","2"));
+        dataSourceList.stream().filter(s -> s.get("code").equals(source)).forEach(s -> s.put("short", "1"));
+        dataSourceList.stream().filter(s -> !s.get("code").equals(source)).forEach(s -> s.put("short", "2"));
         dataSourceList.sort(Comparator.comparingInt((Map o) -> Integer.valueOf(o.get("short").toString())));
+        if (dataSourceList.size() > 0) {
+            dataSourceList.stream().skip(1).forEach(s -> s.put("select", "false"));
+            dataSourceList.get(0).put("select", "true");
+        }
         return dataSourceList;
     }
 
@@ -255,9 +260,6 @@ public class DbSourceServiceImpl implements DbSourceService {
         }
         return sqlTextModelList;
     }
-
-
-
 
 
 }
