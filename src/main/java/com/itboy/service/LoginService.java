@@ -3,6 +3,7 @@ package com.itboy.service;
 import com.itboy.model.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName LoginService
@@ -44,4 +45,11 @@ public interface LoginService {
     AjaxResult unlock(String pass);
 
     AjaxResult unlockLoginUser(String code);
+
+    Result<SysDriverConfig> selectdriverConfigList(SysDriverConfig sysDriverConfig);
+
+    AjaxResult deleteDriverConfig(Long id);
+
+    List<Map<String, String>> findDriverConfigListSelect(String id);
+
 }

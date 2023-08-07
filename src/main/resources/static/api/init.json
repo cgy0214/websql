@@ -116,6 +116,12 @@
           "href": "settingManager/sysSetUpPage"
         },
         {
+          "title": "驱动管理",
+          "icon": "layui-icon layui-icon-set-fill",
+          "target": "_self",
+          "href": "settingManager/driverConfigPage"
+        },
+        {
           "title": "数据库管理",
           "icon": "layui-icon layui-icon-engine",
           "target": "_self",

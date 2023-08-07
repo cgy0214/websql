@@ -98,7 +98,7 @@ layui.define(['element', 'form', 'jquery'], function (exports) {
                             select: data[i].select || 'false',
                             codeName: data[i].codeName,
                             groupName: data[i].groupName,
-                            groupChildren: data[i].groupChildren
+                            groupChildren: data[i].groupChildren,
                         });
                     }
                 }
@@ -129,7 +129,7 @@ layui.define(['element', 'form', 'jquery'], function (exports) {
                         if (option[i].status && option[i].status == '0') {
                             status = "disabled='disabled'";
                         }//是否有效
-                        $(eid).append("<option value='" + option[i].code + "' " + status + ">" + option[i].codeName + "</option>");
+                        $(eid).append("<option lay-data='"+option[i].otherData +"' value='" + option[i].code + "' " + status + ">" + option[i].codeName + "</option>");
                         //内部数据option中的选中标识优先级高于外部指定的优先级
                         if (option[i].select != undefined && (option[i].select == 'true' || option[i].select == true) && option[i].status != '0') {
                             that.selectValues.push(option[i]);

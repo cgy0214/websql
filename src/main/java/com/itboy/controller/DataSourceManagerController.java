@@ -6,12 +6,10 @@ import com.itboy.model.AjaxResult;
 import com.itboy.model.DataSourceModel;
 import com.itboy.model.ExecuteSql;
 import com.itboy.service.DbSourceService;
+import com.itboy.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.sql.*;
@@ -31,6 +29,9 @@ public class DataSourceManagerController {
 
     @Resource
     private DbSourceService dbSourceService;
+
+    @Resource
+    private LoginService loginService;
 
 
     @RequestMapping("/page")
@@ -119,7 +120,7 @@ public class DataSourceManagerController {
                 return AjaxResult.error("连接地址不能为空！");
             }
             Integer count = dbSourceService.selectDbByName(model.getDbName());
-            if(count>0){
+            if (count > 0) {
                 return AjaxResult.error("连接名称已经存在,请换一个！");
             }
             DataSourceFactory.saveDataSource(model);
@@ -173,5 +174,13 @@ public class DataSourceManagerController {
         return result;
     }
 
+    @RequestMapping("/findDriverConfigListSelect")
+    @ResponseBody
+    public Map findDriverConfigListSelect(@RequestParam(required = false) String id) {
+        Map result = new HashMap(2);
+        result.put("code", 0);
+        result.put("data", loginService.findDriverConfigListSelect(id));
+        return result;
+    }
 
 }

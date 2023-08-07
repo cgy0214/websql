@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <title>数据源管理</title>
+    <title>驱动管理</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
@@ -11,28 +11,32 @@
     <div class="layui-panel">
         <div style="margin: 15px;">
             <div class="layui-form-item">
-                <label class="layui-form-label">连接名称:</label>
+                <label class="layui-form-label">驱动名称:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbName" id="dbname" placeholder="请输入连接名称" class="layui-input" lay-affix="clear">
+                    <input type="text" name="name" id="name" placeholder="请输入驱动名称" class="layui-input"
+                           lay-affix="clear">
                 </div>
-                <label class="layui-form-label">登录账号:</label>
+                <label class="layui-form-label">类型:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbAccount" id="dbAccount" placeholder="请输入登录账号" class="layui-input" lay-affix="clear">
-                </div>
-                <label class="layui-form-label">连接地址:</label>
-                <div class="layui-input-inline">
-                    <input type="text" name="dbUrl" id="dbUrl" placeholder="请输入连接地址" class="layui-input" lay-affix="clear">
+                    <label>
+                        <select name="typeName">
+                            <option value=""></option>
+                            <option value="内置">内置</option>
+                            <option value="自定义">自定义</option>
+                        </select>
+                    </label>
                 </div>
                 <div class="layui-input-normal">
                     <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit id="search"
                             lay-filter="table-search">
                         <i class="layui-icon layui-icon-search"> </i>查 询
                     </button>
-                    <button class="layui-btn layui-btn-primary layui-border-blue"
-                            onclick="openPage('添加数据源',ctx+'dataSourceManager/addSourcePage')
+                    <!--<button class="layui-btn layui-btn-primary layui-border-blue"
+                            onclick="openPage('新增用户',ctx+'settingManager/addUserPage')
                             return false;">
                         <i class="layui-icon layui-icon-add-1">&nbsp;</i>添 加
-                    </button>
+                        暂时不开放自定义
+                    </button>-->
                 </div>
             </div>
         </div>
@@ -45,10 +49,10 @@
 </form>
 </body>
 <script th:src="@{/static/layui.js}"></script>
-<script th:replace="~{base::ctx}"></script>
+<script th:replace="~{base::ctx}"/>
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
-        <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
+        <a class="layui-btn layui-btn-xs" lay-event="update">修改</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
@@ -58,27 +62,22 @@
         const form = layui.form;
         const $ = layui.jquery;
         const table = layui.table;
-        const laytpl = layui.laytpl;
 
         table.render({
             elem: '#dataTable',
-            url: ctx + 'dataSourceManager/dataSourceList',
+            url: ctx + 'settingManager/driverConfigList',
             toolbar: true,
             defaultToolbar: ['filter', 'exports', 'print'],
             page: true,
             height: '525',
             cols: [
                 [
-                    {field: 'id', title: 'id', sort: true, fixed: true},
-                    {field: 'dbName', title: '连接名称', sort: true, fixed: true},
-                    {field: 'driverClass', title: '驱动类型', sort: true, fixed: true},
-                    {field: 'dbCheckUrl', title: '验证语句', sort: true, fixed: true},
-                    {field: 'initialSize', title: '初始连接数', sort: true, fixed: true},
-                    {field: 'maxActive', title: '最大连接数', sort: true, fixed: true},
-                    {field: 'maxIdle', title: '最大空闲数', sort: true, fixed: true},
-                    {field: 'maxWait', title: '最大等待时间', sort: true, fixed: true},
-                    {field: 'dbState', title: '状态', sort: true, fixed: true},
-                    {fixed: 'right', title: '操作', width: 134, minWidth: 125, toolbar: '#toolbarTable'}
+                    {field: 'name', title: '驱动名称', sort: true, fixed: true},
+                    {field: 'driverClass', title: '驱动类', sort: true, fixed: true, width: 400},
+                    {field: 'url', title: '默认地址', sort: true, fixed: true, width: 400},
+                    {field: 'dbCheckUrl', title: '检查有效性', sort: true, fixed: true},
+                    {field: 'typeName', title: '类型', sort: true, fixed: true},
+                    {fixed: 'right', title: '操作', width: 200, toolbar: '#toolbarTable'}
                 ]
             ],
             parseData: res => parseData(res)
@@ -87,17 +86,19 @@
         table.on('tool(dataTable)', function (obj) {
             var data = obj.data;
             switch (obj.event) {
-                case 'view':
-                    const content = laytpl('<div style="margin: 20px;">地址：{{= d.address }} <br> 账号：{{= d.name}} <br> 密码： {{= d.password}}</div>').render({
-                        address: data.dbUrl,
-                        name: data.dbAccount,
-                        password: data.dbPassword
-                    });
-                    openContent("查看密钥", content);
+                case 'update':
+                    if (data.typeName === "内置") {
+                        layer.msg("内置类型驱动不允许修改!", {icon: 2});
+                        return false;
+                    }
                     break;
                 case 'delete':
-                    layer.confirm('您确定要删除吗?', {icon: 3}, function () {
-                        post(ctx + "dataSourceManager/deleteDataSource/" + data.id, null, (res) => {
+                    if (data.typeName === "内置") {
+                        layer.msg("内置类型驱动不允许删除!", {icon: 2});
+                        return false;
+                    }
+                    layer.confirm('您确认要删除此驱动吗?', {icon: 3}, function () {
+                        post(ctx + "settingManager/deleteDriverConfig/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });
@@ -116,8 +117,6 @@
             });
             return false;
         });
-
-
     });
 </script>
 </html>

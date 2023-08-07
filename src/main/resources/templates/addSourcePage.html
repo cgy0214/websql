@@ -12,17 +12,8 @@
             <div class="layui-form-item">
                 <label class="layui-form-label">数据库类型</label>
                 <div class="layui-input-inline">
-                    <select name="dbType" lay-verify="required" lay-filter="dbType" lay-affix="clear"
-                            cyProps="filter:'dbType'">
-                        <option value="">请选择</option>
-                        <option value="mysql">mysql</option>
-                        <option value="oracle">oracle</option>
-                        <option value="postgresql">postgresql</option>
-                        <option value="h2file">h2内嵌式</option>
-                        <option value="h2remote">h2远程</option>
-                        <option value="sqlite">sqlite</option>
-                        <option value="sqlserver">sqlserver</option>
-                    </select>
+                    <select name="dbType" id="dbType" lay-filter="dbType" lay-search=""
+                            lay-affix="clear"></select>
                 </div>
                 <div class="layui-input-inline">
                     <button class="layui-btn layui-btn-primary layui-border-orange" lay-submit lay-filter="testUrl">
@@ -48,7 +39,8 @@
         <div class="layui-form-item">
             <label class="layui-form-label">连接地址</label>
             <div class="layui-input-block">
-                <input type="text" name="dbUrl" id="dbUrl" lay-verify="required" placeholder="请输入连接地址" lay-affix="clear"
+                <input type="text" name="dbUrl" id="dbUrl" lay-verify="required" placeholder="请输入连接地址"
+                       lay-affix="clear"
                        autocomplete="off" class="layui-input">
             </div>
         </div>
@@ -57,7 +49,8 @@
             <div class="layui-inline">
                 <label class="layui-form-label">验证语句</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbCheckUrl" id="dbCheckUrl" placeholder="请输入验证查询语句" lay-affix="clear"
+                    <input type="text" name="dbCheckUrl" id="dbCheckUrl" placeholder="请输入验证查询语句"
+                           lay-affix="clear"
                            autocomplete="off" class="layui-input">
                 </div>
             </div>
@@ -66,14 +59,16 @@
             <div class="layui-inline">
                 <label class="layui-form-label">登录账号</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbAccount" id="dbAccount" placeholder="请输入数据库登录账号" lay-affix="clear"
+                    <input type="text" name="dbAccount" id="dbAccount" placeholder="请输入数据库登录账号"
+                           lay-affix="clear"
                            autocomplete="off" class="layui-input">
                 </div>
             </div>
             <div class="layui-inline">
                 <label class="layui-form-label">登录密码</label>
                 <div class="layui-input-inline">
-                    <input type="password" name="dbPassword" id="dbPassword" placeholder="请输入数据库登录密码" lay-affix="eye"
+                    <input type="password" name="dbPassword" id="dbPassword" placeholder="请输入数据库登录密码"
+                           lay-affix="eye"
                            autocomplete="off" class="layui-input">
                 </div>
             </div>
@@ -83,28 +78,32 @@
             <div class="layui-inline">
                 <label class="layui-form-label">初始大小</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="initialSize" id="initialSize" value="2" placeholder="请输入初始连接数" lay-affix="number"
+                    <input type="text" name="initialSize" id="initialSize" value="2" placeholder="请输入初始连接数"
+                           lay-affix="number"
                            autocomplete="off" class="layui-input">
                 </div>
             </div>
             <div class="layui-inline">
                 <label class="layui-form-label">最大连接数</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="maxActive" id="maxActive" value="10" placeholder="请输入最大连接数" lay-affix="number"
+                    <input type="text" name="maxActive" id="maxActive" value="10" placeholder="请输入最大连接数"
+                           lay-affix="number"
                            autocomplete="off" class="layui-input">
                 </div>
             </div>
             <div class="layui-inline">
                 <label class="layui-form-label">最大空闲数</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="maxIdle" id="maxIdle" value="3" placeholder="请输入最大空闲数" lay-affix="number"
+                    <input type="text" name="maxIdle" id="maxIdle" value="3" placeholder="请输入最大空闲数"
+                           lay-affix="number"
                            autocomplete="off" class="layui-input">
                 </div>
             </div>
             <div class="layui-inline">
                 <label class="layui-form-label">最大等待时间(ms)</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="maxWait" id="maxWait" value="200" placeholder="请输入最大等待时间" lay-affix="number"
+                    <input type="text" name="maxWait" id="maxWait" value="200" placeholder="请输入最大等待时间"
+                           lay-affix="number"
                            autocomplete="off" class="layui-input">
                 </div>
             </div>
@@ -139,13 +138,39 @@
 
 </div>
 <script th:src="@{/static/layui.js}"></script>
+<script th:src="@{/static/lay-config.js}"></script>
 <script th:replace="~{base::ctx}"></script>
 <script>
 
-    layui.use(function () {
+    layui.use(['jquery', 'layer', 'form', 'laySelect'], function () {
         const layer = layui.layer;
         const form = layui.form;
         const $ = layui.jquery;
+        const select = layui.laySelect;
+
+        /**
+         * 加载模板驱动数据
+         */
+        select.render({
+            elem: "#dbType",
+            url: ctx + 'dataSourceManager/findDriverConfigListSelect',
+            select: 10000,
+            title: '请选择数据库类型',
+            format: function (data) {
+                return parseSelectData(data);
+            },
+            success: function (data, activeData) {
+            },
+            onselect: function (data) {
+                //查询详细配置项
+                if (data === "" || data === null) {
+                    return false;
+                }
+                post(ctx + "dataSourceManager/findDriverConfigListSelect?id=" + data, null, (res) => {
+                    settingInputs(res.data[0]);
+                })
+            }
+        });
 
         /**
          * 保存
@@ -179,24 +204,8 @@
             return false;
         });
 
-        //模板数据
-        let templateArray = [];
-        $.getJSON(ctx + "api/dataSourceTemplate.json", function (r) {
-            templateArray = r;
-        });
 
-        //切换数据源模板
-        form.on('select(dbType)', function (data) {
-            let thisValue = data.value;
-            for (const i in templateArray) {
-                let item = templateArray[i];
-                if (item.name == thisValue) {
-                    settingInputs(item);
-                }
-            }
-        });
-
-        //处理表单
+        //处理表单赋值
         function settingInputs(data) {
             $("#dbName").val("websql-" + data.name);
             $("#driverClass").val(data.driverClass);
