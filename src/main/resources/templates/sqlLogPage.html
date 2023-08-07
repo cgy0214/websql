@@ -47,6 +47,7 @@
         const $ = layui.jquery;
         const table = layui.table;
         const laytpl = layui.laytpl;
+        const util = layui.util;
 
         table.render({
             elem: '#dataTable',
@@ -72,30 +73,18 @@
             var data = obj.data;
             switch (obj.event) {
                 case 'view':
-                    var str = data.logContent || "";
-                    str = str.replace(/\'/g, "’");
-                    str = str.replace(/\"/g, "”");
-                    str = str.replace(/</g, "《").replace(/>/g, "》");
-                    str = str.replace(/\r/g, "&nbsp;");
-                    str = str.replace(/\n/g, "<br />");
-                    str = str.trim();
-                    var content = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
-                        content: str
+                    let strParam = data.logContent || "";
+                    let content1 = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
+                        content: util.unescape(strParam)
                     });
-                    openContent("查看执行SQL内容", content);
+                    openContent("查看执行SQL内容", content1);
                     break;
                 case 'viewResult':
-                    var str = data.logResult || "";
-                    str = str.replace(/\'/g, "’");
-                    str = str.replace(/\"/g, "”");
-                    str = str.replace(/</g, "《").replace(/>/g, "》");
-                    str = str.replace(/\r/g, "&nbsp;");
-                    str = str.replace(/\n/g, "<br />");
-                    str = str.trim();
-                    var content = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
-                        content: str
+                    let strResult = data.logResult || "";
+                    let content2 = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
+                        content: util.unescape(strResult)
                     });
-                    openContent("查看执行SQL结果", content);
+                    openContent("查看执行SQL结果", content2);
                     break;
             }
         });

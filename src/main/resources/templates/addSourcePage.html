@@ -178,7 +178,7 @@
         form.on('submit(save)', function (data) {
             const field = data.field;
             const elem = data.elem;
-            var layType = elem.getAttribute("lay-type");
+            const layType = elem.getAttribute("lay-type");
             post(ctx + "dataSourceManager/addDataSource", field, (res) => {
                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                     if (res.code === 200) {

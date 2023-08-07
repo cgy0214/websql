@@ -66,6 +66,7 @@
         const $ = layui.jquery;
         const table = layui.table;
         const laytpl = layui.laytpl;
+        const util = layui.util;
 
         table.render({
             elem: '#dataTable',
@@ -94,15 +95,9 @@
             var data = obj.data;
             switch (obj.event) {
                 case 'view':
-                    var str = data.sqlText || "";
-                    str = str.replace(/\'/g, "’");
-                    str = str.replace(/\"/g, "”");
-                    str = str.replace(/</g, "《").replace(/>/g, "》");
-                    str = str.replace(/\r/g, "&nbsp;");
-                    str = str.replace(/\n/g, "<br />");
-                    str = str.trim();
+                    let str = data.sqlText || "";
                     const content = laytpl('<div style="margin: 20px;">{{= d.content}}</div>').render({
-                        content: str,
+                        content: util.unescape(str),
                     });
                     openContent("查看作业SQL内容", content);
                     break;
@@ -116,7 +111,7 @@
                     }, function (value, index) {
                         layer.confirm("确认修改CRON？", function () {
                             post(ctx + "timingManager/executeOnce/3/" + data.id+"?cron="+value, null, (res) => {
-                                layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, () => {
+                                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                     $(".search-btn").click();
                                     layer.closeAll();
                                 });
@@ -127,7 +122,7 @@
                 case 'updateState2':
                     layer.confirm("确定启用此任务吗？", function () {
                         post(ctx + "timingManager/executeOnce/2/" +data.id, null, (res) => {
-                            layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, () => {
+                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });
                         })
@@ -136,7 +131,7 @@
                 case 'updateState1':
                     layer.confirm("确定停止此任务吗？", function () {
                         post(ctx + "timingManager/executeOnce/1/" +data.id, null, (res) => {
-                            layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, () => {
+                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });
                         })
@@ -145,7 +140,7 @@
                 case 'delete':
                     layer.confirm("您确认要删除此任务吗？", function () {
                         post(ctx + "timingManager/executeOnce/4/"+data.id, null, (res) => {
-                            layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, () => {
+                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });
                         })
