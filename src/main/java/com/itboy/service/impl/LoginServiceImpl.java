@@ -413,6 +413,17 @@ public class LoginServiceImpl implements LoginService {
     }
 
     @Override
+    public Boolean saveOrUpdateDriverConfig(SysDriverConfig sysDriverConfig) {
+        if (ObjectUtil.isNotNull(sysDriverConfig.getId())) {
+            CacheUtils.remove("driver_config_data" + sysDriverConfig.getId());
+        }
+        CacheUtils.remove("driver_config_list");
+        sysDriverConfigRepository.save(sysDriverConfig);
+        //todo 待实现自定义加载Class驱动，增加验证驱动是否正常.
+        return true;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void initSystem() {
         try {

@@ -55,6 +55,7 @@
         const $ = layui.jquery;
         const table = layui.table;
         const laytpl = layui.laytpl;
+        const util = layui.util;
 
         table.render({
             elem: '#dataTable',
@@ -81,30 +82,18 @@
             var data = obj.data;
             switch (obj.event) {
                 case 'view':
-                    var str = data.taskContent || "";
-                    str = str.replace(/\'/g, "’");
-                    str = str.replace(/\"/g, "”");
-                    str = str.replace(/</g, "《").replace(/>/g, "》");
-                    str = str.replace(/\r/g, "&nbsp;");
-                    str = str.replace(/\n/g, "<br />");
-                    str = str.trim();
-                    var content = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
-                        content: str
+                    let params = data.taskContent || "";
+                    let content1 = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
+                        content: util.unescape(params)
                     });
-                    openContent("查看作业SQL内容", content);
+                    openContent("查看作业SQL内容", content1);
                     break;
                 case 'viewResult':
-                    var str = data.taskError || "";
-                    str = str.replace(/\'/g, "’");
-                    str = str.replace(/\"/g, "”");
-                    str = str.replace(/</g, "《").replace(/>/g, "》");
-                    str = str.replace(/\r/g, "&nbsp;");
-                    str = str.replace(/\n/g, "<br />");
-                    str = str.trim();
-                    var content = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
-                        content: str
+                    let result = data.taskError || "";
+                    let content2 = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
+                        content: util.unescape(result)
                     });
-                    openContent("查看执行日志", content);
+                    openContent("查看执行日志", content2);
                     break;
             }
         });

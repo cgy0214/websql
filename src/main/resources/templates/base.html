@@ -22,6 +22,9 @@
      */
     const loginCopyright = [[${@environment.getProperty('login-copyright')}]];
 
+    console.log("%c webSql -简约而不简单 开源地址：https://gitee.com/boy_0214/websql", "color:red");
+
+
     /**
      * 数据表格返回值通用处理
      * @param res
@@ -144,7 +147,7 @@
      */
     function refresh() {
         window.parent.document.getElementById("search").click();
-        var frameIndex = parent.layer.getFrameIndex(window.name);
+        const frameIndex = parent.layer.getFrameIndex(window.name);
         parent.layer.close(frameIndex);
     }
 

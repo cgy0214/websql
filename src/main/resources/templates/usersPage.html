@@ -58,7 +58,7 @@
         form.on('submit(save)', function (data) {
             const field = data.field;
             post(ctx + "userController/updateUsers", field, (res) => {
-                layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, () => {
+                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                     top.location.href = ctx + "logout";
                 });
             });

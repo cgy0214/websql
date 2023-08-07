@@ -9,11 +9,11 @@ import com.itboy.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName : SettingConfigController
@@ -45,6 +45,20 @@ public class SettingConfigController {
     public String addUserPage() {
         return "addUserPage";
     }
+
+    @RequestMapping("/addDriverConfigPage")
+    public ModelAndView addDriverConfigPage(@RequestParam(required = false) Long id) {
+        ModelAndView modelAndView = new ModelAndView("addDriverConfigPage");
+        modelAndView.addObject("object", new SysDriverConfig());
+        if (ObjectUtil.isNotNull(id)) {
+            List<Map<String, String>> driverConfigListSelect = loginService.findDriverConfigListSelect(String.valueOf(id));
+            if (driverConfigListSelect.size() > 0) {
+                modelAndView.addObject("object", driverConfigListSelect.get(0));
+            }
+        }
+        return modelAndView;
+    }
+
 
     @RequestMapping("/dataBaseConsolePage")
     public ModelAndView dataBaseConsolePage() {
@@ -173,6 +187,12 @@ public class SettingConfigController {
             return AjaxResult.error("必填参数不能为空!");
         }
         return loginService.deleteDriverConfig(id);
+    }
+
+    @RequestMapping("/saveOrUpdateDriverConfig")
+    @ResponseBody
+    public AjaxResult saveOrUpdateDriverConfig(@RequestBody SysDriverConfig sysDriverConfig) {
+        return AjaxResult.success(loginService.saveOrUpdateDriverConfig(sysDriverConfig));
     }
 
 }

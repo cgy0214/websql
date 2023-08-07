@@ -50,6 +50,7 @@
         const $ = layui.jquery;
         const table = layui.table;
         const laytpl = layui.laytpl;
+        const util = layui.util;
 
         table.render({
             elem: '#dataTable',
@@ -75,21 +76,15 @@
             switch (obj.event) {
                 case 'view':
                     let str = data.sqlText || "";
-                    str = str.replace(/\'/g, "’");
-                    str = str.replace(/\"/g, "”");
-                    str = str.replace(/</g, "《").replace(/>/g, "》");
-                    str = str.replace(/\r/g, "&nbsp;");
-                    str = str.replace(/\n/g, "<br />");
-                    str = str.trim();
                     const content = laytpl('<div style="margin: 20px;">{{= d.content}}</div>').render({
-                        content: str
+                        content: util.unescape(str)
                     });
                     openContent("查看SQL内容", content);
                     break;
                 case 'delete':
                     layer.confirm('您确定要删除吗?', {icon: 3}, function () {
                         post(ctx + "sqlManager/deleteSqlText/" + data.id, null, (res) => {
-                            layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, () => {
+                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });
                         })

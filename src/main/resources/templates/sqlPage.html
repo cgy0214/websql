@@ -216,7 +216,7 @@
          * 保存SQL文本
          */
         form.on('submit(saveSqlText)', function (data) {
-            var sqlContent = editor.getValue().trim();
+            const sqlContent = editor.getValue().trim();
             if (sqlContent == "" || sqlContent == null) {
                 layer.msg("SQL语句为空，无需保存哦~", {icon: 2});
                 return false;
@@ -224,7 +224,7 @@
             layer.prompt({title: '给内容起个名字吧', formType: 0}, function (data, index) {
                 layer.close(index);
                 post(ctx + "sqlManager/saveSqlText", {'sqlText': sqlContent, 'title': data}, (res) => {
-                    layer.msg(res.msg, {icon: res.code == 200 ? 1 : 2}, (res) => {
+                    layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, (res) => {
                         sqlTextSelect();
                     });
                 })
@@ -238,7 +238,7 @@
          */
         form.on('submit(showSqlDiv)', function (data) {
             let display = $('.sqlText').css('display');
-            if (display == 'none') {
+            if (display === 'none') {
                 $('.sqlText').css('display', 'block');
                 $("#msgDiv").css('display', 'block');
                 $("#showSqlDiv").html('<i class="layui-icon layui-icon-up">&nbsp;</i>收起');
@@ -264,7 +264,7 @@
                 $("#msgSpan").text("ERROR:请先选择数据源~");
                 return false;
             }
-            var sqlContent = editor.getValue().trim();
+            let sqlContent = editor.getValue().trim();
             if (sqlContent === "" || sqlContent == null) {
                 layer.msg("请输入要执行的SQL~", {icon: 2});
                 $("#msgDiv").show();
@@ -313,13 +313,13 @@
 
         function tableInit(res) {
             //删除历史所有tab
-            for (var i = 0; i < elementTabCount; i++) {
+            for (let i = 0; i < elementTabCount; i++) {
                 element.tabDelete('sqlTableTab', "sqlTable" + i);
             }
             $("#sqlTableDiv").hide();
             let data = res.dataList;
             elementTabCount = data.length;
-            for (var i = 0; i < data.length; i++) {
+            for (let i = 0; i < data.length; i++) {
                 if (data[i].code != 1) {
                     $("#msgSpan").append("结果集" + (i + 1) + "ERROR:" + data[i].msg + " \n ");
                     continue;
@@ -332,7 +332,7 @@
                 //列头
                 let headArr = Object.keys(data[i].data[0]);
                 let head = [];
-                for (var key in headArr) {
+                for (let key in headArr) {
                     head.push({field: headArr[key], title: headArr[key], sort: true});
                 }
                 //add Tab
@@ -353,7 +353,7 @@
                     , height: 935
                     , cellMinWidth: 150
                     , limit: 20
-                    , limits: [20, 500, 800, 1000, 3000, 5000, 10000]
+                    , limits: [20, 500,1000, 3000, 5000, 8000,10000]
                     , even: true
                     , toolbar: toolbarHtml
                     , defaultToolbar: ['filter', 'exports', 'print']

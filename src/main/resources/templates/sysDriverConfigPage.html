@@ -31,12 +31,11 @@
                             lay-filter="table-search">
                         <i class="layui-icon layui-icon-search"> </i>查 询
                     </button>
-                    <!--<button class="layui-btn layui-btn-primary layui-border-blue"
-                            onclick="openPage('新增用户',ctx+'settingManager/addUserPage')
+                    <button class="layui-btn layui-btn-primary layui-border-blue"
+                            onclick="openPage('新增用户',ctx+'settingManager/addDriverConfigPage')
                             return false;">
                         <i class="layui-icon layui-icon-add-1">&nbsp;</i>添 加
-                        暂时不开放自定义
-                    </button>-->
+                    </button>
                 </div>
             </div>
         </div>
@@ -84,17 +83,18 @@
         });
 
         table.on('tool(dataTable)', function (obj) {
-            var data = obj.data;
+            let data = obj.data;
             switch (obj.event) {
                 case 'update':
                     if (data.typeName === "内置") {
-                        layer.msg("内置类型驱动不允许修改!", {icon: 2});
-                        return false;
+                        layer.msg("内置驱动修改不会影响已创建的数据源!", {icon: 2});
+                        //return false;
                     }
+                    openPage("修改驱动信息", ctx + "settingManager/addDriverConfigPage?id=" + data.id);
                     break;
                 case 'delete':
                     if (data.typeName === "内置") {
-                        layer.msg("内置类型驱动不允许删除!", {icon: 2});
+                        layer.msg("内置驱动不允许删除!", {icon: 2});
                         return false;
                     }
                     layer.confirm('您确认要删除此驱动吗?', {icon: 3}, function () {

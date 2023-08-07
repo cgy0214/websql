@@ -52,4 +52,5 @@ public interface LoginService {
 
     List<Map<String, String>> findDriverConfigListSelect(String id);
 
+    Boolean saveOrUpdateDriverConfig(SysDriverConfig sysDriverConfig);
 }
