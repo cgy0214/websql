@@ -3,42 +3,49 @@
     "name": "oracle",
     "driverClass": "oracle.jdbc.driver.OracleDriver",
     "url": "jdbc:oracle:thin:@IP地址:1521:数据库名称",
-    "dbCheckUrl": "select 1 from dual"
+    "dbCheckUrl": "select 1 from dual",
+    "typeName": "内置"
   },
   {
     "name": "mysql",
     "driverClass": "com.mysql.cj.jdbc.Driver",
     "url": "jdbc:mysql://IP地址:3306/数据库名称?useUnicode=true&characterEncoding=UTF-8&useSSL=true&serverTimezone=Asia/Shanghai",
-    "dbCheckUrl": "select 1 "
+    "dbCheckUrl": "select 1 ",
+    "typeName": "内置"
   },
   {
     "name": "h2file",
     "driverClass": "org.h2.Driver",
     "url": "jdbc:h2:数据库名称;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=1",
-    "dbCheckUrl": "select 1 "
+    "dbCheckUrl": "select 1 ",
+    "typeName": "内置"
   },
   {
     "name": "h2remote",
     "driverClass": "org.h2.Driver",
     "url": "jdbc:h2:tcp://ip地址/~/stapler",
-    "dbCheckUrl": "select 1 "
+    "dbCheckUrl": "select 1 ",
+    "typeName": "内置"
   },
   {
     "name": "postgresql",
     "driverClass": "org.postgresql.Driver",
     "url": "jdbc:postgresql://IP地址:5432/数据库名称",
-    "dbCheckUrl": " select version() "
+    "dbCheckUrl": " select version() ",
+    "typeName": "内置"
   },
   {
     "name": "sqlite",
     "driverClass": "org.sqlite.JDBC",
     "url": "jdbc:sqlite:数据库名称",
-    "dbCheckUrl": " select 1 "
+    "dbCheckUrl": " select 1 ",
+    "typeName": "内置"
   },
   {
     "name": "sqlserver",
-    "": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
-    "url": "jdbc:sqlserver://ip地址:端口;DatabaseName=数据库名",
-    "dbCheckUrl": "select 1"
+    "driverClass": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+    "url": "jdbc:sqlserver://IP地址:1433;DatabaseName=数据库名",
+    "dbCheckUrl": "select 1",
+    "typeName": "内置"
   }
 ]

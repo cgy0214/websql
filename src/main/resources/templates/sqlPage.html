@@ -123,9 +123,9 @@
 <script th:src="@{/static/code/sql-hint.js}"></script>
 <script type="text/html" id="table-page-pageBar">
     <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-event="footerBtn1">编辑区
+        <button class="layui-btn layui-btn-primary layui-border-green layui-btn-xs" lay-event="footerBtn1">编辑区
         </button>
-        <button class="layui-btn layui-btn-primary layui-border-purple layui-btn-sm" lay-event="footerBtn2">结果区
+        <button class="layui-btn layui-btn-primary layui-border-purple layui-btn-xs" lay-event="footerBtn2">结果区
         </button>
     </div>
 </script>
@@ -258,14 +258,14 @@
             $("#msgDiv").show();
             $("#msgSpan").text("");
 
-            if (activeDataSource == "" || activeDataSource == null) {
+            if (activeDataSource === "" || activeDataSource == null) {
                 layer.msg("请先选择数据源~", {icon: 2});
                 $("#msgDiv").show();
                 $("#msgSpan").text("ERROR:请先选择数据源~");
                 return false;
             }
             var sqlContent = editor.getValue().trim();
-            if (sqlContent == "" || sqlContent == null) {
+            if (sqlContent === "" || sqlContent == null) {
                 layer.msg("请输入要执行的SQL~", {icon: 2});
                 $("#msgDiv").show();
                 $("#msgSpan").text("ERROR:请输入要执行的SQL~");
@@ -294,7 +294,10 @@
                     return false;
                 }
                 tableInit(res);
-                window.scrollTo(0, document.documentElement.scrollHeight);
+                window.scrollTo({
+                    top: 90,
+                    behavior: "smooth"
+                });
             });
             return false;
         });
@@ -340,7 +343,7 @@
                     id: elId,
                     change: true
                 })
-                let toolbarHtml = "<div><span class=\"layui-badge\">" + head.length + "列</span> <span class=\"layui-badge layui-bg-green\">" + data[i].data.length + "条</span></div>";
+                let toolbarHtml = "<div><span class=\"layui-badge\">" + head.length + "列</span> <span class=\"layui-badge layui-bg-green\">" + data[i].data.length + "条</span> <button class='layui-btn layui-btn-primary layui-border-purple layui-btn-xs' onclick='window.scrollTo({top: document.documentElement.scrollHeight, behavior: \"smooth\"})'>分页区</button></div>";
                 table.render({
                     elem: '#' + elId
                     , cols: [head]
@@ -372,11 +375,17 @@
             table.on('pagebar(' + id + ')', function (obj) {
                 let eventValue = obj.event;
                 if (eventValue == "footerBtn1") {
-                    window.scrollTo(0, 0);
+                    window.scrollTo({
+                        top: 0,
+                        behavior: "smooth"
+                    });
                     return false;
                 }
                 if (eventValue == "footerBtn2") {
-                    window.scrollTo(0, 70);
+                    window.scrollTo({
+                        top: 70,
+                        behavior: "smooth"
+                    });
                     return false;
                 }
             });

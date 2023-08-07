@@ -56,7 +56,7 @@ public class ExamineVersionFactory {
             log.info("远程最新版本:{},发布日期:{}", remoteVersion.getVersion(), remoteVersion.getDate());
             String localVersion = versionModel.getVersion();
             int compare = VersionComparator.INSTANCE.compare(remoteVersion.getVersion(), localVersion);
-            if (compare > 0) {
+            if (compare != 0) {
                 versionModel = remoteVersion;
                 versionModel.setPush(true);
                 versionModel.setLocalVersion(localVersion);

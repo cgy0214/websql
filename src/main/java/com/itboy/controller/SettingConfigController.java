@@ -2,11 +2,9 @@ package com.itboy.controller;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.itboy.config.DbSourceFactory;
-import com.itboy.model.AjaxResult;
-import com.itboy.model.Result;
-import com.itboy.model.SysSetup;
-import com.itboy.model.SysUser;
+import com.itboy.model.*;
 import com.itboy.service.LoginService;
+import com.itboy.util.EnvBeanUtil;
 import com.itboy.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,15 +47,29 @@ public class SettingConfigController {
     }
 
     @RequestMapping("/dataBaseConsolePage")
-    public String dataBaseConsolePage() {
-        return "redirect:/h2-console";
+    public ModelAndView dataBaseConsolePage() {
+        ModelAndView modelAndView = new ModelAndView("redirect:/h2-console");
+        if (!EnvBeanUtil.getBoolean("spring.h2.console.enabled")) {
+            modelAndView.setViewName("main");
+            modelAndView.addObject("errorMsg", "抱歉，已关闭数据库控制台，请联系管理员修改启动配置!");
+        }
+        return modelAndView;
     }
 
     @RequestMapping("/druidConsolePage")
-    public String druidConsolePage() {
-        return "redirect:/druid";
+    public ModelAndView druidConsolePage() {
+        ModelAndView modelAndView = new ModelAndView("redirect:/druid");
+        if (!EnvBeanUtil.getBoolean("spring.h2.console.enabled")) {
+            modelAndView.setViewName("main");
+            modelAndView.addObject("errorMsg", "抱歉，已关闭连接池控制台，请联系管理员修改启动配置!");
+        }
+        return modelAndView;
     }
 
+    @RequestMapping("/driverConfigPage")
+    public String driverConfigPage() {
+        return "sysDriverConfigPage";
+    }
 
     @RequestMapping("/updateUserRolesPage/{id}")
     public ModelAndView updateUserRolesPage(@PathVariable Long id) {
@@ -145,6 +157,22 @@ public class SettingConfigController {
             return AjaxResult.error("请选择角色信息！!");
         }
         return loginService.addUserRoleSource(sysUser);
+    }
+
+
+    @RequestMapping("/driverConfigList")
+    @ResponseBody
+    public AjaxResult driverConfigList(SysDriverConfig sysDriverConfig) {
+        return AjaxResult.success(loginService.selectdriverConfigList(sysDriverConfig));
+    }
+
+    @RequestMapping("/deleteDriverConfig/{id}")
+    @ResponseBody
+    public AjaxResult deleteDriverConfig(@PathVariable Long id) {
+        if (ObjectUtil.isNull(id)) {
+            return AjaxResult.error("必填参数不能为空!");
+        }
+        return loginService.deleteDriverConfig(id);
     }
 
 }

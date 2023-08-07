@@ -217,7 +217,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             dataSourceList = new ArrayList<>(0);
             List<DataSourceModel> list = dbSourceRepository.findAll().stream().filter(s -> s.getDbState().equals("有效")).sorted(Comparator.comparing(DataSourceModel::getId).reversed()).collect(Collectors.toList());
             for (DataSourceModel dataSourceModel : list) {
-                Map<String, String> item = new HashMap<>(2);
+                Map<String, String> item = new HashMap<>(3);
                 item.put("code", dataSourceModel.getDbName());
                 item.put("value", dataSourceModel.getDbName());
                 item.put("select", "false");

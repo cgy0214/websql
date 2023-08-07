@@ -1,8 +1,10 @@
 package com.itboy.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.itboy.config.DataSourceFactory;
 import com.itboy.dao.*;
 import com.itboy.model.*;
@@ -22,10 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +55,9 @@ public class LoginServiceImpl implements LoginService {
 
     @Resource
     private DbSourceService dbSourceService;
+
+    @Resource
+    private SysDriverConfigRepository sysDriverConfigRepository;
 
     @Override
     public SysUser findByUserName(String userName) {
@@ -349,6 +351,68 @@ public class LoginServiceImpl implements LoginService {
     }
 
     @Override
+    public Result<SysDriverConfig> selectdriverConfigList(SysDriverConfig model) {
+        Result<SysDriverConfig> result = new Result<>();
+        Specification<SysDriverConfig> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<Predicate>(3);
+            if (ObjectUtil.isNotEmpty(model.getName())) {
+                predicates.add(cb.like(root.get("name"), "%" + model.getName() + "%"));
+            }
+            if (ObjectUtil.isNotEmpty(model.getTypeName())) {
+                predicates.add(cb.equal(root.get("typeName"), model.getTypeName()));
+            }
+            query.orderBy(cb.desc(root.get("id")));
+            return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+        };
+        Page<SysDriverConfig> all = sysDriverConfigRepository.findAll(spec, new PageRequest(model.getPage() - 1, model.getLimit()));
+        result.setList(all.getContent());
+        result.setCount((int) all.getTotalElements());
+        return result;
+    }
+
+    @Override
+    public AjaxResult deleteDriverConfig(Long id) {
+        SysDriverConfig sysDriverConfig = sysDriverConfigRepository.getOne(id);
+        if (ObjectUtil.isNull(sysDriverConfig)) {
+            return AjaxResult.error("没有找到此驱动配置信息，请刷新页面再试!");
+        }
+        if (ObjectUtil.equal(sysDriverConfig.getTypeName(), "内置")) {
+            return AjaxResult.error("内置驱动配置不允许删除!");
+        }
+        sysDriverConfigRepository.deleteById(id);
+        CacheUtils.remove("driver_config_list");
+        CacheUtils.remove("driver_config_data" + id);
+        return AjaxResult.success("删除成功");
+    }
+
+    @Override
+    public List<Map<String, String>> findDriverConfigListSelect(String id) {
+        //根据ID查询单条数据
+        if (ObjectUtil.isNotNull(id)) {
+            SysDriverConfig sysDriverConfig = CacheUtils.get("driver_config_data" + id, SysDriverConfig.class);
+            if (ObjectUtil.isNull(sysDriverConfig)) {
+                sysDriverConfig = sysDriverConfigRepository.findById(Long.valueOf(id)).get();
+                CacheUtils.put("driver_config_data" + id, sysDriverConfig);
+            }
+            return Collections.singletonList(JSON.parseObject(JSON.toJSONString(sysDriverConfig), Map.class));
+        }
+        List<Map<String, String>> driverList = CacheUtils.get("driver_config_list", List.class);
+        if (ObjectUtil.isNull(driverList)) {
+            driverList = new ArrayList<>(0);
+            List<SysDriverConfig> list = sysDriverConfigRepository.findAll().stream().sorted(Comparator.comparing(SysDriverConfig::getId).reversed()).collect(Collectors.toList());
+            for (SysDriverConfig dataSourceModel : list) {
+                Map<String, String> item = new HashMap<>(4);
+                item.put("code", dataSourceModel.getId().toString());
+                item.put("value", dataSourceModel.getName());
+                item.put("select", "false");
+                driverList.add(item);
+            }
+            CacheUtils.put("driver_config_list", driverList);
+        }
+        return driverList;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void initSystem() {
         try {
@@ -419,6 +483,10 @@ public class LoginServiceImpl implements LoginService {
             sysSetup.setFailLogin(3);
             sysSetup.setRiskText("drop,truncate,delete,create");
             sysSetUpRepository.save(sysSetup);
+
+            //初始化内置的驱动
+            List<SysDriverConfig> sysDriverConfig = JSON.parseArray(ResourceUtil.readUtf8Str("dataSourceTemplate.json"), SysDriverConfig.class);
+            sysDriverConfigRepository.saveAll(sysDriverConfig);
 
             //初始化默认数据源H2
             DataSourceModel model = new DataSourceModel()
