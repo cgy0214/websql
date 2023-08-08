@@ -39,4 +39,6 @@ public interface DbSourceService {
     Map executeSql(ExecuteSql sql);
 
     Integer selectDbByName(String dbName);
+
+    AjaxResult findTableField(String database);
 }

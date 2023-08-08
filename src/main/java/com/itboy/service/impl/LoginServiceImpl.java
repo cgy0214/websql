@@ -16,6 +16,7 @@ import com.itboy.util.StpUtils;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -58,6 +59,20 @@ public class LoginServiceImpl implements LoginService {
 
     @Resource
     private SysDriverConfigRepository sysDriverConfigRepository;
+
+
+    @Value("${spring.datasource.driverClassName}")
+    private String driverClassName;
+
+    @Value("${spring.datasource.url}")
+    private String url;
+
+    @Value("${spring.datasource.username}")
+    private String username;
+
+    @Value("${spring.datasource.password}")
+    private String password;
+
 
     @Override
     public SysUser findByUserName(String userName) {
@@ -163,9 +178,12 @@ public class LoginServiceImpl implements LoginService {
         if (ObjectUtil.isNotEmpty(sys.getFailLogin())) {
             sysSetup.setFailLogin(sys.getFailLogin());
         }
+        if (ObjectUtil.isNotEmpty(sys.getEnabledHint())) {
+            sysSetup.setEnabledHint(sys.getEnabledHint());
+        }
         CacheUtils.remove("sys_setup");
         sysSetUpRepository.save(sysSetup);
-        CacheUtils.put("sys_setup", sysSetup);
+        CacheUtils.putNoDue("sys_setup", sysSetup);
         return true;
     }
 
@@ -423,6 +441,7 @@ public class LoginServiceImpl implements LoginService {
         return true;
     }
 
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void initSystem() {
@@ -493,6 +512,7 @@ public class LoginServiceImpl implements LoginService {
             sysSetup.setPageLimitMax(1000);
             sysSetup.setFailLogin(3);
             sysSetup.setRiskText("drop,truncate,delete,create");
+            sysSetup.setEnabledHint(0);
             sysSetUpRepository.save(sysSetup);
 
             //初始化内置的驱动
@@ -502,11 +522,11 @@ public class LoginServiceImpl implements LoginService {
             //初始化默认数据源H2
             DataSourceModel model = new DataSourceModel()
                     .setDbName("DEFAULT-H2")
-                    .setDriverClass("org.h2.Driver")
-                    .setDbUrl("jdbc:h2:./data/database;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=1")
+                    .setDriverClass(driverClassName)
+                    .setDbUrl(url)
                     .setDbCheckUrl("select 1")
-                    .setDbAccount("sa")
-                    .setDbPassword("admin@websql")
+                    .setDbAccount(username)
+                    .setDbPassword(password)
                     .setInitialSize(1)
                     .setMaxActive(10)
                     .setMaxIdle(5)

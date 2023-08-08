@@ -17,7 +17,7 @@ public class CacheUtils {
     private static final Integer SCHEDULE_TIME = 1000 * 60 * 30;
 
 
-    private static TimedCache<String, Object> localCache = CacheUtil.newTimedCache(TIME_OUT);
+    private static final TimedCache<String, Object> localCache = CacheUtil.newTimedCache(Integer.MAX_VALUE);
 
 
     static {
@@ -26,6 +26,10 @@ public class CacheUtils {
 
     public static void put(String key, Object value) {
         put(key, value, TIME_OUT);
+    }
+
+    public static void putNoDue(String key, Object value) {
+        localCache.put(key, value);
     }
 
     public static void put(String key, Object value, Integer time) {

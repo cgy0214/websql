@@ -10,6 +10,7 @@ import com.itboy.model.*;
 import com.itboy.service.DbSourceService;
 import com.itboy.util.CacheUtils;
 import com.itboy.util.StpUtils;
+import com.itboy.util.TableFieldSqlUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -261,5 +262,26 @@ public class DbSourceServiceImpl implements DbSourceService {
         return sqlTextModelList;
     }
 
-
+    @Override
+    public AjaxResult findTableField(String database) {
+        SysSetup sysSetup = CacheUtils.get("sys_setup", SysSetup.class);
+        if (ObjectUtil.isNull(sysSetup) || ObjectUtil.notEqual(sysSetup.getEnabledHint(), 0)) {
+            return AjaxResult.success("系统关闭提示功能，可以再参数中设置开启。");
+        }
+        Map<String, List<String>> resultMap = CacheUtils.get("table_field_list" + database, Map.class);
+        if (ObjectUtil.isNull(resultMap)) {
+            String viewSql = TableFieldSqlUtils.getViewSql(database);
+            if (ObjectUtil.isEmpty(viewSql)) {
+                return AjaxResult.error("不兼容的数据库类型!");
+            }
+            Map<String, Object> map = JdbcUtils.findMoreResult(database, viewSql, new ArrayList<>());
+            if (ObjectUtil.notEqual(map.get("code"), "1")) {
+                return AjaxResult.error("查询此数据库表名时失败!");
+            }
+            List<Map> list = (List<Map>) map.get("data");
+            resultMap = list.stream().collect(Collectors.groupingBy(s -> s.get("NAME").toString(), Collectors.mapping(s -> s.get("FIELD").toString(), Collectors.toList())));
+            CacheUtils.put("table_field_list" + database, resultMap);
+        }
+        return AjaxResult.success(resultMap);
+    }
 }

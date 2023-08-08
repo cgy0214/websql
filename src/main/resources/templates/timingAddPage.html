@@ -14,9 +14,11 @@
             font-size: 20px;
             height: 600px;
         }
+
         .CodeMirror {
             border-radius: 12px;
         }
+
         .sqlTab {
             border: 1px solid;
             border-radius: 12px;
@@ -125,6 +127,9 @@
             }
         });
         editor.setSize('auto', '600px');
+        editor.on('keypress', () => {
+            editor.showHint();
+        });
 
         /**
          * 数据来源
@@ -162,11 +167,29 @@
             success: function (data, activeData) {
                 //默认选中的数据源需要单独赋值，不会走onSelect
                 activeDataSource2 = activeData == null ? null : activeData[0].code;
+                editorHintSettings();
             },
             onselect: function (data) {
                 activeDataSource2 = data;
+                editorHintSettings();
             }
         });
+
+        /**
+         * 设置编辑器提示表名及字段功能
+         */
+        function editorHintSettings() {
+            post(ctx + "sqlManager/findTableField?database=" + activeDataSource, null, (res) => {
+                if (res.code !== 200 || res.data === null) {
+                    console.error("获取表名及字段失败,无法提供编辑器提示功能!" + res.msg);
+                    return false;
+                }
+                editor.setOption('hintOptions', {
+                    completeSingle: false,
+                    tables: res.data
+                });
+            });
+        }
 
         /**
          * 执行SQL

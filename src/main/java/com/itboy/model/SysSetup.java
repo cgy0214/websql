@@ -82,4 +82,10 @@ public class SysSetup {
      */
     @Column(length = 500)
     private Integer failLogin;
+
+    /**
+     * 编辑器开启表字段提示 0开启 1不开启
+     */
+    @Column(length = 1)
+    private Integer enabledHint;
 }
