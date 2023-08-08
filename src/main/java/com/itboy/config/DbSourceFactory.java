@@ -61,7 +61,7 @@ public class DbSourceFactory {
         SysSetup sysSetup = CacheUtils.get("sys_setup", SysSetup.class);
         if (ObjectUtil.isNull(sysSetup)) {
             sysSetup = dbSourceService.initSysSetup();
-            CacheUtils.put("sys_setup", sysSetup);
+            CacheUtils.putNoDue("sys_setup", sysSetup);
         }
         return sysSetup;
     }

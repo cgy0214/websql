@@ -1,5 +1,6 @@
 package com.itboy;
 
+import com.itboy.util.EnvBeanUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,7 +22,7 @@ public class WebplsqlApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(WebplsqlApplication.class, args);
-        log.info("SUCCESS WEBSQL-PROJECT...");
+        log.info("WELCOME WEBSQL-PROJECT http://localhost:{}", EnvBeanUtil.getString("server.port"));
     }
 
 

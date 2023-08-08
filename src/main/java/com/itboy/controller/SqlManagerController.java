@@ -7,10 +7,7 @@ import com.itboy.model.ExecuteSql;
 import com.itboy.service.DbSourceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -118,4 +115,16 @@ public class SqlManagerController {
     public Map executeSql(@RequestBody ExecuteSql sql) {
         return dbSourceService.executeSql(sql);
     }
+
+    /***
+     * 查询数据库所有表及字段
+     * @param database 数据源名称
+     * @return
+     */
+    @RequestMapping("/findTableField")
+    @ResponseBody
+    public AjaxResult findTableField(@RequestParam String database) {
+        return dbSourceService.findTableField(database);
+    }
+
 }

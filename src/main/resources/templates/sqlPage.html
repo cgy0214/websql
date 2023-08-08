@@ -166,6 +166,14 @@
         });
 
         /**
+         * 自动提示
+         */
+        editor.on('keypress', () => {
+            editor.showHint();
+        });
+
+
+        /**
          * 展示数据源
          */
         let activeDataSource;//选中的数据源
@@ -180,11 +188,30 @@
             success: function (data, activeData) {
                 //默认选中的数据源需要单独赋值，不会走onSelect
                 activeDataSource = activeData == null ? null : activeData[0].code;
+                editorHintSettings();
             },
             onselect: function (data) {
                 activeDataSource = data;
+                editorHintSettings();
             }
         });
+
+
+        /**
+         * 设置编辑器提示表名及字段功能
+         */
+        function editorHintSettings() {
+            post(ctx + "sqlManager/findTableField?database=" + activeDataSource, null, (res) => {
+                if (res.code !== 200 || res.data === null) {
+                    console.error("获取表名及字段失败,无法提供编辑器提示功能!" + res.msg);
+                    return false;
+                }
+                editor.setOption('hintOptions', {
+                    completeSingle: false,
+                    tables: res.data
+                });
+            });
+        }
 
         /**
          * 展示sql保存记录
@@ -353,7 +380,7 @@
                     , height: 935
                     , cellMinWidth: 150
                     , limit: 20
-                    , limits: [20, 500,1000, 3000, 5000, 8000,10000]
+                    , limits: [20, 500, 1000, 3000, 5000, 8000, 10000]
                     , even: true
                     , toolbar: toolbarHtml
                     , defaultToolbar: ['filter', 'exports', 'print']

@@ -4,7 +4,6 @@ import cn.hutool.core.util.ObjectUtil;
 import com.itboy.config.DataSourceFactory;
 import com.itboy.model.AjaxResult;
 import com.itboy.model.DataSourceModel;
-import com.itboy.model.ExecuteSql;
 import com.itboy.service.DbSourceService;
 import com.itboy.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
@@ -162,15 +161,6 @@ public class DataSourceManagerController {
         Map result = new HashMap(2);
         result.put("code", 0);
         result.put("data", dbSourceService.dbsourceSqlList(model));
-        return result;
-    }
-
-
-    /*暂未实现获取表功能*/
-    @RequestMapping("dbSource/getTableList")
-    @ResponseBody
-    public Map getTableList(ExecuteSql sql) {
-        Map result = new HashMap(0);
         return result;
     }
 
