@@ -417,7 +417,7 @@ public class LoginServiceImpl implements LoginService {
         List<Map<String, String>> driverList = CacheUtils.get("driver_config_list", List.class);
         if (ObjectUtil.isNull(driverList)) {
             driverList = new ArrayList<>(0);
-            List<SysDriverConfig> list = sysDriverConfigRepository.findAll().stream().sorted(Comparator.comparing(SysDriverConfig::getId).reversed()).collect(Collectors.toList());
+            List<SysDriverConfig> list = sysDriverConfigRepository.findAll();
             for (SysDriverConfig dataSourceModel : list) {
                 Map<String, String> item = new HashMap<>(4);
                 item.put("code", dataSourceModel.getId().toString());
@@ -514,11 +514,9 @@ public class LoginServiceImpl implements LoginService {
             sysSetup.setRiskText("drop,truncate,delete,create");
             sysSetup.setEnabledHint(0);
             sysSetUpRepository.save(sysSetup);
-
             //初始化内置的驱动
             List<SysDriverConfig> sysDriverConfig = JSON.parseArray(ResourceUtil.readUtf8Str("dataSourceTemplate.json"), SysDriverConfig.class);
             sysDriverConfigRepository.saveAll(sysDriverConfig);
-
             //初始化默认数据源H2
             DataSourceModel model = new DataSourceModel()
                     .setDbName("DEFAULT-H2")
@@ -528,7 +526,7 @@ public class LoginServiceImpl implements LoginService {
                     .setDbAccount(username)
                     .setDbPassword(password)
                     .setInitialSize(1)
-                    .setMaxActive(10)
+                    .setMaxActive(5)
                     .setMaxIdle(5)
                     .setMaxWait(20)
                     .setDbState("有效");
