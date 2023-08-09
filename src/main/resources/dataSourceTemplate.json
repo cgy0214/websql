@@ -2,14 +2,14 @@
   {
     "name": "oracle",
     "driverClass": "oracle.jdbc.driver.OracleDriver",
-    "url": "jdbc:oracle:thin:@IP地址:1521:数据库名称",
+    "url": "jdbc:oracle:thin:@IP:1521:数据库名称",
     "dbCheckUrl": "select 1 from dual",
     "typeName": "内置"
   },
   {
     "name": "mysql",
     "driverClass": "com.mysql.cj.jdbc.Driver",
-    "url": "jdbc:mysql://IP地址:3306/数据库名称?useUnicode=true&characterEncoding=UTF-8&useSSL=true&serverTimezone=Asia/Shanghai",
+    "url": "jdbc:mysql://IP:3306/数据库名称?useUnicode=true&characterEncoding=UTF-8&useSSL=true&serverTimezone=Asia/Shanghai",
     "dbCheckUrl": "select 1 ",
     "typeName": "内置"
   },
@@ -23,14 +23,14 @@
   {
     "name": "h2remote",
     "driverClass": "org.h2.Driver",
-    "url": "jdbc:h2:tcp://ip地址/~/stapler",
+    "url": "jdbc:h2:tcp://ip/~/stapler",
     "dbCheckUrl": "select 1 ",
     "typeName": "内置"
   },
   {
     "name": "postgresql",
     "driverClass": "org.postgresql.Driver",
-    "url": "jdbc:postgresql://IP地址:5432/数据库名称",
+    "url": "jdbc:postgresql://IP:5432/数据库名称",
     "dbCheckUrl": " select version() ",
     "typeName": "内置"
   },
@@ -44,7 +44,7 @@
   {
     "name": "sqlserver",
     "driverClass": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
-    "url": "jdbc:sqlserver://IP地址:1433;DatabaseName=数据库名",
+    "url": "jdbc:sqlserver://IP:1433;DatabaseName=数据库名",
     "dbCheckUrl": "select 1",
     "typeName": "内置"
   }
