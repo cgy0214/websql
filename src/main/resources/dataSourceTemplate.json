@@ -30,8 +30,8 @@
   {
     "name": "postgresql",
     "driverClass": "org.postgresql.Driver",
-    "url": "jdbc:postgresql://127.0.0.1:5432/数据库名称",
-    "dbCheckUrl": " select version() ",
+    "url": "jdbc:postgresql://127.0.0.1:5432/数据库名称?characterEncoding=utf-8",
+    "dbCheckUrl": " select 'x' ",
     "typeName": "内置"
   },
   {

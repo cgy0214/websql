@@ -26,6 +26,7 @@ public class TableFieldSqlUtils {
 
             .put("kingbase", " SELECT table_name AS TABLE_NAME,column_name AS TABLE_FIELD from  INFORMATION_SCHEMA.COLUMNS where table_schema='public' ")
 
+            .put("postgresql", " SELECT table_name AS \"TABLE_NAME\",column_name AS \"TABLE_FIELD\"  from  INFORMATION_SCHEMA.COLUMNS where table_schema='public' ")
             .build();
 
     public static String getViewSql(String database) {
