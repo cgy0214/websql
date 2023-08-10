@@ -126,7 +126,7 @@ SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
 
 #### Docker部署
 
-    docker pull cgycms/websql:3.0
+    docker pull cgycms/websql:latest
     
     docker run -di --name websql -p 80:80 cgycms/websql:3.0
     
