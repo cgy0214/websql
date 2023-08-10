@@ -129,7 +129,7 @@ public class SqlDruidParser {
             if (ObjectUtil.isNull(result)) {
                 result = visitor;
             }
-            String method = getFirstOrNull(visitor.getTables()).toString().toLowerCase();
+            String method = Optional.ofNullable(getFirstOrNull(visitor.getTables())).orElse("").toString().toLowerCase();
             if (methods.contains(method)) {
                 throw new RuntimeException("不允许执行【" + method + "】SQL语句,请联系管理员!");
             }

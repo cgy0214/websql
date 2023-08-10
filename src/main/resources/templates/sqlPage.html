@@ -312,8 +312,9 @@
                     return false;
                 }
                 if (res.code != 1) {
-                    layer.msg(res.msg, {icon: 2});
-                    $("#msgSpan").text("ERROR:" + res.msg);
+                    let msg = res.msg == null ? "空指针异常,请查看日志详情" : res.msg;
+                    layer.msg(msg, {icon: 2});
+                    $("#msgSpan").text("ERROR:" + msg);
                     $("#sqlTableDiv").hide();
                     return false;
                 }

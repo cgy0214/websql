@@ -158,6 +158,13 @@
             <systemPath>${project.basedir}/src/main/resources/libs/DmJdbcDriver18.jar</systemPath>
         </dependency>
 
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.6.0</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>
