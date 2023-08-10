@@ -21,6 +21,7 @@ websql v3 JAVA语言开发,H2内嵌管理数据库。执行效率更快、完全
     postgresql
     sqlite
     sqlserver
+    达梦数据库
 
 #### 软件架构
 

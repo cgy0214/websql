@@ -47,5 +47,12 @@
     "url": "jdbc:sqlserver://IP:1433;DatabaseName=数据库名",
     "dbCheckUrl": "select 1",
     "typeName": "内置"
+  },
+  {
+    "name": "dm",
+    "driverClass": "dm.jdbc.driver.DmDriver",
+    "url": "jdbc:dm://ip:5236/数据库名称",
+    "dbCheckUrl": "select 1",
+    "typeName": "内置"
   }
 ]

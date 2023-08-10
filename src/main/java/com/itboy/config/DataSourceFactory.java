@@ -1,5 +1,6 @@
 package com.itboy.config;
 
+import com.alibaba.druid.DbType;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.stat.DruidDataSourceStatManager;
 import com.alibaba.druid.util.JdbcUtils;
@@ -44,7 +45,11 @@ public class DataSourceFactory {
             ds.setConnectionErrorRetryAttempts(0);
             ds.setNotFullTimeoutRetryCount(-1);
             try {
-                ds.setFilters("stat,wall");
+                if (JdbcUtils.getDbTypeRaw(config.getDbUrl().trim(), config.getDriverClass().trim()).equals(DbType.dm)) {
+                    ds.setFilters("stat");
+                } else {
+                    ds.setFilters("stat,wall");
+                }
                 ds.setConnectionProperties("druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000");
                 ds.init();
                 map.put(config.getDbName().trim(), ds);

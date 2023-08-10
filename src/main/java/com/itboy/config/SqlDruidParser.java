@@ -1,6 +1,8 @@
 package com.itboy.config;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.druid.DbType;
+import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
 import com.alibaba.druid.stat.TableStat;
@@ -31,11 +33,11 @@ public class SqlDruidParser {
     public static Map<String, Object> sqlParser(String dbName, String sql) throws Exception {
         Map<String, Object> resultMap = new HashMap<>(6);
         String dbType = DataSourceFactory.getDbType(dbName);
-        String sqlFormat = com.itboy.config.SQLUtils.format(sql, dbType);
+        String sqlFormat = SQLUtils.format(sql, dbType);
         String[] sqlParam = sqlFormat.split(";");
         SchemaStatVisitor visitor = checkRiskMethod(sql, dbType);
         Object method = getFirstOrNull(visitor.getTables());
-        resultMap.put("tables", visitor.getCurrentTable());
+        resultMap.put("tables", visitor.getTables());
         resultMap.put("fields", visitor.getColumns());
         resultMap.put("tableName", getTable(visitor.getTables()));
         resultMap.put("executeType", method == null ? "SELECT" : method.toString().toUpperCase());
@@ -86,7 +88,7 @@ public class SqlDruidParser {
         }
         String page = "select * from (";
         String size = ") where rownum <= " + limitMax;
-        //需要使用rownum分页的数据库
+        //需要使用rowNum分页的数据库
         List<String> pageType = Arrays.asList("h2", "oracle");
         for (String item : sqlParam) {
             if (pageType.contains(dbType)) {
@@ -122,7 +124,7 @@ public class SqlDruidParser {
             methods.addAll(Arrays.asList(sysSetup.getRiskText().split(",")));
         }
         for (SQLStatement sqlStatement : stmtList) {
-            SchemaStatVisitor visitor = SQLUtils.createSchemaStatVisitor(dbType);
+            SchemaStatVisitor visitor = SQLUtils.createSchemaStatVisitor(DbType.valueOf(dbType));
             sqlStatement.accept(visitor);
             if (ObjectUtil.isNull(result)) {
                 result = visitor;

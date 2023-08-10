@@ -5,7 +5,7 @@
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/codemirror.css}" media="all"/>
-    <link rel="stylesheet" th:href=@{/static/code/show-hint.css} media="all"/>
+    <link rel="stylesheet" th:href="@{/static/code/show-hint.css}" media="all"/>
     <style>
         .sqlText {
             border: 1px solid;
@@ -162,7 +162,8 @@
                     let spaces = Array(cm.getOption('indentUnit') + 1).join(' ');
                     cm.replaceSelection(spaces);
                 }
-            }
+            },
+            hintOptions: {completeSingle: false}
         });
 
         /**
@@ -202,7 +203,7 @@
          */
         function editorHintSettings() {
             post(ctx + "sqlManager/findTableField?database=" + activeDataSource, null, (res) => {
-                if (res.code !== 200 || res.data === null) {
+                if (res.code != 200 || res.data === null) {
                     console.error("获取表名及字段失败,无法提供编辑器提示功能!" + res.msg);
                     return false;
                 }
@@ -310,21 +311,13 @@
                     $("#sqlTableDiv").hide();
                     return false;
                 }
-                if (res.code != "1") {
+                if (res.code != 1) {
                     layer.msg(res.msg, {icon: 2});
-                    $("#msgSpan").text("ERROR:" + data.msg);
+                    $("#msgSpan").text("ERROR:" + res.msg);
                     $("#sqlTableDiv").hide();
                     return false;
                 }
-                if (res.sqlExecuteType !== "SELECT") {
-                    $("#msgSpan").text("执行条数:" + data.data);
-                    return false;
-                }
                 tableInit(res);
-                window.scrollTo({
-                    top: 90,
-                    behavior: "smooth"
-                });
             });
             return false;
         });
@@ -346,12 +339,25 @@
             $("#sqlTableDiv").hide();
             let data = res.dataList;
             elementTabCount = data.length;
+            //执行语句仅返回条数
+            if (res.sqlExecuteType != "SELECT") {
+                let executeMsg = "";
+                for (let i = 0; i < data.length; i++) {
+                    if (executeMsg != "") {
+                        executeMsg += "<br>";
+                    }
+                    let msg = data[i].code === "2" ? "执行失败:" + data[i].msg : "执行成功:" + data[i].data + "条";
+                    executeMsg += "第【" + (i + 1) + "】条SQL语句 " + msg;
+                }
+                $("#msgSpan").html(executeMsg);
+                return false;
+            }
             for (let i = 0; i < data.length; i++) {
                 if (data[i].code != 1) {
                     $("#msgSpan").append("结果集" + (i + 1) + "ERROR:" + data[i].msg + " \n ");
                     continue;
                 }
-                if (data[i].data.length == 0) {
+                if (data[i].data.length === 0) {
                     $("#msgSpan").append("结果集" + (i + 1) + "：SQL执行成功,返回结果为空！ \n ");
                     continue;
                 }
@@ -392,6 +398,10 @@
                 rowContextmenu(elId, res);
                 pageBar(elId, res);
             }
+            window.scrollTo({
+                top: 90,
+                behavior: "smooth"
+            });
             return false;
         }
 
@@ -401,14 +411,14 @@
         function pageBar(id, res) {
             table.on('pagebar(' + id + ')', function (obj) {
                 let eventValue = obj.event;
-                if (eventValue == "footerBtn1") {
+                if (eventValue === "footerBtn1") {
                     window.scrollTo({
                         top: 0,
                         behavior: "smooth"
                     });
                     return false;
                 }
-                if (eventValue == "footerBtn2") {
+                if (eventValue === "footerBtn2") {
                     window.scrollTo({
                         top: 70,
                         behavior: "smooth"
