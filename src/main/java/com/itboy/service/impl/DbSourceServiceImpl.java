@@ -279,7 +279,7 @@ public class DbSourceServiceImpl implements DbSourceService {
                 return AjaxResult.error("查询此数据库表名时失败!");
             }
             List<Map> list = (List<Map>) map.get("data");
-            resultMap = list.stream().collect(Collectors.groupingBy(s -> s.get("NAME").toString(), Collectors.mapping(s -> s.get("FIELD").toString(), Collectors.toList())));
+            resultMap = list.stream().collect(Collectors.groupingBy(s -> s.get("TABLE_NAME").toString(), Collectors.mapping(s -> s.get("TABLE_FIELD").toString(), Collectors.toList())));
             CacheUtils.put("table_field_list" + database, resultMap);
         }
         return AjaxResult.success(resultMap);
