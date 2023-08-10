@@ -204,7 +204,7 @@
         function editorHintSettings() {
             post(ctx + "sqlManager/findTableField?database=" + activeDataSource, null, (res) => {
                 if (res.code != 200 || res.data === null) {
-                    console.error("获取表名及字段失败,无法提供编辑器提示功能!" + res.msg);
+                    console.warn("获取表名及字段失败,无法提供编辑器提示功能!" + res.msg);
                     return false;
                 }
                 editor.setOption('hintOptions', {
