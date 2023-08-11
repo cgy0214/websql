@@ -122,7 +122,7 @@ public class LoginServiceImpl implements LoginService {
             query.orderBy(cb.desc(root.get("id")));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };
-        Page<SysUserLog> all = sysUserLogRepository.findAll(spec, new PageRequest(model.getPage() - 1, model.getLimit()));
+        Page<SysUserLog> all = sysUserLogRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
         result.setList(all.getContent());
         result.setCount((int) all.getTotalElements());
         return result;
@@ -151,17 +151,11 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public Boolean updateSysSetUp(SysSetup sys) {
         SysSetup sysSetup = sysSetUpRepository.findById(sys.getId()).get();
-        if (ObjectUtil.isNotEmpty(sys.getInitDbsource())) {
-            sysSetup.setInitDbsource(sys.getInitDbsource());
+        if (ObjectUtil.isNotEmpty(sys.getInitDataSource())) {
+            sysSetup.setInitDataSource(sys.getInitDataSource());
         }
-        if (ObjectUtil.isNotEmpty(sys.getCol3())) {
-            sysSetup.setCol3(sys.getCol3());
-        }
-        if (ObjectUtil.isNotEmpty(sys.getCol2())) {
-            sysSetup.setCol2(sys.getCol2());
-        }
-        if (ObjectUtil.isNotEmpty(sys.getCol1())) {
-            sysSetup.setCol1(sys.getCol1());
+        if (ObjectUtil.isNotEmpty(sys.getEnabledSqlLog())) {
+            sysSetup.setEnabledSqlLog(sys.getEnabledSqlLog());
         }
         if (ObjectUtil.isNotEmpty(sys.getEnabledHelp())) {
             sysSetup.setEnabledHelp(sys.getEnabledHelp());
@@ -211,7 +205,7 @@ public class LoginServiceImpl implements LoginService {
             query.orderBy(cb.desc(root.get("createTime")));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };
-        Page<SysUser> all = sysUserRepository.findAll(spec, new PageRequest(model.getPage() - 1, model.getLimit()));
+        Page<SysUser> all = sysUserRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
         Map<Long, List<SysUserRole>> userRoleMap = sysUserRoleRepository.findAll().stream().collect(Collectors.groupingBy(SysUserRole::getUserId));
         for (SysUser sysUser : all) {
             if (sysUser.getState() == 0) {
@@ -382,7 +376,7 @@ public class LoginServiceImpl implements LoginService {
             query.orderBy(cb.desc(root.get("id")));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };
-        Page<SysDriverConfig> all = sysDriverConfigRepository.findAll(spec, new PageRequest(model.getPage() - 1, model.getLimit()));
+        Page<SysDriverConfig> all = sysDriverConfigRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
         result.setList(all.getContent());
         result.setCount((int) all.getTotalElements());
         return result;
@@ -502,11 +496,8 @@ public class LoginServiceImpl implements LoginService {
             //初始化系统设置
             SysSetup sysSetup = SysSetup.getInstance();
             sysSetup.setId(1L);
-            sysSetup.setCol1("1");
-            sysSetup.setCol2("1");
-            sysSetup.setCol3(1);
-            sysSetup.setCol4(1);
-            sysSetup.setInitDbsource(1);
+            sysSetup.setEnabledSqlLog(1);
+            sysSetup.setInitDataSource(1);
             sysSetup.setEnabledHelp(0);
             sysSetup.setEnabledLockView(0);
             sysSetup.setPageLimitMax(1000);

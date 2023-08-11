@@ -61,7 +61,8 @@
             </div>
             <label class="layui-form-label">作业名称:</label>
             <div class="layui-input-inline" style="width: 150px;">
-                <input type="text" id="col2" name="col2" class="layui-input" lay-affix="clear" placeholder="作业名称"/>
+                <input type="text" id="title" name="title" class="layui-input" lay-affix="clear"
+                       placeholder="作业名称"/>
             </div>
             <label class="layui-form-label">CRON:</label>
             <div class="layui-input-inline" style="width: 150px;">
@@ -218,8 +219,8 @@
                 'syncName': activeDataSource2,
                 'executeTime': field.executeTimeHidden,
                 'sqlText': sqlContent,
-                'col1': '休眠',
-                'col2': field.col2,
+                'state': '休眠',
+                'title': field.title,
                 'syncTable': field.syncTable
             };
             post(ctx + "timingManager/addTimingData", params, (res) => {

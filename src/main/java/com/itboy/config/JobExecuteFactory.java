@@ -1,5 +1,7 @@
 package com.itboy.config;
 
+import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.itboy.model.JobLogs;
 import com.itboy.model.TimingVo;
@@ -8,7 +10,6 @@ import com.itboy.util.ScheduleUtils;
 import com.itboy.util.SpringContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class JobExecuteFactory {
         Long begin = System.currentTimeMillis();
         log.info("{}-作业任务开始.", jobName);
         TimingVo models = new TimingVo();
-        models.setCol2(jobName);
+        models.setTitle(jobName);
         TimingService timingService = SpringContextHolder.getBean(TimingService.class);
         List<TimingVo> voList = timingService.timingList(models).getList();
         if (voList.size() == 0) {
@@ -50,21 +51,21 @@ public class JobExecuteFactory {
         StringBuffer values = new StringBuffer();
         JobLogs logs = new JobLogs();
         TimingVo vo = voList.get(0);
-        vo.setCol1("作业中");
+        vo.setState("作业中");
         timingService.updateStatus(vo);
         try {
             String sql = vo.getSqlText();
-            if (StringUtils.isEmpty(sql)) {
+            if (ObjectUtil.isEmpty(sql)) {
                 throw new NullPointerException("作业SQL为空");
             }
             //SQL预处理
             Map<String, Object> sqlParser = SqlDruidParser.sqlParser(vo.getTimingName(), sql);
             List<String> executeSqlList = (List<String>) sqlParser.get("executeSql");
             //sync
-            if (!StringUtils.isEmpty(vo.getSyncName()) && !"请选择".equals(vo.getSyncName())) {
+            if (!ObjectUtil.isEmpty(vo.getSyncName()) && !"请选择".equals(vo.getSyncName())) {
                 for (String executeSql : executeSqlList) {
                     Map<String, Object> resultData = JdbcUtils.findMoreResult(vo.getTimingName(), executeSql, new ArrayList<>());
-                    if (resultData.get("code").equals("2")) {
+                    if ("2".equals(resultData.get("code"))) {
                         throw new NullPointerException("作业SQL执行异常.error:" + resultData.get("msg"));
                     }
                     List itemList = (List) resultData.get("data");
@@ -80,7 +81,7 @@ public class JobExecuteFactory {
                         values = values.deleteCharAt(0);
                         String tableName = (String) sqlParser.get("tableName");
                         ;
-                        if (!StringUtils.isEmpty(vo.getSyncTable())) {
+                        if (!ObjectUtil.isEmpty(vo.getSyncTable())) {
                             tableName = vo.getSyncTable();
                         }
                         String itemSql = "insert into " + tableName + "(" + param + ") values (" + values + ")";
@@ -109,9 +110,9 @@ public class JobExecuteFactory {
             Long exDate = end - begin;
             log.info("{}-作业任务结束. {}ms.", jobName, exDate);
             logs.setTaskId(vo.getId());
-            logs.setTaskName(vo.getCol2());
+            logs.setTaskName(vo.getTitle());
             logs.setCo1(String.valueOf(exDate));
-            vo.setCol1("休眠");
+            vo.setState("休眠");
             timingService.updateStatus(vo);
             timingService.saveLogs(logs);
         }
@@ -123,15 +124,15 @@ public class JobExecuteFactory {
     @PostConstruct
     void initTask() {
         TimingVo models = new TimingVo();
-        models.setCol1("休眠");
+        models.setState("休眠");
         TimingService timingService = SpringContextHolder.getBean(TimingService.class);
         List<TimingVo> initList = timingService.timingList(models).getList();
         log.info("Successful initialization  {}  timerTask.", initList.size());
-        new Thread(() -> {
+        ThreadUtil.execAsync(() -> {
             for (TimingVo timingVo : initList) {
                 ScheduleUtils.Job job = new ScheduleUtils.Job();
                 job.setCron(timingVo.getExecuteTime());
-                job.setJobName(timingVo.getCol2());
+                job.setJobName(timingVo.getTitle());
                 job.setClassName("com.itboy.config.JobExecuteFactory");
                 job.setMethodName("executeSql");
                 job.setStatus(1);
@@ -141,7 +142,7 @@ public class JobExecuteFactory {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
     }
 
 }

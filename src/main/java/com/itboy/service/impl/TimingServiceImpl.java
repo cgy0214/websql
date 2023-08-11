@@ -62,8 +62,8 @@ public class TimingServiceImpl implements TimingService {
         Result<TimingVo> result = new Result<>();
         Specification<TimingVo> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<Predicate>(4);
-            if (ObjectUtil.isNotEmpty(model.getCol2())) {
-                predicates.add(cb.like(root.get("col2"), "%" + model.getCol2() + "%"));
+            if (ObjectUtil.isNotEmpty(model.getTitle())) {
+                predicates.add(cb.like(root.get("title"), "%" + model.getTitle() + "%"));
             }
             if (ObjectUtil.isNotEmpty(model.getTimingName())) {
                 predicates.add(cb.like(root.get("timingName"), "%" + model.getTimingName() + "%"));
@@ -71,13 +71,13 @@ public class TimingServiceImpl implements TimingService {
             if (ObjectUtil.isNotEmpty(model.getSyncName())) {
                 predicates.add(cb.like(root.get("syncName"), "%" + model.getSyncName() + "%"));
             }
-            if (ObjectUtil.isNotEmpty(model.getCol1())) {
-                predicates.add(cb.like(root.get("col1"), "%" + model.getCol1() + "%"));
+            if (ObjectUtil.isNotEmpty(model.getState())) {
+                predicates.add(cb.like(root.get("state"), "%" + model.getState() + "%"));
             }
             query.orderBy(cb.desc(root.get("id")));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };
-        Page<TimingVo> all = timingRepository.findAll(spec, new PageRequest(model.getPage() - 1, model.getLimit()));
+        Page<TimingVo> all = timingRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
         result.setList(all.getContent());
         result.setCount((int) all.getTotalElements());
         return result;
@@ -115,7 +115,7 @@ public class TimingServiceImpl implements TimingService {
             query.orderBy(cb.desc(root.get("id")));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };
-        Page<JobLogs> all = jobLogsRepository.findAll(spec, new PageRequest(model.getPage() - 1, model.getLimit()));
+        Page<JobLogs> all = jobLogsRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
         result.setList(all.getContent());
         result.setCount((int) all.getTotalElements());
         return result;

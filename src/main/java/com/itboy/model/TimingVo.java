@@ -55,12 +55,12 @@ public class TimingVo extends Pages {
      * 状态
      */
     @Column
-    private String col1;
+    private String state;
     /**
      * 任务标题
      */
     @Column
-    private String col2;
+    private String title;
 
     @Column
     @CreatedDate

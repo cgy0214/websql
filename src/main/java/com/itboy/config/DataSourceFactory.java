@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class DataSourceFactory {
 
-    private static final ConcurrentHashMap<String, DruidDataSource> map = new ConcurrentHashMap<String, DruidDataSource>();
+    private static final ConcurrentHashMap<String, DruidDataSource> DATA_SOURCE_MAP = new ConcurrentHashMap<String, DruidDataSource>(1);
 
     /**
      * 根据jdbc参数获得数据源连接池dbcp，并放入ConcurrentHashMap
@@ -57,7 +57,7 @@ public class DataSourceFactory {
                 }
                 ds.setConnectionProperties("druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000");
                 ds.init();
-                map.put(config.getDbName().trim(), ds);
+                DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
                 index++;
             } catch (SQLException e) {
                 log.error(config.getDbName() + "数据源初始化失败：" + e.getMessage());
@@ -86,7 +86,7 @@ public class DataSourceFactory {
             ds.setConnectionErrorRetryAttempts(0);
             ds.setFailFast(true);
             ds.init();
-            map.put(config.getDbName().trim(), ds);
+            DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
         }
     }
 
@@ -95,12 +95,12 @@ public class DataSourceFactory {
      * 从缓存里删除指定的数据源连接池
      */
     public static void removeDataSource(String sourceKey) {
-        DruidDataSource ds = map.get(sourceKey.trim());
+        DruidDataSource ds = DATA_SOURCE_MAP.get(sourceKey.trim());
         if (ds == null) {
             return;
         }
         //shutdownDataSource(ds);
-        map.remove(sourceKey.trim());
+        DATA_SOURCE_MAP.remove(sourceKey.trim());
         DruidDataSourceStatManager.removeDataSource(ds);
         log.info("Successful Delete  DbSources ");
     }
@@ -127,7 +127,7 @@ public class DataSourceFactory {
             ds.setNotFullTimeoutRetryCount(-1);
             ds.setBreakAfterAcquireFailure(true);
             ds.setConnectionErrorRetryAttempts(0);
-            map.put(config.getDbName().trim(), ds);
+            DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
         }
         log.info("Successful Update  DbSources ");
     }
@@ -138,7 +138,7 @@ public class DataSourceFactory {
      */
 
     public static DruidDataSource getDataSource(String sourceKey) {
-        DruidDataSource ds = map.get(sourceKey.trim());
+        DruidDataSource ds = DATA_SOURCE_MAP.get(sourceKey.trim());
         return ds;
     }
 
@@ -170,7 +170,7 @@ public class DataSourceFactory {
 
 
     public static String getDbType(String sourceKey) {
-        String rawJdbcUrl = map.get(sourceKey).getRawJdbcUrl();
+        String rawJdbcUrl = DATA_SOURCE_MAP.get(sourceKey).getRawJdbcUrl();
         return getDbTypeByJdbcUrl(rawJdbcUrl, "").name();
     }
 
@@ -180,7 +180,8 @@ public class DataSourceFactory {
             return dbType;
         }
         //druid对神通缺失判断
-        if (jdbcUrl.startsWith("jdbc:oscar:")) {
+        String jdbcOscar = "jdbc:oscar:";
+        if (jdbcUrl.startsWith(jdbcOscar)) {
             return DbType.oscar;
         }
         throw new RuntimeException("根据url[" + jdbcUrl + "]无法找到对应的数据库类型!");
