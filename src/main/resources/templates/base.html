@@ -32,7 +32,7 @@
      */
     function parseData(res) {
         return {
-            "code": res.code == 200 ? 0 : 1,
+            "code": res.code === 200 ? 0 : 1,
             "msg": res.msg,
             "count": res.data.count,
             "data": res.data.list

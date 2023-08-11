@@ -82,7 +82,7 @@
                     {field: 'maxIdle', title: '最大空闲数', sort: true, fixed: true},
                     {field: 'maxWait', title: '最大等待时间', sort: true, fixed: true},
                     {field: 'dbState', title: '状态', sort: true, fixed: true},
-                    {fixed: 'right', title: '操作', width: 134, minWidth: 125, toolbar: '#toolbarTable'}
+                    {fixed: 'right', title: '操作', width: 150, minWidth: 150, toolbar: '#toolbarTable'}
                 ]
             ],
             parseData: res => parseData(res)
@@ -92,7 +92,7 @@
             var data = obj.data;
             switch (obj.event) {
                 case 'view':
-                    const content = laytpl('<div style="margin: 20px;">地址：{{= d.address }} <br> 账号：{{= d.name}} <br> 密码： {{= d.password}}</div>').render({
+                    const content = laytpl('<div style="margin: 20px;">地址：{{= d.address }} <br> 账号：{{= d.name}} <br> 密码： {{= d.password}} <br>暂不支持查看原始密码</div>').render({
                         address: data.dbUrl,
                         name: data.dbAccount,
                         password: data.dbPassword
