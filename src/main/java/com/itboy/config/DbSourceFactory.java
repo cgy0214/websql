@@ -54,6 +54,10 @@ public class DbSourceFactory {
                     String encrypt = PasswordUtil.decrypt(model.getDbPassword());
                     model.setDbPassword(encrypt);
                 }
+                if (ObjectUtil.isNotEmpty(model.getDbAccount())) {
+                    String encrypt = PasswordUtil.decrypt(model.getDbAccount());
+                    model.setDbAccount(encrypt);
+                }
             }
             DataSourceFactory.initDataSource(dblist);
         }

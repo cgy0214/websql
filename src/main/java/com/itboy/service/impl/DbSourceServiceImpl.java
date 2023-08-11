@@ -211,6 +211,10 @@ public class DbSourceServiceImpl implements DbSourceService {
             String encrypt = PasswordUtil.encrypt(model.getDbPassword());
             model.setDbPassword(encrypt);
         }
+        if (ObjectUtil.isNotEmpty(model.getDbAccount())) {
+            String encrypt = PasswordUtil.encrypt(model.getDbAccount());
+            model.setDbAccount(encrypt);
+        }
         dbSourceRepository.save(model);
     }
 

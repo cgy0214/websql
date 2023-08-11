@@ -20,10 +20,6 @@ public class PasswordUtil {
 
     private static final LRUFileCache CACHE = new LRUFileCache(1000, 500, 2000);
 
-    /**
-     * 兼容低版本区分前缀
-     */
-    private static final String KEY = ".KEY";
 
     public static String createPassword(String password, String salt) {
         if (ObjectUtil.isEmpty(password) || ObjectUtil.isEmpty(salt)) {
@@ -43,7 +39,7 @@ public class PasswordUtil {
             return null;
         }
         SymmetricCrypto aes = new SymmetricCrypto(SymmetricAlgorithm.AES, aesKey());
-        return aes.encryptHex(content) + KEY;
+        return aes.encryptHex(content);
     }
 
     /**
@@ -56,12 +52,8 @@ public class PasswordUtil {
         if (ObjectUtil.isEmpty(content)) {
             return null;
         }
-        if (!StrUtil.contains(content, KEY)) {
-            return content;
-        }
         SymmetricCrypto aes = new SymmetricCrypto(SymmetricAlgorithm.AES, aesKey());
-        String newContent = StrUtil.removeSuffix(content, KEY);
-        return aes.decryptStr(newContent, CharsetUtil.CHARSET_UTF_8);
+        return aes.decryptStr(content, CharsetUtil.CHARSET_UTF_8);
     }
 
 
