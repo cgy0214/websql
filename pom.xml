@@ -28,6 +28,7 @@
         <fastjson.version>1.2.83</fastjson.version>
         <kingbase8.version>8.6.0</kingbase8.version>
         <DmDriver8.version>8.1.3.12</DmDriver8.version>
+        <oscar.version>1.0</oscar.version>
     </properties>
 
     <dependencies>
@@ -156,6 +157,14 @@
             <version>${DmDriver8.version}</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/src/main/resources/libs/DmJdbcDriver18.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>com.oscarjdbc</groupId>
+            <artifactId>oscarJDBC16</artifactId>
+            <version>${oscar.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/libs/OscarJDBC16.jar</systemPath>
         </dependency>
 
         <dependency>

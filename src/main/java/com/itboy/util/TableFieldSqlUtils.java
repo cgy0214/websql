@@ -27,6 +27,9 @@ public class TableFieldSqlUtils {
             .put("kingbase", " SELECT table_name AS TABLE_NAME,column_name AS TABLE_FIELD from  INFORMATION_SCHEMA.COLUMNS where table_schema='public' ")
 
             .put("postgresql", " SELECT table_name AS \"TABLE_NAME\",column_name AS \"TABLE_FIELD\"  from  INFORMATION_SCHEMA.COLUMNS where table_schema='public' ")
+
+            .put("oscar", " SELECT TABLE_NAME AS TABLE_NAME,COLUMN_NAME AS TABLE_FIELD from all_tab_columns where owner not in('SYS','SYSDBA','CTISYS') ")
+
             .build();
 
     public static String getViewSql(String database) {
