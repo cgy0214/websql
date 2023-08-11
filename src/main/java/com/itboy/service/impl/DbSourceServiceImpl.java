@@ -3,13 +3,13 @@ package com.itboy.service.impl;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.itboy.config.DataSourceFactory;
-import com.itboy.config.DbSourceFactory;
 import com.itboy.config.JdbcUtils;
 import com.itboy.config.SqlDruidParser;
 import com.itboy.dao.*;
 import com.itboy.model.*;
 import com.itboy.service.DbSourceService;
 import com.itboy.util.CacheUtils;
+import com.itboy.util.PasswordUtil;
 import com.itboy.util.StpUtils;
 import com.itboy.util.TableFieldSqlUtils;
 import org.springframework.data.domain.Page;
@@ -48,13 +48,10 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Resource
     private SysUserLogRepository sysUserLogRepository;
 
-    @Resource
-    private DbSourceFactory dbSourceFactory;
-
     @Override
     public Result<DataSourceModel> selectDbSourceList(DataSourceModel result) {
         Result<DataSourceModel> result1 = new Result<DataSourceModel>();
-        PageRequest pageRequest = new PageRequest(result.getPage() - 1, result.getLimit());
+        PageRequest pageRequest = PageRequest.of(result.getPage() - 1, result.getLimit());
         Specification<DataSourceModel> spec = (Specification<DataSourceModel>) (root, query, cb) -> {
             Path<String> dbName = root.get("dbName");
             Path<String> dbAccount = root.get("dbAccount");
@@ -78,7 +75,7 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Override
     public Result<DbSqlText> getDbSqlText(DbSqlText model) {
         Result<DbSqlText> result1 = new Result<DbSqlText>();
-        PageRequest request = new PageRequest(model.getPage() - 1, model.getLimit());
+        PageRequest request = PageRequest.of(model.getPage() - 1, model.getLimit());
         Specification<DbSqlText> spec = (Specification<DbSqlText>) (root, query, cb) -> {
             Path<String> title = root.get("title");
             Path<String> sqlText = root.get("sqlText");
@@ -138,7 +135,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             query.orderBy(cb.desc(root.get("id")));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };
-        Page<SysLog> all = sysLogRepository.findAll(spec, new PageRequest(model.getPage() - 1, model.getLimit()));
+        Page<SysLog> all = sysLogRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
         result.setList(all.getContent());
         result.setCount((int) all.getTotalElements());
         return result;
@@ -194,8 +191,8 @@ public class DbSourceServiceImpl implements DbSourceService {
             result.put("code", 2);
             result.put("msg", e.getMessage());
         } finally {
-            SysSetup sysSetup = dbSourceFactory.getSysSetUp();
-            if (sysSetup.getCol3() == 1) {
+            SysSetup sysSetup = CacheUtils.get("sys_setup", SysSetup.class);
+            if (sysSetup.getEnabledSqlLog() == 1) {
                 sysLogRepository.save(log);
             }
         }
@@ -210,6 +207,10 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Override
     public void addDbSource(DataSourceModel model) {
         CacheUtils.remove("data_source_model");
+        if (ObjectUtil.isNotEmpty(model.getDbPassword())) {
+            String encrypt = PasswordUtil.encrypt(model.getDbPassword());
+            model.setDbPassword(encrypt);
+        }
         dbSourceRepository.save(model);
     }
 

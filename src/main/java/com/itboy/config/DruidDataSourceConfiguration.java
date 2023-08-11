@@ -22,7 +22,10 @@ import java.util.Map;
 
 
 /**
- * druid 配置类
+ * @ClassName : DruidDataSourceConfiguration
+ * @Description : druid配置
+ * @Author 超 boy_0214@sina.com
+ * @Date: 2023/8/11 16:42
  */
 @Configuration
 @ConditionalOnClass(com.alibaba.druid.pool.DruidDataSource.class)

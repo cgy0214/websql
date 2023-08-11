@@ -7,6 +7,7 @@ import com.itboy.model.SysSetup;
 import com.itboy.service.DbSourceService;
 import com.itboy.service.LoginService;
 import com.itboy.util.CacheUtils;
+import com.itboy.util.PasswordUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,19 +36,25 @@ public class DbSourceFactory {
      * 初始化数据源
      */
     @PostConstruct
-    private void initDbSource() {
+    private void initDataSource() {
         SysSetup sysSetup = getSysSetUp();
         //系统第一次启动会加载数据
-        if (sysSetup.getInitDbsource() == 0) {
+        if (sysSetup.getInitDataSource() == 0) {
             log.info("Initializing System...");
             loginService.initSystem();
         }
-        if (sysSetup.getInitDbsource() == 1) {
+        if (sysSetup.getInitDataSource() == 1) {
             log.info("Initializing DbSources...");
             DataSourceModel dbModel = new DataSourceModel();
             dbModel.setDbState("有效");
             Result<DataSourceModel> result = dbSourceService.selectDbSourceList(dbModel);
             List<DataSourceModel> dblist = result.getList();
+            for (DataSourceModel model : dblist) {
+                if (ObjectUtil.isNotEmpty(model.getDbPassword())) {
+                    String encrypt = PasswordUtil.decrypt(model.getDbPassword());
+                    model.setDbPassword(encrypt);
+                }
+            }
             DataSourceFactory.initDataSource(dblist);
         }
     }

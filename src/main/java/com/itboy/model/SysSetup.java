@@ -36,22 +36,13 @@ public class SysSetup {
      * 主动初始化数据源
      */
     @Column
-    private int initDbsource;
-
-    @Column
-    private String col1;
-
-    @Column
-    private String col2;
+    private int initDataSource;
 
     /**
      * 开启sql执行记录功能
      */
     @Column
-    private int col3;
-
-    @Column
-    private int col4;
+    private int enabledSqlLog;
 
     /**
      * 展示帮助文档按钮 0展示 1不展示

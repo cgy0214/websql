@@ -55,7 +55,7 @@ public class TimingController {
         TimingVo timingVo = null;
         try {
             timingVo = timingService.addtimingData(model);
-            createJob(model.getExecuteTime(), model.getCol2(), 1);
+            createJob(model.getExecuteTime(), model.getTitle(), 1);
             return AjaxResult.success();
         } catch (Exception e) {
             e.printStackTrace();
@@ -82,30 +82,32 @@ public class TimingController {
             TimingVo models = new TimingVo();
             models.setId(id);
             TimingVo vo = timingService.timingList(models).getList().get(0);
-            ScheduleUtils.Job job = createJob(vo.getExecuteTime(), vo.getCol2(), 2);
+            ScheduleUtils.Job job = createJob(vo.getExecuteTime(), vo.getTitle(), 2);
             switch (type) {
                 case 1:
                     ScheduleUtils.cancel(job);
-                    vo.setCol1("停用");
+                    vo.setState("停用");
                     timingService.updateTiming(vo);
                     break;
                 case 2:
-                    createJob(vo.getExecuteTime(), vo.getCol2(), 1);
-                    vo.setCol1("休眠");
+                    createJob(vo.getExecuteTime(), vo.getTitle(), 1);
+                    vo.setState("休眠");
                     timingService.updateTiming(vo);
                     break;
                 case 3:
                     vo.setExecuteTime(cron);
                     timingService.updateTiming(vo);
-                    createJob(cron, vo.getCol2(), 1);
+                    createJob(cron, vo.getTitle(), 1);
                     break;
                 case 4:
                     timingService.delTiming(String.valueOf(id));
                     ScheduleUtils.cancel(job);
                     break;
                 case 5:
-                    createJob(vo.getExecuteTime(), vo.getCol2(), 4);
+                    createJob(vo.getExecuteTime(), vo.getTitle(), 4);
                     break;
+                default:
+                    throw new RuntimeException("错误的类型!" + type);
             }
             return AjaxResult.success();
         } catch (Exception e) {

@@ -1,6 +1,5 @@
 package com.itboy.config;
 
-import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.druid.pool.DruidDataSource;
@@ -9,8 +8,11 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
-import java.util.Date;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName JdbcUtils
@@ -22,10 +24,10 @@ import java.util.*;
 public class JdbcUtils {
 
     public static Map<String, Object> updateByPreparedStatement(String sourceKey, String sql, List<Object> params) {
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>(4);
         map.put("code", "1");
         map.put("msg", "执行成功");
-        map.put("rawSql",sql);
+        map.put("rawSql", sql);
         Connection connection = getConnections(sourceKey);
         int result = -1;
         PreparedStatement pstmt = null;
@@ -52,11 +54,11 @@ public class JdbcUtils {
 
     public static Map<String, Object> findMoreResult(String sourceKey, String sql, List<Object> params) {
         Connection connection = getConnections(sourceKey);
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>(4);
         JSONArray list = new JSONArray();
         map.put("code", "1");
         map.put("msg", "执行成功");
-        map.put("rawSql",sql);
+        map.put("rawSql", sql);
         int index = 1;
         PreparedStatement pstmt = null;
         ResultSet resultSet = null;
@@ -69,23 +71,23 @@ public class JdbcUtils {
             }
             resultSet = pstmt.executeQuery();
             ResultSetMetaData metaData = resultSet.getMetaData();
-            int cols_len = metaData.getColumnCount();
-            String cols_name;
-            Object cols_value;
+            int colsLength = metaData.getColumnCount();
+            String colsName;
+            Object colsValue;
             while (resultSet.next()) {
                 //update 2020.06.12 感谢Mr.Guo 提出顺序展示问题
-                JSONObject json = new JSONObject(new LinkedHashMap());
-                for (int i = 0; i < cols_len; i++) {
-                    cols_name = metaData.getColumnLabel(i + 1);
+                JSONObject json = new JSONObject(new LinkedHashMap<>(colsLength));
+                for (int i = 0; i < colsLength; i++) {
+                    colsName = metaData.getColumnLabel(i + 1);
                     String columnType = metaData.getColumnTypeName(i + 1);
-                    cols_value = resultSet.getObject(cols_name);
-                    if (ObjectUtil.isNotNull(cols_value) && "DATETIME".equals(columnType)) {
-                        cols_value = DateUtil.format((Date) cols_value, DatePattern.NORM_DATETIME_FORMAT);
+                    colsValue = resultSet.getObject(colsName);
+                    if (ObjectUtil.isNotNull(colsValue) && "DATETIME".equals(columnType)) {
+                        colsValue = DateUtil.formatLocalDateTime((LocalDateTime) colsValue);
                     }
-                    if (cols_value == null) {
-                        cols_value = "";
+                    if (colsValue == null) {
+                        colsValue = "";
                     }
-                    json.put(cols_name, cols_value);
+                    json.put(colsName, colsValue);
                 }
                 list.add(json);
             }
@@ -112,7 +114,7 @@ public class JdbcUtils {
      */
     public static Map<String, Object> updateTimers(String sourceKey, String sql, List<Object> params, StringBuffer field) {
         Connection connection = getConnections(sourceKey);
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>(4);
         map.put("code", "1");
         map.put("msg", "执行成功");
         map.put("rawSql", sql);
