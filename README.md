@@ -15,14 +15,15 @@ websql v3 JAVA语言开发,H2内嵌管理数据库。执行效率更快、完全
 
 #### 支持的数据库
 
-    Oracle
-    Mysql
+    oracle
+    mysql
     H2
     postgresql
     sqlite
     sqlserver
-    DM 达梦
+    dm 达梦
     kingbase8 人大金仓
+    oscar     神州通用
 
 #### 软件架构
 

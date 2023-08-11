@@ -1,5 +1,6 @@
 package com.itboy.config;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.druid.DbType;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.stat.DruidDataSourceStatManager;
@@ -46,9 +47,10 @@ public class DataSourceFactory {
             ds.setNotFullTimeoutRetryCount(-1);
             try {
                 //druid不支持国产数据库防火墙功能
-                DbType dbTypeRaw = JdbcUtils.getDbTypeRaw(config.getDbUrl().trim(), config.getDriverClass().trim());
+                DbType dbTypeRaw = getDbTypeByJdbcUrl(config.getDbUrl().trim(), config.getDriverClass().trim());
                 if (dbTypeRaw.equals(DbType.dm)
-                        || dbTypeRaw.equals(DbType.kingbase)) {
+                        || dbTypeRaw.equals(DbType.kingbase)
+                        || dbTypeRaw.equals(DbType.oscar)) {
                     ds.setFilters("stat");
                 } else {
                     ds.setFilters("stat,wall");
@@ -168,8 +170,20 @@ public class DataSourceFactory {
 
 
     public static String getDbType(String sourceKey) {
-        return JdbcUtils.getDbType(map.get(sourceKey).getRawJdbcUrl(), "");
+        String rawJdbcUrl = map.get(sourceKey).getRawJdbcUrl();
+        return getDbTypeByJdbcUrl(rawJdbcUrl, "").name();
     }
 
+    public static DbType getDbTypeByJdbcUrl(String jdbcUrl, String className) {
+        DbType dbType = JdbcUtils.getDbTypeRaw(jdbcUrl, className);
+        if (ObjectUtil.isNotEmpty(dbType)) {
+            return dbType;
+        }
+        //druid对神通缺失判断
+        if (jdbcUrl.startsWith("jdbc:oscar:")) {
+            return DbType.oscar;
+        }
+        throw new RuntimeException("根据url[" + jdbcUrl + "]无法找到对应的数据库类型!");
+    }
 
 }

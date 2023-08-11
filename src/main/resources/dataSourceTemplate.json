@@ -21,13 +21,6 @@
     "typeName": "内置"
   },
   {
-    "name": "h2remote",
-    "driverClass": "org.h2.Driver",
-    "url": "jdbc:h2:tcp://127.0.0.1/~/stapler",
-    "dbCheckUrl": "select 1 ",
-    "typeName": "内置"
-  },
-  {
     "name": "postgresql",
     "driverClass": "org.postgresql.Driver",
     "url": "jdbc:postgresql://127.0.0.1:5432/数据库名称?characterEncoding=utf-8",
@@ -59,6 +52,13 @@
     "name": "kingbase8",
     "driverClass": "com.kingbase8.Driver",
     "url": "jdbc:kingbase8://127.0.0.1:54321/数据库名称",
+    "dbCheckUrl": "select 1",
+    "typeName": "内置"
+  },
+  {
+    "name": "oscar",
+    "driverClass": "com.oscar.Driver",
+    "url": "jdbc:oscar://127.0.0.1:2003/数据库名称?serverTimezone=UTC&useSSL=FALSE",
     "dbCheckUrl": "select 1",
     "typeName": "内置"
   }
