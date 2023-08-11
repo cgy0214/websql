@@ -173,4 +173,27 @@ public class DataSourceManagerController {
         return result;
     }
 
+    @RequestMapping("/updateDataSourceName")
+    @ResponseBody
+    public AjaxResult updateDataSourceName(@RequestParam Long id, @RequestParam String name) {
+        try {
+            if (ObjectUtil.isEmpty(name)) {
+                return AjaxResult.error("连接名称不能为空！");
+            }
+            if (ObjectUtil.isEmpty(id)) {
+                return AjaxResult.error("必填参数为空！");
+            }
+            Integer count = dbSourceService.selectDbByName(name);
+            if (count > 0) {
+                return AjaxResult.error("连接名称已经存在,请换一个！");
+            }
+            dbSourceService.updateDataSourceName(id, name);
+            log.info("Successful update  DbSources ");
+            return AjaxResult.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
 }

@@ -2,6 +2,7 @@ package com.itboy.service;
 
 import com.itboy.model.*;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -41,4 +42,6 @@ public interface DbSourceService {
     Integer selectDbByName(String dbName);
 
     AjaxResult findTableField(String database);
+
+    void updateDataSourceName(Long id, String name) throws SQLException;
 }

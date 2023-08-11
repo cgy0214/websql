@@ -2,6 +2,7 @@ package com.itboy.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.itboy.config.DataSourceFactory;
 import com.itboy.config.DbSourceFactory;
 import com.itboy.config.JdbcUtils;
 import com.itboy.config.SqlDruidParser;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -283,5 +285,16 @@ public class DbSourceServiceImpl implements DbSourceService {
             CacheUtils.put("table_field_list" + database, resultMap);
         }
         return AjaxResult.success(resultMap);
+    }
+
+    @Override
+    public void updateDataSourceName(Long id, String name) throws SQLException {
+        DataSourceModel one = dbSourceRepository.getOne(id);
+        String oldName = one.getDbName();
+        one.setDbName(name);
+        dbSourceRepository.save(one);
+        CacheUtils.remove("data_source_model");
+        DataSourceFactory.removeDataSource(oldName);
+        DataSourceFactory.saveDataSource(one);
     }
 }

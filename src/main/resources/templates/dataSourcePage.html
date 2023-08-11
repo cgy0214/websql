@@ -13,15 +13,18 @@
             <div class="layui-form-item">
                 <label class="layui-form-label">连接名称:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbName" id="dbname" placeholder="请输入连接名称" class="layui-input" lay-affix="clear">
+                    <input type="text" name="dbName" id="dbname" placeholder="请输入连接名称" class="layui-input"
+                           lay-affix="clear">
                 </div>
                 <label class="layui-form-label">登录账号:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbAccount" id="dbAccount" placeholder="请输入登录账号" class="layui-input" lay-affix="clear">
+                    <input type="text" name="dbAccount" id="dbAccount" placeholder="请输入登录账号" class="layui-input"
+                           lay-affix="clear">
                 </div>
                 <label class="layui-form-label">连接地址:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="dbUrl" id="dbUrl" placeholder="请输入连接地址" class="layui-input" lay-affix="clear">
+                    <input type="text" name="dbUrl" id="dbUrl" placeholder="请输入连接地址" class="layui-input"
+                           lay-affix="clear">
                 </div>
                 <div class="layui-input-normal">
                     <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit id="search"
@@ -49,6 +52,7 @@
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
         <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
+        <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="update">编辑</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
@@ -105,6 +109,25 @@
                     }, function () {
                     });
                     break;
+                case 'update':
+                    layer.prompt({
+                        formType: 2,
+                        value: data.executeTime,
+                        anim: 'slideLeft',
+                        title: '请输入新的名称',
+                        area: ['300px', '200px']
+                    }, function (value, index) {
+                        layer.confirm("确认修改名称？", function () {
+                            post(ctx + "dataSourceManager/updateDataSourceName?id=" + data.id + "&name=" + value, null, (res) => {
+                                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                                    $(".search-btn").click();
+                                    layer.closeAll();
+                                });
+                            })
+                        });
+                    });
+                    break;
+
             }
         });
 
