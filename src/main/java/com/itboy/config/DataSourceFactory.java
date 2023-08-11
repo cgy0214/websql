@@ -99,7 +99,7 @@ public class DataSourceFactory {
         if (ds == null) {
             return;
         }
-        shutdownDataSource(ds);
+        //shutdownDataSource(ds);
         map.remove(sourceKey.trim());
         DruidDataSourceStatManager.removeDataSource(ds);
         log.info("Successful Delete  DbSources ");
