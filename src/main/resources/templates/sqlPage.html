@@ -369,6 +369,14 @@
                 for (let key in headArr) {
                     head.push({field: headArr[key], title: headArr[key], sort: true});
                 }
+                let rowsData = data[i].data;
+                //2023.08.12 add兼容0条数据展示列头字段
+                if (rowsData.length == 1) {
+                    let distinctList = [...new Set(Object.values(data[i].data[0]))];
+                    if (distinctList.length === 1 && distinctList[0] == "WEB_SQL_PLACEHOLDER") {
+                        rowsData = [];
+                    }
+                }
                 //add Tab
                 let elId = "sqlTable" + i;
                 element.tabAdd('sqlTableTab', {
@@ -381,7 +389,7 @@
                 table.render({
                     elem: '#' + elId
                     , cols: [head]
-                    , data: data[i].data
+                    , data: rowsData
                     , title: '结果集' + (i + 1)
                     , loading: true
                     , height: 935
@@ -394,6 +402,7 @@
                     , page: {prev: '上一页', next: '下一页', groups: 6}
                     , defaultContextmenu: false
                     , pagebar: '#table-page-pageBar'
+                    , text: {none: '查询返回0条数据'}
                 });
                 table.resize(elId);
                 rowContextmenu(elId, res);
