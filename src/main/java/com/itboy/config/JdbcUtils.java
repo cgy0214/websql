@@ -91,6 +91,15 @@ public class JdbcUtils {
                 }
                 list.add(json);
             }
+            //add 2023.08.12 0条数据，但展示列头字段 用于前端呈现
+            if (resultSet.getRow() == 0 && list.size() == 0) {
+                JSONObject json = new JSONObject(new LinkedHashMap<>(colsLength));
+                for (int i = 1; i <= colsLength; i++) {
+                    String columnName = metaData.getColumnLabel(i);
+                    json.put(columnName, "WEB_SQL_PLACEHOLDER");
+                }
+                list.add(json);
+            }
             map.put("data", list);
         } catch (Exception e) {
             log.error("执行异常," + e.getMessage());

@@ -53,7 +53,7 @@ public class ExamineVersionFactory {
     public void execute(String name) {
         try {
             VersionModel remoteVersion = JSON.parseObject(HttpUtil.get("https://gitee.com/boy_0214/websql/raw/master/src/main/resources/version.json", CharsetUtil.CHARSET_UTF_8), VersionModel.class);
-            log.info("远程最新版本:{},发布日期:{}", remoteVersion.getVersion(), remoteVersion.getDate());
+            log.info("remote new version :{},release:{}", remoteVersion.getVersion(), remoteVersion.getDate());
             String localVersion = versionModel.getVersion();
             int compare = VersionComparator.INSTANCE.compare(remoteVersion.getVersion(), localVersion);
             if (compare != 0) {
@@ -62,7 +62,7 @@ public class ExamineVersionFactory {
                 versionModel.setLocalVersion(localVersion);
             }
         } catch (Exception e) {
-            log.error("获取远程版本失败,将不会推送新版本!");
+            log.error("pull remote new version error!");
         }
     }
 
