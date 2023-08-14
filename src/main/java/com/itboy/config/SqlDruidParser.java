@@ -86,14 +86,20 @@ public class SqlDruidParser {
         if (ObjectUtil.isNotNull(sysSetup) && ObjectUtil.isNotNull(sysSetup.getPageLimitMax())) {
             limitMax = sysSetup.getPageLimitMax();
         }
-        String page = "select * from (";
-        String size = ") where rownum <= " + limitMax;
         //需要使用rowNum分页的数据库
         List<String> pageType = Arrays.asList("h2", "oracle");
+        String page = "select * from (";
+        String size = ") where rownum <= " + limitMax;
         for (String item : sqlParam) {
             if (pageType.contains(dbType)) {
                 if (!item.toUpperCase().contains("ROWNUM") && !item.toUpperCase().contains("ROW_NUMBER") && limitMax > 0) {
                     executeSql.add(page + item + size);
+                } else {
+                    executeSql.add(item);
+                }
+            } else if ("sqlserver".equals(dbType)) {
+                if (!item.toUpperCase().contains("TOP") && limitMax > 0) {
+                    executeSql.add("SELECT TOP (" + limitMax + ") * from ( " + item + " ) as A");
                 } else {
                     executeSql.add(item);
                 }
