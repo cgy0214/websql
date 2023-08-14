@@ -218,7 +218,7 @@ public class JdbcUtils {
             throw new NullPointerException(sourceKey + "：未获取到有效数据源");
         }
         Connection connection = DataSourceFactory.getConnection(source);
-        if (source == null) {
+        if (connection == null) {
             throw new NullPointerException(sourceKey + "：未获取到有效连接");
         }
         return connection;
