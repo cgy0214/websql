@@ -38,6 +38,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
             SaRouter.match("/sqlManager/**", r -> StpUtil.checkRole("sql-admin"));
             SaRouter.match("/timingManager/**", r -> StpUtil.checkRole("timing-admin"));
             SaRouter.match("/settingManager/**", r -> StpUtil.checkRole("super-admin"));
+            SaRouter.match("/sshManager/**", r -> StpUtil.checkRole("super-admin"));
             SaRouter.match("/openApiManager/**", r -> StpUtils.checkOpenAuth());
         })).addPathPatterns("/**");
     }
