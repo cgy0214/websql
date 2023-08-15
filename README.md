@@ -24,6 +24,7 @@ ETL等功能;众多功能集一身的`SQL在线执行工具`。
     dm 达梦
     kingbase8 人大金仓
     oscar     神州通用
+    odps      阿里云maxcompute
 
 #### 软件架构
 

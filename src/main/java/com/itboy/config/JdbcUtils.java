@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -82,7 +84,16 @@ public class JdbcUtils {
                     String columnType = metaData.getColumnTypeName(i + 1);
                     colsValue = resultSet.getObject(colsName);
                     if (ObjectUtil.isNotNull(colsValue) && "DATETIME".equals(columnType)) {
-                        colsValue = DateUtil.formatLocalDateTime((LocalDateTime) colsValue);
+                        if (colsValue instanceof ZonedDateTime) {
+                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                            colsValue = formatter.format((ZonedDateTime) colsValue);
+                        }
+                        if (colsValue instanceof LocalDateTime) {
+                            colsValue = DateUtil.formatLocalDateTime((LocalDateTime) colsValue);
+                        }
+                        if (colsValue instanceof Date) {
+                            colsValue = DateUtil.format((Date) colsValue, "yyyy-MM-dd hh:mm:ss");
+                        }
                     }
                     if (colsValue == null) {
                         colsValue = "";

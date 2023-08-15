@@ -46,11 +46,12 @@ public class DataSourceFactory {
             ds.setConnectionErrorRetryAttempts(0);
             ds.setNotFullTimeoutRetryCount(-1);
             try {
-                //druid不支持国产数据库防火墙功能
+                //druid不支持某些数据库防火墙功能
                 DbType dbTypeRaw = getDbTypeByJdbcUrl(config.getDbUrl().trim(), config.getDriverClass().trim());
                 if (dbTypeRaw.equals(DbType.dm)
                         || dbTypeRaw.equals(DbType.kingbase)
-                        || dbTypeRaw.equals(DbType.oscar)) {
+                        || dbTypeRaw.equals(DbType.oscar)
+                        || dbTypeRaw.equals(DbType.odps)) {
                     ds.setFilters("stat");
                 } else {
                     ds.setFilters("stat,wall");
