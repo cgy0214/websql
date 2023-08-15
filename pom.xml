@@ -32,6 +32,7 @@
         <oscar.version>1.0</oscar.version>
         <jsch.version>0.1.55</jsch.version>
         <postgresql.version>42.6.0</postgresql.version>
+        <odps.version>3.4.4</odps.version>
     </properties>
 
     <dependencies>
@@ -182,6 +183,12 @@
             <version>${jsch.version}</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>com.aliyun.odps</groupId>
+            <artifactId>odps-jdbc</artifactId>
+            <version>${odps.version}</version>
+        </dependency>
 
     </dependencies>
 

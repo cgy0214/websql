@@ -1,7 +1,9 @@
 package com.itboy.controller;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.druid.DbType;
 import com.itboy.config.DataSourceFactory;
+import com.itboy.config.JdbcUtils;
 import com.itboy.model.AjaxResult;
 import com.itboy.model.DataSourceModel;
 import com.itboy.service.DbSourceService;
@@ -11,7 +13,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,36 +72,32 @@ public class DataSourceManagerController {
     @ResponseBody
     public AjaxResult checkUrl(@RequestBody DataSourceModel model) {
         Connection conn = null;
-        Statement pre = null;
+        PreparedStatement pre = null;
         ResultSet rs = null;
         try {
             conn = DriverManager.getConnection(model.getDbUrl().trim(),
                     model.getDbAccount().trim(), model.getDbPassword().trim());
-            pre = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            DbType jdbcType = DataSourceFactory.getDbTypeByJdbcUrl(model.getDbUrl().trim(), model.getDriverClass());
+            //odps特殊，提交实例运行
+            if (jdbcType.equals(DbType.odps)) {
+                if (ObjectUtil.isEmpty(conn.getMetaData().getDatabaseProductName())) {
+                    return AjaxResult.error("连接失败,获取odps描述为空!");
+                }
+                return AjaxResult.success("连接成功!");
+            }
+            pre = conn.prepareStatement(model.getDbUrl());
             rs = pre.executeQuery(model.getDbCheckUrl());
             if (rs.first()) {
                 return AjaxResult.success("连接成功!");
             } else {
                 return AjaxResult.error("连接失败,返回结果集为空!");
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             log.error(e.getMessage());
             return AjaxResult.error("连接失败,error:" + e.getMessage());
         } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-                if (pre != null) {
-                    pre.close();
-                }
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (SQLException e) {
-                log.error(e.getMessage());
-            }
+            JdbcUtils.releaseConn(rs, pre, conn);
         }
     }
 

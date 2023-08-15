@@ -61,5 +61,12 @@
     "url": "jdbc:oscar://127.0.0.1:2003/数据库名称?serverTimezone=UTC&useSSL=FALSE",
     "dbCheckUrl": "select 1",
     "typeName": "内置"
+  },
+  {
+    "name": "odps",
+    "driverClass": "com.aliyun.odps.jdbc.OdpsDriver",
+    "url": "jdbc:odps:http://xx.maxcompute.aliyun.com/api?project=项目空间名称&useProjectTimeZone=true;",
+    "dbCheckUrl": "select 1",
+    "typeName": "内置"
   }
 ]
