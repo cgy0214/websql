@@ -116,6 +116,21 @@ SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
 支持http调用系统接口形式执行SQL动作 <a href='https://gitee.com/boy_0214/websql/wikis/openapi'>查看示例</a>
 
 
+#### 参与开发
+
+第一步： git clone https://gitee.com/boy_0214/websql.git
+
+第二步： WebplsqlApplication.java启动  基于`master`开发完成后提交至`dev`分支
+
+第三步：编译打包 `mvn clean package`    部署 target/websql.jar 
+
+第四步：打包docker镜像 
+
+    docker build -f dockerfile --tag cgycms/websql:3.x --tag cgycms/websql:latest .
+    docker push
+
+
+
 
 #### 应用部署
 
