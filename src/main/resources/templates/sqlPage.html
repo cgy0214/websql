@@ -6,6 +6,7 @@
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/codemirror.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/show-hint.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/static/code/highlight.min.css}" media="all">
     <style>
         .sqlText {
             border: 1px solid;
@@ -58,6 +59,13 @@
             z-index: 999;
             transition: all 0.2s ease-in-out;
         }
+
+        pre.CodeMirror-placeholder {
+            color: #a19c9c;
+            font-size: 1rem;
+        }
+
+
     </style>
 </head>
 <body>
@@ -113,6 +121,9 @@
         </div>
     </div>
 </div>
+
+<div id="view-open-table-wrapper" style="display: none;padding: 10px;" class="hidden-scrollbar">
+</div>
 <script th:src="@{/static/layui.js}"></script>
 <script th:replace="~{base::ctx}"></script>
 <script th:src="@{/static/lay-config.js}"></script>
@@ -121,16 +132,12 @@
 <script th:src="@{/static/code/sql.js}"></script>
 <script th:src="@{/static/code/show-hint.js}"></script>
 <script th:src="@{/static/code/sql-hint.js}"></script>
-<script type="text/html" id="table-page-pageBar">
-    <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-primary layui-border-green layui-btn-xs" lay-event="footerBtn1">编辑区
-        </button>
-        <button class="layui-btn layui-btn-primary layui-border-purple layui-btn-xs" lay-event="footerBtn2">结果区
-        </button>
-    </div>
-</script>
+<script th:src="@{/static/code/sql-formatter.min.cjs}"></script>
+<script th:src="@{/static/code/placeholder.js}"></script>
+<script th:src="@{/static/code/highlight.min.js}"></script>
+<script th:replace="~{tableSqlPageMeta}"></script>
 <script>
-    layui.use(['jquery', 'layer', 'form', 'element', 'laySelect', 'table', 'dropdown', 'util'], function () {
+    layui.use(['jquery', 'layer', 'form', 'element', 'laySelect', 'table', 'dropdown', 'util', 'laytpl', 'code'], function () {
         const layer = layui.layer;
         const form = layui.form;
         const $ = layui.jquery;
@@ -139,13 +146,14 @@
         const table = layui.table;
         const dropdown = layui.dropdown;
         const util = layui.util;
+        const laytpl = layui.laytpl;
+        const code = layui.code;
 
         /**
          * 编辑器初始化
          * @type {CodeMirror}
          */
         const editor = CodeMirror.fromTextArea(document.getElementById("sqlText"), {
-            lineNumbers: true,
             mode: {
                 name: "text/x-plsql"
             },
@@ -156,14 +164,33 @@
             lineNumbers: true,
             spellcheck: true,
             lineWrapping: true,
+            resetSelectionOnContextMenu: true,
             extraKeys: {
                 'Ctrl': 'autocomplete',
                 Tab: function (cm) {
                     let spaces = Array(cm.getOption('indentUnit') + 1).join(' ');
                     cm.replaceSelection(spaces);
+                },
+                'Alt-Q': function (cm) {
+                    hintMeta(cm);
+                },
+                'Alt-F': function (cm) {
+                    formatSql(cm);
+                },
+                'Alt-C': function (cm) {
+                    showTableSql(cm);
                 }
             },
-            hintOptions: {completeSingle: false}
+            hintOptions: {completeSingle: false},
+            placeholder: '输入您的要执行的SQL内容... \n\n\n\n' +
+                '快捷键：\n' +
+                '鼠标选中【表名】+Alt+Q  查看元数据 \n' +
+                '鼠标选中【表名】+Alt+C  查看建表语句 \n' +
+                'Alt+F  格式化内容 \n' +
+                'Ctrl   自动提示 \n' +
+                'F7     打开新窗口 \n' +
+                'F8     执行SQL \n' +
+                'F9     保存SQL内容 \n'
         });
 
         /**
@@ -197,6 +224,97 @@
             }
         });
 
+        /**
+         * 选中内容中获取表名
+         * @param cm
+         * @returns {*}
+         */
+        function  getSelectTable(cm){
+            let table = cm.getSelection();
+            if (table.length === 0 || activeDataSource === null) {
+                throw '请选中表名且选中数据源后，在使用快捷键~';
+            }
+            return table;
+        }
+
+        /**
+         * 提示元数据
+         */
+        function hintMeta(cm) {
+            post(ctx + "sqlManager/findMetaTable?database=" + activeDataSource + "&table=" + getSelectTable(cm), null, (res) => {
+                if (res.code != 200 || res.data === null) {
+                    console.warn("无法提示元数据信息!" + res.msg);
+                    return false;
+                }
+                laytpl($("#view-tale-meta-tpl").html()).render(res.data, function (data) {
+                    $("#view-open-table-wrapper").html(data);
+                    layer.open({
+                        type: 1,
+                        area: ['630px', '540px'],
+                        title: false,
+                        anim: 'slideUp',
+                        closeBtn: 0,
+                        shadeClose: true,
+                        scrollbar: false,
+                        content: $('#view-open-table-wrapper')
+                    });
+                });
+            });
+        }
+
+
+        /**
+         * 格式化SQL文本
+         */
+        function formatSql(cm) {
+            let config = {
+                "language": "sql",
+                "tabWidth": 3,
+                "keywordCase": "upper"
+            };
+            let newContent = window.sqlFormatter.format(cm.getValue(), config);
+            cm.setValue(newContent);
+        }
+
+        /**
+         * 提示建表语句
+         * @param cm
+         * @returns {boolean}
+         */
+        function showTableSql(cm) {
+            post(ctx + "sqlManager/showTableSql?database=" + activeDataSource + "&table=" + getSelectTable(cm), null, (res) => {
+                if (res.code != 200 || res.data === null) {
+                    console.warn("无法展示建表语句信息!" + res.msg);
+                    return false;
+                }
+                laytpl($("#table-sql-code-tpl").html()).render(res.data, function (data) {
+                    $("#view-open-table-wrapper").html(data);
+                    //codeRender Ui Bug不生效,demo测试没问题很诡异。。。只能单独处理高亮样式，Copy会存在问题等官方修复。
+                    let old_sql = $(".sql-code").html();
+                    let new_sql = hljs.highlight(old_sql, {language: 'SQL'}).value;
+                    $(".sql-code").html(new_sql);
+                    code({
+                        elem: '.sql-code',
+                        lang: 'SQL',
+                        highlighter: "hljs",
+                        encode: false,
+                        codeRender: function (code, opts) {
+                            return hljs.highlight(code, {language: opts.lang}).value;
+                        }
+                    });
+                    layer.open({
+                        type: 1,
+                        area: ['630px', '540px'],
+                        title: false,
+                        anim: 'slideUp',
+                        closeBtn: 0,
+                        shadeClose: true,
+                        scrollbar: false,
+                        content: $('#view-open-table-wrapper'),
+                    });
+                });
+            });
+        }
 
         /**
          * 设置编辑器提示表名及字段功能
@@ -204,7 +322,7 @@
         function editorHintSettings() {
             post(ctx + "sqlManager/findTableField?database=" + activeDataSource, null, (res) => {
                 if (res.code != 200 || res.data === null) {
-                    console.warn("获取表名及字段失败,无法提供编辑器提示功能!" + res.msg);
+                    console.warn("获取表名及字段失败,无法提供编辑器提示表名功能!" + res.msg);
                     return false;
                 }
                 editor.setOption('hintOptions', {
@@ -249,7 +367,25 @@
                 layer.msg("SQL语句为空，无需保存哦~", {icon: 2});
                 return false;
             }
-            layer.prompt({title: '给内容起个名字吧', formType: 0}, function (data, index) {
+            let openConfig = {
+                type: 1,
+                skin: 'layui-layer-win10',
+                shade: 0.3,
+                area: '520px',
+                title: '*保存SQL文本',
+                closeBtn: 0,
+                formType: 0,
+                anim: 'slideDown',
+                shadeClose: true,
+                success: function () {
+                    $(".layui-layer-content .layui-layer-input").toggleClass("layui-input").attr('placeHolder', '请起个名字吧...');
+                }
+            };
+            layer.prompt(openConfig, function (data, index) {
+                if (data === '' || data == null) {
+                    layer.msg('名字不能为空~', {icon: 2});
+                    return false;
+                }
                 layer.close(index);
                 post(ctx + "sqlManager/saveSqlText", {'sqlText': sqlContent, 'title': data}, (res) => {
                     layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, (res) => {
@@ -511,7 +647,8 @@
                 $("#saveSqlText").trigger('click');
             }
         };
-    });
+    })
+    ;
 
 </script>
 </body>

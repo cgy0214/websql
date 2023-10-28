@@ -1,7 +1,9 @@
 package com.itboy.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.itboy.config.DataSourceFactory;
 import com.itboy.config.JdbcUtils;
 import com.itboy.config.SqlDruidParser;
@@ -22,6 +24,7 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -301,5 +304,62 @@ public class DbSourceServiceImpl implements DbSourceService {
         CacheUtils.remove("data_source_model");
         DataSourceFactory.removeDataSource(oldName);
         DataSourceFactory.saveDataSource(one);
+    }
+
+    @Override
+    public AjaxResult findMetaTable(String database, String table) {
+        String key = "data_source_meta_" + database + "_" + table;
+        DataSourceMeta dataSourceMeta = CacheUtils.get(key, DataSourceMeta.class);
+        if (ObjectUtil.isNotNull(dataSourceMeta)) {
+            return AjaxResult.success(dataSourceMeta);
+        }
+        try {
+            Future<DataSourceMeta> tableMetaFuture = ThreadUtil.execAsync(() -> JdbcUtils.getTableMeta(database, table));
+            Future<List<DataSourceTableMeta>> columnsMetaFuture = ThreadUtil.execAsync(() -> JdbcUtils.getColumnsMeta(database, table));
+            Future<List<DataSourceIndexMeta>> indexInfoMetaFuture = ThreadUtil.execAsync(() -> JdbcUtils.getIndexInfoMeta(database, table));
+            Future<List<DataSourceTableMeta>> keyMetaFuture = ThreadUtil.execAsync(() -> JdbcUtils.getKeyMeta(database, table));
+            DataSourceMeta tableMeta = tableMetaFuture.get();
+            if (ObjectUtil.isNull(tableMeta)) {
+                columnsMetaFuture.cancel(true);
+                indexInfoMetaFuture.cancel(true);
+                keyMetaFuture.cancel(true);
+                return AjaxResult.error("数据库中没有[" + table + "]信息!");
+            }
+            dataSourceMeta = JdbcUtils.getDataSourceMeta(database, table);
+            dataSourceMeta.setDatabaseName(tableMeta.getDatabaseName());
+            dataSourceMeta.setTableType(tableMeta.getTableType());
+            dataSourceMeta.setTableComment(tableMeta.getTableComment());
+            dataSourceMeta.setTableSchema(tableMeta.getTableSchema());
+            List<DataSourceTableMeta> tableMetas = columnsMetaFuture.get();
+            dataSourceMeta.setTablesMetaList(tableMetas);
+            List<DataSourceTableMeta> columnsMeta = keyMetaFuture.get();
+            dataSourceMeta.setTablesKeysMetaList(columnsMeta);
+            List<DataSourceIndexMeta> dataSourceIndexMetas = indexInfoMetaFuture.get();
+            dataSourceMeta.setTablesIndexMetaList(dataSourceIndexMetas);
+            CacheUtils.put(key, dataSourceMeta);
+            return AjaxResult.success(dataSourceMeta);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return AjaxResult.success(dataSourceMeta);
+        }
+    }
+
+
+    @Override
+    public AjaxResult showTableSql(String database, String table) {
+        String sql = "show create table " + table;
+        Map<String, Object> dataResult = JdbcUtils.findMoreResult(database, sql, null);
+        Map<String, String> resultMap = new HashMap<>(2);
+        if (ObjectUtil.notEqual("1", dataResult.get("code"))) {
+            return AjaxResult.error("获取建表语句失败!" + dataResult.get("msg"));
+        }
+        List list = JSON.parseObject(dataResult.get("data").toString(), List.class);
+        Map<String, String> data = (Map<String, String>) list.get(0);
+        resultMap.put("createTableSql", data.get("Create Table"));
+        //TODO 生成默认SQL语句
+        resultMap.put("insertSql", "todo");
+        resultMap.put("updateSql", "todo");
+        resultMap.put("deleteSql", "todo");
+        return AjaxResult.success(resultMap);
     }
 }
