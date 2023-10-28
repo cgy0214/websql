@@ -173,7 +173,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             result.put("tableName", sqlParser.get("tableName"));
             List<String> executeSqlList = (List<String>) sqlParser.get("executeSql");
             List dataList = new ArrayList();
-            if (sqlParser.get("executeType").equals("SELECT")) {
+            if (sqlParser.get("executeType").equals("SELECT") || sqlParser.get("executeType").equals("DESC")) {
                 for (String executeSql : executeSqlList
                 ) {
                     Map<String, Object> resultData = JdbcUtils.findMoreResult(sql.getDataBaseName(), executeSql, new ArrayList<>());
