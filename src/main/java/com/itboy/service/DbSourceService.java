@@ -44,4 +44,8 @@ public interface DbSourceService {
     AjaxResult findTableField(String database);
 
     void updateDataSourceName(Long id, String name) throws SQLException;
+
+    AjaxResult findMetaTable(String database, String table);
+
+    AjaxResult showTableSql(String database, String table);
 }

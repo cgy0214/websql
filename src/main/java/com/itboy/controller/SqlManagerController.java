@@ -1,5 +1,6 @@
 package com.itboy.controller;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.itboy.model.AjaxResult;
 import com.itboy.model.DataSourceModel;
 import com.itboy.model.DbSqlText;
@@ -127,4 +128,36 @@ public class SqlManagerController {
         return dbSourceService.findTableField(database);
     }
 
+
+    /***
+     * 查询数据库表元数据
+     * @param database 数据源名称
+     * @param table 表名
+     * @return
+     */
+    @RequestMapping("/findMetaTable")
+    @ResponseBody
+    public AjaxResult findMetaTable(@RequestParam String database, @RequestParam String table) {
+        if (ObjectUtil.isEmpty(database) || ObjectUtil.isEmpty(table)) {
+            return AjaxResult.error("必填参数为空!");
+        }
+        return dbSourceService.findMetaTable(database, table);
+    }
+
+
+    /**
+     * 建表语句
+     *
+     * @param database 数据源名称
+     * @param table    表名
+     * @return
+     */
+    @RequestMapping("/showTableSql")
+    @ResponseBody
+    public AjaxResult showTableSql(@RequestParam String database, @RequestParam String table) {
+        if (ObjectUtil.isEmpty(database) || ObjectUtil.isEmpty(table)) {
+            return AjaxResult.error("必填参数为空!");
+        }
+        return dbSourceService.showTableSql(database, table);
+    }
 }

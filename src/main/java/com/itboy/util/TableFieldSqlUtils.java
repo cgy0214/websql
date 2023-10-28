@@ -32,6 +32,7 @@ public class TableFieldSqlUtils {
 
             .build();
 
+
     public static String getViewSql(String database) {
         String dbType = DataSourceFactory.getDbType(database);
         if (ObjectUtil.isEmpty(dbType)) {

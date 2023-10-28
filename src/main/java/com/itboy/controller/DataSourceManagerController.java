@@ -87,7 +87,7 @@ public class DataSourceManagerController {
             }
             pre = conn.prepareStatement(model.getDbUrl());
             rs = pre.executeQuery(model.getDbCheckUrl());
-            if (rs.first()) {
+            if (rs.next()) {
                 return AjaxResult.success("连接成功!");
             } else {
                 return AjaxResult.error("连接失败,返回结果集为空!");

@@ -5,16 +5,18 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.itboy.model.DataSourceIndexMeta;
+import com.itboy.model.DataSourceMeta;
+import com.itboy.model.DataSourceTableMeta;
 import lombok.extern.slf4j.Slf4j;
 
+import java.sql.Date;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName JdbcUtils
@@ -223,7 +225,7 @@ public class JdbcUtils {
         }
     }
 
-    private static Connection getConnections(String sourceKey) {
+    public static Connection getConnections(String sourceKey) {
         DruidDataSource source = DataSourceFactory.getDataSource(sourceKey);
         if (source == null) {
             throw new NullPointerException(sourceKey + "：未获取到有效数据源");
@@ -233,6 +235,164 @@ public class JdbcUtils {
             throw new NullPointerException(sourceKey + "：未获取到有效连接");
         }
         return connection;
+    }
+
+    /**
+     * 获取数据源元数据
+     *
+     * @param database
+     * @param table
+     * @return
+     * @throws SQLException
+     */
+    public static DataSourceMeta getDataSourceMeta(String database, String table) {
+        DataSourceMeta dataSourceMeta = new DataSourceMeta();
+        Connection connection = JdbcUtils.getConnections(database);
+        try {
+            DatabaseMetaData dbMetaData = connection.getMetaData();
+            dataSourceMeta.setTableName(table);
+            dataSourceMeta.setDataSourceKey(database);
+            dataSourceMeta.setProductName(dbMetaData.getDatabaseProductName());
+            dataSourceMeta.setProductVersion(dbMetaData.getDatabaseProductVersion());
+            dataSourceMeta.setDriverName(dbMetaData.getDriverName());
+            dataSourceMeta.setDriverVersion(dbMetaData.getDriverVersion());
+            dataSourceMeta.setReadOnly(dbMetaData.isReadOnly());
+            dataSourceMeta.setSupportsTransactions(dbMetaData.supportsTransactions());
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            releaseConn(null, null, connection);
+        }
+        return dataSourceMeta;
+    }
+
+    /**
+     * 获取表元数据
+     *
+     * @param database
+     * @param table
+     * @return
+     * @throws SQLException
+     */
+    public static DataSourceMeta getTableMeta(String database, String table) {
+        DataSourceMeta dataSourceMeta = null;
+        Connection connection = JdbcUtils.getConnections(database);
+        try {
+            DatabaseMetaData dbMetaData = connection.getMetaData();
+            //表描述信息
+            ResultSet tables = dbMetaData.getTables(null, null, table, new String[]{"TABLE"});
+            while (tables.next()) {
+                dataSourceMeta = new DataSourceMeta();
+                dataSourceMeta.setDatabaseName(tables.getString(1));
+                dataSourceMeta.setTableType(tables.getString("TABLE_TYPE"));
+                dataSourceMeta.setTableComment(tables.getString("REMARKS"));
+                dataSourceMeta.setTableSchema(tables.getString("TABLE_SCHEM"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            releaseConn(null, null, connection);
+        }
+        return dataSourceMeta;
+    }
+
+    /**
+     * 获取列元数据
+     *
+     * @param database
+     * @param table
+     * @return
+     * @throws SQLException
+     */
+    public static List<DataSourceTableMeta> getColumnsMeta(String database, String table) {
+        List<DataSourceTableMeta> tableMetas = new ArrayList<>(0);
+        Connection connection = JdbcUtils.getConnections(database);
+        try {
+            DatabaseMetaData dbMetaData = connection.getMetaData();
+            ResultSet columns = dbMetaData.getColumns(null, null, table, null);
+            while (columns.next()) {
+                DataSourceTableMeta tableMeta = new DataSourceTableMeta();
+                tableMeta.setTableName(columns.getString("TABLE_NAME"));
+                tableMeta.setColumnName(columns.getString("COLUMN_NAME"));
+                tableMeta.setTypeName(columns.getString("TYPE_NAME"));
+                tableMeta.setNullable(columns.getString("IS_NULLABLE"));
+                tableMeta.setAutoIncrement(columns.getString("IS_AUTOINCREMENT"));
+                tableMeta.setComment(columns.getString("REMARKS"));
+                tableMetas.add(tableMeta);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            releaseConn(null, null, connection);
+        }
+        return tableMetas;
+    }
+
+    /**
+     * 获取索引元数据
+     *
+     * @param database
+     * @param table
+     * @return
+     * @throws SQLException
+     */
+    public static List<DataSourceIndexMeta> getIndexInfoMeta(String database, String table) {
+        List<DataSourceIndexMeta> indexMetas = new ArrayList<>(1);
+        Connection connection = JdbcUtils.getConnections(database);
+        try {
+            DatabaseMetaData dbMetaData = connection.getMetaData();
+            ResultSet indexInfo = dbMetaData.getIndexInfo(null, null, table, false, true);
+            while (indexInfo.next()) {
+                DataSourceIndexMeta indexMeta = new DataSourceIndexMeta();
+                indexMeta.setTableName(table);
+                indexMeta.setNonUnique(indexInfo.getBoolean("NON_UNIQUE"));
+                indexMeta.setIndexName(indexInfo.getString("INDEX_NAME"));
+                indexMeta.setColumnName(indexInfo.getString("COLUMN_NAME"));
+                indexMetas.add(indexMeta);
+            }
+            return indexMetas.stream().collect(
+                    Collectors.collectingAndThen(Collectors.toCollection(
+                            () -> new TreeSet<>(Comparator.comparing(o -> o.getIndexName() + o.getColumnName()))), ArrayList::new));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            releaseConn(null, null, connection);
+        }
+        return indexMetas;
+    }
+
+    /**
+     * 获取主键元数据
+     *
+     * @param database
+     * @param table
+     * @return
+     * @throws SQLException
+     */
+    public static List<DataSourceTableMeta> getKeyMeta(String database, String table) {
+        List<DataSourceTableMeta> keysMetas = new ArrayList<>(1);
+        Connection connection = JdbcUtils.getConnections(database);
+        try {
+            DatabaseMetaData dbMetaData = connection.getMetaData();
+            //主键描述
+            ResultSet foreignKeys = dbMetaData.getPrimaryKeys(null, null, table);
+            while (foreignKeys.next()) {
+                DataSourceTableMeta keyMeta = new DataSourceTableMeta();
+                keyMeta.setKeySeq(foreignKeys.getInt("KEY_SEQ"));
+                keyMeta.setPkName(foreignKeys.getString("PK_NAME"));
+                keyMeta.setTableName(foreignKeys.getString("TABLE_NAME"));
+                keyMeta.setColumnName(foreignKeys.getString("COLUMN_NAME"));
+                keysMetas.add(keyMeta);
+            }
+            return keysMetas.stream().collect(
+                    Collectors.collectingAndThen(Collectors.toCollection(
+                            () -> new TreeSet<>(Comparator.comparing(o -> o.getKeySeq() + o.getPkName() + o.getColumnName()))), ArrayList::new));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            releaseConn(null, null, connection);
+        }
+        return keysMetas;
     }
 
 }
