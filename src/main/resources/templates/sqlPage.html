@@ -171,26 +171,27 @@
                     let spaces = Array(cm.getOption('indentUnit') + 1).join(' ');
                     cm.replaceSelection(spaces);
                 },
-                'Alt-Q': function (cm) {
+                'Alt-X': function (cm) {
                     hintMeta(cm);
                 },
-                'Alt-F': function (cm) {
+                'Alt-C': function (cm) {
                     formatSql(cm);
                 },
-                'Alt-C': function (cm) {
+                'Alt-Z': function (cm) {
                     showTableSql(cm);
                 }
             },
             hintOptions: {completeSingle: false},
-            placeholder: '输入您的要执行的SQL内容... \n\n\n\n' +
+            placeholder: '输入您的要执行的SQL内容... \n\n\n' +
                 '快捷键：\n' +
-                '鼠标选中【表名】+Alt+Q  查看元数据 \n' +
-                '鼠标选中【表名】+Alt+C  查看建表语句 \n' +
-                'Alt+F  格式化内容 \n' +
-                'Ctrl   自动提示 \n' +
-                'F7     打开新窗口 \n' +
-                'F8     执行SQL \n' +
-                'F9     保存SQL内容 \n'
+                '鼠标选中【表名】+Alt+X  查看元数据 \n' +
+                '鼠标选中【表名】+Alt+Z  查看建表语句 \n' +
+                'Alt+C      格式化内容 \n' +
+                'Ctrl       自动提示 \n' +
+                'F7         打开新窗口 \n' +
+                'F8         执行所有SQL \n' +
+                'F9         保存SQL内容 \n' +
+                '选中内容+F8 选中SQL执行 \n'
         });
 
         /**
@@ -289,15 +290,11 @@
                 }
                 laytpl($("#table-sql-code-tpl").html()).render(res.data, function (data) {
                     $("#view-open-table-wrapper").html(data);
-                    //codeRender Ui Bug不生效,demo测试没问题很诡异。。。只能单独处理高亮样式，Copy会存在问题等官方修复。
-                    let old_sql = $(".sql-code").html();
-                    let new_sql = hljs.highlight(old_sql, {language: 'SQL'}).value;
-                    $(".sql-code").html(new_sql);
                     code({
                         elem: '.sql-code',
                         lang: 'SQL',
                         highlighter: "hljs",
-                        encode: false,
+                        encode: true,
                         codeRender: function (code, opts) {
                             return hljs.highlight(code, {language: opts.lang}).value;
                         }
@@ -435,6 +432,10 @@
                 $("#msgSpan").text("ERROR:请输入要执行的SQL~");
                 return false;
             }
+            let pitchTxt = editor.getSelection();
+            if (pitchTxt.length !== 0){
+                sqlContent = pitchTxt;
+            }
             let intervalTime = 0;
             let interval = setInterval(function () {
                 intervalTime++;
@@ -477,7 +478,7 @@
             let data = res.dataList;
             elementTabCount = data.length;
             //执行语句仅返回条数
-            if (res.sqlExecuteType != "SELECT") {
+            if (res.sqlExecuteType != "SELECT" && res.sqlExecuteType !='DESC') {
                 let executeMsg = "";
                 for (let i = 0; i < data.length; i++) {
                     if (executeMsg != "") {

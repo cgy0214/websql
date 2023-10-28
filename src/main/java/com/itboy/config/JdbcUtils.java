@@ -280,7 +280,7 @@ public class JdbcUtils {
         try {
             DatabaseMetaData dbMetaData = connection.getMetaData();
             //表描述信息
-            ResultSet tables = dbMetaData.getTables(null, null, table, new String[]{"TABLE"});
+            ResultSet tables = dbMetaData.getTables(connection.getCatalog(), connection.getSchema(), table, new String[]{"TABLE"});
             while (tables.next()) {
                 dataSourceMeta = new DataSourceMeta();
                 dataSourceMeta.setDatabaseName(tables.getString(1));
@@ -309,7 +309,7 @@ public class JdbcUtils {
         Connection connection = JdbcUtils.getConnections(database);
         try {
             DatabaseMetaData dbMetaData = connection.getMetaData();
-            ResultSet columns = dbMetaData.getColumns(null, null, table, null);
+            ResultSet columns = dbMetaData.getColumns(connection.getCatalog(), connection.getSchema(), table, null);
             while (columns.next()) {
                 DataSourceTableMeta tableMeta = new DataSourceTableMeta();
                 tableMeta.setTableName(columns.getString("TABLE_NAME"));
@@ -320,6 +320,9 @@ public class JdbcUtils {
                 tableMeta.setComment(columns.getString("REMARKS"));
                 tableMetas.add(tableMeta);
             }
+            return tableMetas.stream().collect(
+                    Collectors.collectingAndThen(Collectors.toCollection(
+                            () -> new TreeSet<>(Comparator.comparing(o -> o.getColumnName() + o.getTableName()))), ArrayList::new));
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -341,7 +344,7 @@ public class JdbcUtils {
         Connection connection = JdbcUtils.getConnections(database);
         try {
             DatabaseMetaData dbMetaData = connection.getMetaData();
-            ResultSet indexInfo = dbMetaData.getIndexInfo(null, null, table, false, true);
+            ResultSet indexInfo = dbMetaData.getIndexInfo(connection.getCatalog(), connection.getSchema(), table, false, true);
             while (indexInfo.next()) {
                 DataSourceIndexMeta indexMeta = new DataSourceIndexMeta();
                 indexMeta.setTableName(table);
@@ -375,7 +378,7 @@ public class JdbcUtils {
         try {
             DatabaseMetaData dbMetaData = connection.getMetaData();
             //主键描述
-            ResultSet foreignKeys = dbMetaData.getPrimaryKeys(null, null, table);
+            ResultSet foreignKeys = dbMetaData.getPrimaryKeys(connection.getCatalog(), connection.getSchema(), table);
             while (foreignKeys.next()) {
                 DataSourceTableMeta keyMeta = new DataSourceTableMeta();
                 keyMeta.setKeySeq(foreignKeys.getInt("KEY_SEQ"));

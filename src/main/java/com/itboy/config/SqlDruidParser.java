@@ -40,8 +40,19 @@ public class SqlDruidParser {
         resultMap.put("tables", visitor.getTables());
         resultMap.put("fields", visitor.getColumns());
         resultMap.put("tableName", getTable(visitor.getTables()));
-        resultMap.put("executeType", method == null ? "SELECT" : method.toString().toUpperCase());
-        if (method != null && "SELECT".equalsIgnoreCase(method.toString())) {
+        //优化兼容desc查询表字段 20231028
+        if (ObjectUtil.isNull(method) || (ObjectUtil.isNotNull(method) && ObjectUtil.isEmpty(method.toString()))) {
+            if (sql.toUpperCase().contains("DESC") || sql.toUpperCase().contains("SHOW")) {
+                method = "DESC";
+            } else {
+                method = "UPDATE";
+                log.warn("sqlParser Unknown Sql Processed Update Method!");
+            }
+        } else {
+            method = method.toString().toUpperCase();
+        }
+        resultMap.put("executeType", method);
+        if ("SELECT".equalsIgnoreCase(method.toString())) {
             resultMap.put("executeSql", pageLimitSql(sqlParam, dbType));
         } else {
             resultMap.put("executeSql", Arrays.asList(sqlParam));
