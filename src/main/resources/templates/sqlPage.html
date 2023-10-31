@@ -148,6 +148,7 @@
         const util = layui.util;
         const laytpl = layui.laytpl;
         const code = layui.code;
+        let pageVisibility;  //页面隐藏
 
         /**
          * 编辑器初始化
@@ -230,7 +231,7 @@
          * @param cm
          * @returns {*}
          */
-        function  getSelectTable(cm){
+        function getSelectTable(cm) {
             let table = cm.getSelection();
             if (table.length === 0 || activeDataSource === null) {
                 throw '请选中表名且选中数据源后，在使用快捷键~';
@@ -295,6 +296,7 @@
                         lang: 'SQL',
                         highlighter: "hljs",
                         encode: true,
+                        langMarker:true,
                         codeRender: function (code, opts) {
                             return hljs.highlight(code, {language: opts.lang}).value;
                         }
@@ -433,7 +435,7 @@
                 return false;
             }
             let pitchTxt = editor.getSelection();
-            if (pitchTxt.length !== 0){
+            if (pitchTxt.length !== 0) {
                 sqlContent = pitchTxt;
             }
             let intervalTime = 0;
@@ -441,15 +443,18 @@
                 intervalTime++;
                 $("#msgSpan").text("执行耗时:" + intervalTime + "毫秒");
             }, 1);
-            post(ctx + "sqlManager/executeSql", {'dataBaseName': activeDataSource, 'sqlText': sqlContent}, (res) => {
+            post(ctx + "sqlManager/executeSqlNew", {'dataBaseName': activeDataSource, 'sqlText': sqlContent}, (res) => {
                 window.clearInterval(interval);
+                if (pageVisibility === 'hidden') {
+                    sendNotification("SQL执行完成,请查看页面执行结果~");
+                }
                 if (!res) {
                     $("#msgSpan").text("ERROR:未知异常!");
                     $("#sqlTableDiv").hide();
                     return false;
                 }
                 if (res.code != 1) {
-                    let msg = res.msg == null ? "空指针异常,请查看日志详情" : res.msg;
+                    let msg = res.msg == null ? "空指针异常,请查看系统日志详情!" : res.msg;
                     layer.msg(msg, {icon: 2});
                     $("#msgSpan").text("ERROR:" + msg);
                     $("#sqlTableDiv").hide();
@@ -478,7 +483,7 @@
             let data = res.dataList;
             elementTabCount = data.length;
             //执行语句仅返回条数
-            if (res.sqlExecuteType != "SELECT" && res.sqlExecuteType !='DESC') {
+            if (res.sqlExecuteType != "SELECT" && res.sqlExecuteType != 'DESC') {
                 let executeMsg = "";
                 for (let i = 0; i < data.length; i++) {
                     if (executeMsg != "") {
@@ -648,6 +653,13 @@
                 $("#saveSqlText").trigger('click');
             }
         };
+
+        /**
+         * 检查页面是否隐藏
+         */
+        document.addEventListener('visibilitychange', function () {
+            pageVisibility = document.visibilityState
+        })
     })
     ;
 

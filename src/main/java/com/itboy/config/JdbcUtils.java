@@ -126,6 +126,71 @@ public class JdbcUtils {
 
     }
 
+
+    /**
+     * 已知返回一条数据情况使用
+     *
+     * @param sourceKey
+     * @param sql
+     * @param params
+     * @return
+     */
+    public static Map<String, Object> findOneResult(String sourceKey, String sql, List<Object> params) {
+        Connection connection = getConnections(sourceKey);
+        Map<String, Object> map = new HashMap<>(4);
+        map.put("code", "1");
+        map.put("msg", "执行成功");
+        map.put("rawSql", sql);
+        int index = 1;
+        PreparedStatement pstmt = null;
+        ResultSet resultSet = null;
+        try {
+            pstmt = connection.prepareStatement(sql);
+            if (params != null && !params.isEmpty()) {
+                for (int i = 0; i < params.size(); i++) {
+                    pstmt.setObject(index++, params.get(i));
+                }
+            }
+            resultSet = pstmt.executeQuery();
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            int colsLength = metaData.getColumnCount();
+            String colsName;
+            Object colsValue;
+            while (resultSet.next()) {
+                for (int i = 0; i < colsLength; i++) {
+                    colsName = metaData.getColumnLabel(i + 1);
+                    String columnType = metaData.getColumnTypeName(i + 1);
+                    colsValue = resultSet.getObject(colsName);
+                    if (ObjectUtil.isNotNull(colsValue) && "DATETIME".equals(columnType)) {
+                        if (colsValue instanceof ZonedDateTime) {
+                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                            colsValue = formatter.format((ZonedDateTime) colsValue);
+                        }
+                        if (colsValue instanceof LocalDateTime) {
+                            colsValue = DateUtil.formatLocalDateTime((LocalDateTime) colsValue);
+                        }
+                        if (colsValue instanceof Date) {
+                            colsValue = DateUtil.format((Date) colsValue, "yyyy-MM-dd hh:mm:ss");
+                        }
+                    }
+                    if (colsValue == null) {
+                        colsValue = "";
+                    }
+                    map.put(colsName, colsValue);
+                }
+            }
+            return map;
+        } catch (Exception e) {
+            log.error("执行异常," + e.getMessage());
+            map.put("code", "2");
+            map.put("msg", e.getMessage());
+            map.put("data", "执行失败,无返回结果.");
+        } finally {
+            releaseConn(resultSet, pstmt, connection);
+        }
+        return map;
+    }
+
     /**
      * 执行计划
      *

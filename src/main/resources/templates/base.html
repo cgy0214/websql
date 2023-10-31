@@ -26,6 +26,22 @@
 
 
     /**
+     * 获取站点配置
+     * @returns {any}
+     */
+    function getSiteConfig() {
+        let siteConfig = window.localStorage.getItem('site');
+        if (siteConfig != null) {
+            return JSON.parse(siteConfig);
+        }
+        post(ctx + "getSiteConfig", null, (res) => {
+            window.localStorage.setItem("site", JSON.stringify(res.data));
+            return res.data;
+        });
+    }
+
+
+    /**
      * 数据表格返回值通用处理
      * @param res
      * @returns {{msg: *, code: number, data: *, count}}
@@ -49,7 +65,7 @@
             "code": res.code,
             "codeName": res.value,
             "status": res.short,
-            "select":res.select ==null ? 'false':res.select
+            "select": res.select == null ? 'false' : res.select
         };
     }
 
@@ -149,6 +165,35 @@
         window.parent.document.getElementById("search").click();
         const frameIndex = parent.layer.getFrameIndex(window.name);
         parent.layer.close(frameIndex);
+    }
+
+
+    /**
+     * 发送桌面通知
+     * @param message
+     */
+    function sendNotification(message) {
+        if (getSiteConfig() !== null && getSiteConfig().enabledNotification !== undefined && getSiteConfig().enabledNotification !== 0) {
+            return false;
+        }
+        if (window.Notification && Notification.permission === "granted") {
+            new Notification("WEBSQL", {
+                icon: ctx + 'static/img/inform.png',
+                body: message
+            });
+        } else if (window.Notification && Notification.permission !== "denied") {
+            Notification.requestPermission(function (status) {
+                if (Notification.permission !== status) {
+                    Notification.permission = status;
+                }
+                if (status === "granted") {
+                    new Notification("WEBSQL", {
+                        icon: ctx + 'static/img/inform.png',
+                        body: message
+                    });
+                }
+            });
+        }
     }
 
     /*]]>*/

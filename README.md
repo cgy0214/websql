@@ -1,152 +1,119 @@
-# websql
 
-#### 常见问题交流
+<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v3.3</h1>
+<h4 align="center">websql 轻量级网页sql管理工具,在线执行SQL、ETL同步、动态多数据源、常用sql管理等众多功能，体积小开箱即用 ———简约而不简单</h4>
+<p align="center">
+	<a href="https://gitee.com/boy_0214/websql/stargazers"><img src="https://gitee.com/boy_0214/websql/badge/star.svg?theme=gvp"></a>
+	<a href="https://gitee.com/boy_0214/websql/members"><img src="https://gitee.com/boy_0214/websql/badge/fork.svg?theme=gvp"></a>
+	<a href="https://maven.apache.org"><img src="https://img.shields.io/badge/JDK-8+-orange)"></a>
+    <a href="https://maven.apache.org"><img src="https://img.shields.io/badge/Maven-3.5.0+-brightgreen.svg"></a>
+    <a href="https://gitee.com/boy_0214/websql/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL3.0-blue.svg"></a>
+</p>
 
-后台私信，邮件平时很少登录查看，特此创建一个群，方便大家交流。
+---
 
-![输入图片说明](https://foruda.gitee.com/images/1674874677305767312/2d168845_1509614.png)
+## 前言：
+- [快速开始](https://gitee.com/boy_0214/websql/wikis/Home)
 
-#### 介绍
+- 注：学习测试请拉取 master 分支，dev 是开发分支，有很多特性并不稳定（在项目根目录执行 `git checkout master`）。
 
-websql v3 JAVA语言开发,H2内嵌管理数据库;执行效率更快、完全开源、体积小傻瓜式,开箱即用。 ———简约而不简单
+-  开源不易，点个 star 鼓励一下吧！
 
-支持动态配置`多数据源`,`权限控制`,在线`执行sql`，常用`sql文本实时获取`,`导出、打印`结果集、可控的`日志记录`，`危险`SQL限制运行，生产环境`数据`同步,`openapi`
+
+## webSql 介绍
+
+**webSql** 支持动态配置`多数据源`,`权限控制`,在线`执行sql`，常用`sql文本实时获取`,`导出、打印`结果集、可控的`日志记录`，`危险`SQL限制运行，生产环境`数据`同步,`openapi`
 ETL等功能;众多功能集一身的`SQL在线执行工具`。
 
-#### 支持的数据库
 
-    oracle
-    mysql
-    H2
-    postgresql
-    sqlite
-    sqlserver
-    dm 达梦
-    kingbase8 人大金仓
-    oscar     神州通用
-    odps      阿里云maxcompute
 
-#### 软件架构
+### 支持的数据库产品
+| 产品名称       | 适配度 | 功能描述   |
+|:-----------|:----|:-------|
+| mysql      | &#x2714;  | 支持所有功能 |
+| oracle     | &#x2714;  | 支持所有功能 |
+| H2         | &#x2714;  | 支持所有功能 |
+| postgresql | &#x2714;  | 不支持元数据 |
+| sqlite     | &#x2714;  | 支持所有功能 |
+| sqlserver  | &#x2714;  | 不支持元数据 |
+| dm达梦       | &#x2714;  | 支持所有功能 |
+| kingbase8 人大金仓 | 部分  | 不支持元数据 |
+| oscar 神州通用 | 部分  | 不支持元数据 |
+| maxcompute 阿里云 | 部分  | 不支持元数据 |
 
-前端框架：layui
 
-后端框架：springboot
-
-数据层：jpa,druid
-
-权限框架：sa-token
-
-JSON处理：fastjson
-
-验证码：easyCaptcha
-
-编辑器：codeMirror
-
-工具包： huTool
-
-#### 功能介绍
-
-![登录页](https://foruda.gitee.com/images/1691402713565081017/1660e955_1509614.png "登录页")
-![首页](https://foruda.gitee.com/images/1691402776952802962/a239856a_1509614.png "首页")
-
-1. 数据源管理
-
-![数据源管理](https://foruda.gitee.com/images/1691402817433211812/1adf327c_1509614.png "数据源管理")
-
-数据源动态配置多种数据库连接进行入池。
-
-系统管理-系统设置中数据源选项控制是否项目启动时进行加载数据源。
-
-项目启动时加载连接数据源确保网络通畅,手动加载需每次项目启动后手动进行加载。手动加载可避免项目启动时数据源未加载成功无通知等问题
-
-2. SQL管理
-
-![SQL执行](https://foruda.gitee.com/images/1691402910993783640/880384b4_1509614.png "SQL执行")
-
-![SQL文本](https://foruda.gitee.com/images/1691402970076842620/2a3bfc13_1509614.png "SQL文本")
-
-SQL窗口我们每天都会用的功能,它强大无比;ctrl键智能提示,多行SQL查询 ","
-分割或换行,多行查询结果集导出,动态获取已保存的SQL文本。使用三步: 选择数据源 > 输入脚本 > 执行  
-SQL列表由SQL窗口内F9保存SQL文本,并在SQL列表展示、删除。
-
-3.ETL管理
-![ETL](https://foruda.gitee.com/images/1691403029285250547/70a86db3_1509614.png "ETL")
-![作业任务](https://foruda.gitee.com/images/1691403222695321116/656f4def_1509614.png "作业任务")
-
-定时任务执行脚本,可跨库同步数据结果并展示；可选同步数据源,根据执行SQL结果插入库表中。真正的便捷执行计划ETL抽取，数据同步等
-
-3. 日志管理
-
-![SQL日志](https://foruda.gitee.com/images/1691403288265388238/47751afe_1509614.png "SQL日志")
-![登录日志](https://foruda.gitee.com/images/1691403327768784930/1cc8c82d_1509614.png "登录日志")
-
-执行脚本记录每次在SQL窗口F8执行后,会产生详细可查询
-
-登录系统记录每次账号登录后会产生详细可查询
+### 软件架构
+| 产品名称         | 模块 | 描述     |
+|:-------------|:---|:-------|
+| Spring Boot	 | 后端 | 后端框架   |
+| JPA          | 后端 | 数据层    |
+| Druid        | 后端 | 连接池    |
+| sa-token     | 后端 | 权限框架   |
+| fastjson     | 后端 | JSON工具 |
+| easyCaptcha  | 后端 | 验证码    |
+| huTool       | 后端 | 常用工具   |
+| LaYui        | 前端 | 前端框架   |
+| codeMirror   | 前端 | 编辑器    |
 
 
 
-4. 用户管理
+## WebSql 功能模块一览
 
-![用户管理](https://foruda.gitee.com/images/1691403417331976051/68b538d6_1509614.png "用户管理")
+Websql 主要分为五大功能模块：数据源管理、SQL管理、ETL管理、日志管理、系统管理。
 
-可新增不同用户，赋予不同操作权限登录系统使用
+- **数据源管理** —— 数据源动态配置多种数据库连接进行入池
+- **SQL管理** —— SQL窗口执行脚本,它强大无比;SQL列表保存常用SQL文本
+- **ETL管理** —— 定时执行脚本,跨库同步数据结果并呈现；便捷执行计划ETL抽取，数据同步等
+- **日志管理** —— 执行脚本记录,登录系统会产生详细日志可供查询
+- **用户管理** —— 可新增不同用户，赋予不同操作权限登录系统使用
+- **参数设置** —— 参数设置中可以操作更多细致化控制
+- **openapi** —— 支持http调用系统接口形式执行SQL动作 <a href='https://gitee.com/boy_0214/websql/wikis/openapi'>查看示例</a>
+- **开箱即用** —— 提供jar、docker镜像，内置H2数据库，一条命令即可启动，真正的开箱即用
 
-
-5. 参数设置
-
-![参数设置](https://foruda.gitee.com/images/1691403486151708385/822eef90_1509614.png "参数设置")
-
-系统设置中日志记录可控执行操作是否记录日志
-
-系统设置中可全部清空SQL执行脚本记录及登录系统日志
-
-数据库管理可登录内嵌H2操作台可直接操作
-
-连接池管理可查看数据源是否加载配置信息等
-
-6. 驱动管理
-
-![驱动设置](https://foruda.gitee.com/images/1691403564521878212/433f7e0b_1509614.png "驱动设置")
-
-针对不同数据库类型支持添加不同的驱动信息
-
-7. openapi
-
-支持http调用系统接口形式执行SQL动作 <a href='https://gitee.com/boy_0214/websql/wikis/openapi'>查看示例</a>
-
-
-#### 参与开发
+### 参与开发
 
 第一步： git clone https://gitee.com/boy_0214/websql.git
 
 第二步： WebplsqlApplication.java启动  基于`master`开发完成后提交至`dev`分支
 
-第三步：编译打包 `mvn clean package`    部署 target/websql.jar 
+第三步：自测完成，gitee提交PR 至dev分支
 
-第四步：打包docker镜像 
+第四步：编译打包 `mvn clean package`    部署 target/websql.jar
+
+第五步：打包docker镜像
 
     docker build -f dockerfile --tag cgycms/websql:3.x --tag cgycms/websql:latest .
     docker push
 
+## 应用部署
 
+- 运行环境：jdk8 / jdk17
+- 使用内置H2不需要独立安装数据库及创建表结构，系统会自动创建
+- 默认端口：80
+- 访问路径：http://localhost/index
+- 指定端口号： --server.port=8080
+- 默认登录账号：admin/admin
 
-
-#### 应用部署
-
-运行环境：jdk8 / jdk17  
-默认端口：80  
-访问路径：http://localhost/index  
-默认登录账号：admin/admin  
-指定端口号： --server.port=8080  
-使用内置H2不需要独立安装数据库及创建表结构，系统会自动创建
 
     nohup java -jar websql.jar  >>web.log &
 
-#### Docker部署
+### Docker部署
 
     docker pull cgycms/websql:latest
     
     docker run -di --name websql -p 80:80 cgycms/websql:latest
     
     docker logs websql
+
+
+## 交流群
+QQ交流群：498265967 [点击加入](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=HHuK-ks_qF9KdaWI8UuIPzp22Qg3jSJ7&authKey=fBFgaomxUn3%2BfMgrRzHq9ZMyBZZ0eSAaU2JBO1oXe94RbnkUhlSI2SKjHjVK8Mij&noverify=0&group_code=498265967)
+
+<img src="https://foruda.gitee.com/images/1698638140621421548/945994da_1509614.jpeg" width="230px" title="微信群" />
+
+<br>
+加入群聊的好处：
+
+- 群主虽然是个菜鸟但是乐于助人。
+- 第一时间收到框架更新通知。
+- 第一时间收到框架 bug 通知。
+

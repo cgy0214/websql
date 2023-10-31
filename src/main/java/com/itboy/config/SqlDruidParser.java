@@ -42,7 +42,7 @@ public class SqlDruidParser {
         resultMap.put("tableName", getTable(visitor.getTables()));
         //优化兼容desc查询表字段 20231028
         if (ObjectUtil.isNull(method) || (ObjectUtil.isNotNull(method) && ObjectUtil.isEmpty(method.toString()))) {
-            if (sql.toUpperCase().contains("DESC") || sql.toUpperCase().contains("SHOW")) {
+            if (sql.toUpperCase().contains("DESC") || sql.toUpperCase().contains("SHOW") || sql.toUpperCase().contains("SELECT")) {
                 method = "DESC";
             } else {
                 method = "UPDATE";

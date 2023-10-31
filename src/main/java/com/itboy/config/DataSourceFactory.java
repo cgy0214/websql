@@ -188,4 +188,20 @@ public class DataSourceFactory {
         throw new RuntimeException("根据url[" + jdbcUrl + "]无法找到对应的数据库类型!");
     }
 
+    /**
+     * 获取数据库名称
+     *
+     * @param sourceKey
+     * @return
+     */
+    public static String getDataBaseName(String sourceKey) {
+        try {
+            DruidDataSource dataSource = getDataSource(sourceKey);
+            return dataSource.getConnection().getCatalog();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

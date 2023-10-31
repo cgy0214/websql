@@ -48,4 +48,8 @@ public interface DbSourceService {
     AjaxResult findMetaTable(String database, String table);
 
     AjaxResult showTableSql(String database, String table);
+
+    void sqlTextDeleteAll();
+
+    AjaxResult executeSqlNew(ExecuteSql sql);
 }

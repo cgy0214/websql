@@ -5,6 +5,11 @@
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
+<style>
+    .layui-form-pane .layui-form-label{
+        width: 120px;
+    }
+</style>
 <body>
 
 <div style="margin:5px;">
@@ -80,6 +85,20 @@
             </div>
         </div>
 
+        <div class="layui-form-item">
+            <label class="layui-form-label" pane>windows通知</label>
+            <div class="layui-input-inline">
+                <select name="enabledNotification" id="enabledNotification">
+                    <option value="0">开启</option>
+                    <option value="1">关闭</option>
+                </select>
+                <input type="hidden" id="enabledNotificationVal" th:value="${obj.enabledNotification}">
+            </div>
+            <div class="layui-form-mid layui-text-em" lay-on="tips-right9">
+                <i class="layui-icon layui-icon-tips"></i>
+            </div>
+        </div>
+
 
         <div class="layui-form-item">
             <label class="layui-form-label" pane>分页条数</label>
@@ -136,6 +155,11 @@
                     <i class="layui-icon layui-icon-clear"> </i>清空作业执行记录
                 </button>
 
+                <button class="layui-btn layui-btn-primary layui-border-red"
+                        onclick="btnPost('清除SQL常用记录','sqlManager/sqlTextDeleteAll');return false;">
+                    <i class="layui-icon layui-icon-clear"> </i>清空SQL常用列表
+                </button>
+
             </div>
         </div>
     </form>
@@ -189,6 +213,14 @@
             });
         });
 
+        $("#enabledNotification").each(function () {
+            $(this).children("option").each(function () {
+                if (this.value === $("#enabledNotificationVal").val()) {
+                    $(this).attr("selected", "selected");
+                }
+            });
+        });
+
         form.render();
 
         // 提示信息
@@ -217,11 +249,15 @@
             },
             'tips-right8': function () {
                 layer.tips('编辑器写SQL时会提示选中的数据源所有表及字段!<br>如果数据库中超过上万字段不建议开启会卡死!<br>支持mysql、oracle、H2、postgres、达梦、人大金仓、神州通用', this, tipsConfig);
+            },
+            'tips-right9': function () {
+                layer.tips('执行SQL完成后,页面离开态会进行Windows系统通知!<br>关闭将不会在发送通知，但不影响执行SQL使用。', this, tipsConfig);
             }
         })
 
         form.on('submit(save)', function (data) {
             const field = data.field;
+            window.localStorage.removeItem('site');
             post(ctx + "settingManager/updateSysSetUp", field, (res) => {
                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2});
             });

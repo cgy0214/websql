@@ -79,4 +79,10 @@ public class SysSetup {
      */
     @Column(length = 1)
     private Integer enabledHint;
+
+    /**
+     * 发送window消息 0开启 1不开启
+     */
+    @Column(length = 1)
+    private Integer enabledNotification;
 }

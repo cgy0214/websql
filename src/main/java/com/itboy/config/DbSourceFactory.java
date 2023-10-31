@@ -1,5 +1,6 @@
 package com.itboy.config;
 
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.itboy.model.DataSourceModel;
 import com.itboy.model.Result;
@@ -59,7 +60,12 @@ public class DbSourceFactory {
                     model.setDbAccount(encrypt);
                 }
             }
-            DataSourceFactory.initDataSource(dblist);
+            if (dblist.size() > 2) {
+                log.info("dataSource Size:{}  Async initDataSource ...", dblist.size());
+                ThreadUtil.execAsync(() -> DataSourceFactory.initDataSource(dblist));
+            } else {
+                DataSourceFactory.initDataSource(dblist);
+            }
         }
     }
 
