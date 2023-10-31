@@ -162,4 +162,10 @@ public class LoginController {
         return loginService.unlockLoginUser(code);
     }
 
+    @ResponseBody
+    @RequestMapping(value ="/getSiteConfig", method = RequestMethod.POST)
+    public AjaxResult getSiteConfig() {
+        return AjaxResult.success(dbSourceFactory.getSysSetUp());
+    }
+
 }

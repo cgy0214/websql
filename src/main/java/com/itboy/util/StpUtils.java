@@ -71,4 +71,9 @@ public class StpUtils {
     private static HttpServletRequest getRequest() {
         return ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
     }
+
+    public static String getUserExtName() {
+        SysUser user = getCurrentUser();
+        return user.getUserId() + ":" + user.getUserName();
+    }
 }

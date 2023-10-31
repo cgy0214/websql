@@ -175,6 +175,9 @@ public class LoginServiceImpl implements LoginService {
         if (ObjectUtil.isNotEmpty(sys.getEnabledHint())) {
             sysSetup.setEnabledHint(sys.getEnabledHint());
         }
+        if (ObjectUtil.isNotEmpty(sys.getEnabledNotification())) {
+            sysSetup.setEnabledNotification(sys.getEnabledNotification());
+        }
         CacheUtils.remove("sys_setup");
         sysSetUpRepository.save(sysSetup);
         CacheUtils.putNoDue("sys_setup", sysSetup);
@@ -504,6 +507,7 @@ public class LoginServiceImpl implements LoginService {
             sysSetup.setFailLogin(3);
             sysSetup.setRiskText("drop,truncate,delete,create");
             sysSetup.setEnabledHint(0);
+            sysSetup.setEnabledNotification(0);
             sysSetUpRepository.save(sysSetup);
             //初始化内置的驱动
             List<SysDriverConfig> sysDriverConfig = JSON.parseArray(ResourceUtil.readUtf8Str("dataSourceTemplate.json"), SysDriverConfig.class);

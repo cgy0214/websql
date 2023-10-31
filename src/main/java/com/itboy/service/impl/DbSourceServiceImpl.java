@@ -1,12 +1,15 @@
 package com.itboy.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.TimeInterval;
+import cn.hutool.core.text.StrFormatter;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.itboy.config.DataSourceFactory;
 import com.itboy.config.JdbcUtils;
 import com.itboy.config.SqlDruidParser;
+import com.itboy.config.SqlParserHandler;
 import com.itboy.dao.*;
 import com.itboy.model.*;
 import com.itboy.service.DbSourceService;
@@ -160,12 +163,16 @@ public class DbSourceServiceImpl implements DbSourceService {
         result.put("code", 1);
         SysUser user = StpUtils.getCurrentUser();
         String userName = user.getUserId() + ":" + user.getUserName();
-        SysLog log = new SysLog().setLogName("sql执行记录").setLogDate(DateUtil.now()).setLogContent(sql.getSqlText()).setLogType("1").setLogType("sql执行记录").setLogDbSource(sql.getDataBaseName()).setUserid(userName);
+        SysLog log = new SysLog("sql执行记录", "1", sql.getDataBaseName(), sql.getSqlText(), userName, DateUtil.now());
         try {
             if (ObjectUtil.isEmpty(sql.getDataBaseName()) || ObjectUtil.isEmpty(sql.getSqlText())) {
                 throw new NullPointerException("请选择数据源或编写SQL!");
             }
             Map<String, Object> sqlParser = SqlDruidParser.sqlParser(sql.getDataBaseName(), sql.getSqlText());
+
+            List<SqlParserVo> parserVo = SqlParserHandler.getParserVo(sql.getDataBaseName(), sql.getSqlText());
+            System.out.println(JSON.toJSON(parserVo));
+
             if (sqlParser.get("executeType") == null) {
                 throw new NullPointerException("SQL解析异常");
             }
@@ -200,6 +207,50 @@ public class DbSourceServiceImpl implements DbSourceService {
             }
         }
         return result;
+    }
+
+    @Override
+    public AjaxResult executeSqlNew(ExecuteSql sql) {
+        SysLog log = new SysLog("sql执行记录", "1", sql.getDataBaseName(), sql.getSqlText(), StpUtils.getUserExtName(), DateUtil.now());
+        try {
+            List<SqlParserVo> parserVoList = SqlParserHandler.getParserVo(sql.getDataBaseName(), sql.getSqlText());
+            if (parserVoList.isEmpty()) {
+                return AjaxResult.error("解析SQL失败,返回为空请重试!");
+            }
+
+            List<SqlExecuteResultVo> resultVos = new ArrayList<>(parserVoList.size());
+            for (SqlParserVo sqlParserVo : parserVoList) {
+                TimeInterval timer = DateUtil.timer();
+                SqlExecuteResultVo vo = new SqlExecuteResultVo();
+                vo.setTableNameList(JSON.toJSONString(sqlParserVo.getTableNameList()));
+                vo.setExecuteType(sqlParserVo.getMethodType());
+                vo.setParserSql(sqlParserVo.getSqlContent());
+                vo.setDataBaseKey(sql.getDataBaseName());
+                if (SqlParserHandler.SELECT.equals(sqlParserVo.getMethodType())) {
+                    Map<String, Object> resultData = JdbcUtils.findMoreResult(sql.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());
+                    vo.setData(resultData);
+                    vo.setType(0);
+                } else {
+                    Map<String, Object> resultData = JdbcUtils.updateByPreparedStatement(sql.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());
+                    vo.setType(1);
+                    vo.setData(resultData);
+                    vo.setMessage(resultData.get("data").toString());
+                }
+                vo.setTime(timer.intervalRestart());
+                resultVos.add(vo);
+            }
+            log.setLogResult(JSON.toJSONString(resultVos));
+            return AjaxResult.success(resultVos);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.setLogResult(e.getMessage());
+            return AjaxResult.error(e.getMessage());
+        } finally {
+            SysSetup sysSetup = CacheUtils.get("sys_setup", SysSetup.class);
+            if (sysSetup.getEnabledSqlLog() == 1) {
+                sysLogRepository.save(log);
+            }
+        }
     }
 
     @Override
@@ -253,6 +304,12 @@ public class DbSourceServiceImpl implements DbSourceService {
         model.setSqlCreateUser(StpUtils.getCurrentUserName());
         CacheUtils.remove("sql_text_model");
         dbSqlTextRepository.save(model);
+    }
+
+    @Override
+    public void sqlTextDeleteAll() {
+        CacheUtils.remove("sql_text_model");
+        dbSqlTextRepository.deleteAll();
     }
 
     @Override
@@ -346,18 +403,28 @@ public class DbSourceServiceImpl implements DbSourceService {
 
 
     @Override
-    public AjaxResult showTableSql(String database, String table) {
+    public AjaxResult showTableSql(String databaseKey, String table) {
+
         String sql = "show create table " + table;
-        Map<String, Object> dataResult = JdbcUtils.findMoreResult(database, sql, null);
+        Map<String, Object> dataResult = JdbcUtils.findOneResult(databaseKey, sql, null);
         Map<String, String> resultMap = new HashMap<>(2);
+
+        //create 模板
         if (ObjectUtil.notEqual("1", dataResult.get("code"))) {
-            return AjaxResult.error("获取建表语句失败!" + dataResult.get("msg"));
+            return AjaxResult.error(dataResult.get("msg").toString());
         }
-        List list = JSON.parseObject(dataResult.get("data").toString(), List.class);
-        Map<String, String> data = (Map<String, String>) list.get(0);
-        resultMap.put("createTableSql", data.get("Create Table"));
-        //TODO 生成默认SQL语句
-        resultMap.put("insertSql", "todo");
+        resultMap.put("createTableSql", dataResult.get("Create Table").toString());
+
+        //insert 模板
+        String inertSql = TableFieldSqlUtils.getInertSql(databaseKey);
+        if (ObjectUtil.isNotNull(inertSql)) {
+            String dataBaseName = DataSourceFactory.getDataBaseName(databaseKey);
+            String insertSql = StrFormatter.format(inertSql, dataBaseName, table);
+            Map<String, Object> dataResult2 = JdbcUtils.findOneResult(databaseKey, insertSql, null);
+            if (ObjectUtil.equal("1", dataResult2.get("code"))) {
+                resultMap.put("insertSql", dataResult2.get("insertText").toString());
+            }
+        }
         resultMap.put("updateSql", "todo");
         resultMap.put("deleteSql", "todo");
         return AjaxResult.success(resultMap);

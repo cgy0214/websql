@@ -106,6 +106,18 @@ public class SqlManagerController {
         }
     }
 
+    @RequestMapping("/sqlTextDeleteAll")
+    @ResponseBody
+    public AjaxResult sqlTextDeleteAll() {
+        try {
+            dbSourceService.sqlTextDeleteAll();
+            return AjaxResult.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
     /***
      * 执行器
      * @param sql
@@ -115,6 +127,15 @@ public class SqlManagerController {
     @ResponseBody
     public Map executeSql(@RequestBody ExecuteSql sql) {
         return dbSourceService.executeSql(sql);
+    }
+
+    @RequestMapping("/executeSqlNew")
+    @ResponseBody
+    public AjaxResult executeSqlNew(@RequestBody ExecuteSql sql) {
+        if (ObjectUtil.isEmpty(sql.getDataBaseName()) || ObjectUtil.isEmpty(sql.getSqlText())) {
+            return AjaxResult.error("请选择数据源或编写SQL!");
+        }
+        return dbSourceService.executeSqlNew(sql);
     }
 
     /***

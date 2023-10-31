@@ -15,6 +15,9 @@ import java.util.Map;
  **/
 public class TableFieldSqlUtils {
 
+    /**
+     * 查询列名
+     */
     private static final Map<String, String> DATA_BASE_TABLE_VIEW_SQL = MapUtil.builder(new HashMap<String, String>(5))
             .put("mysql", " SELECT TABLE_NAME AS TABLE_NAME,COLUMN_NAME TABLE_FIELD from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA= (select database())  ")
 
@@ -33,11 +36,25 @@ public class TableFieldSqlUtils {
             .build();
 
 
+    //生成默认的insert语句
+    private static final Map<String, String> DATA_BASE_TABLE_INSERT_SQL = MapUtil.builder(new HashMap<String, String>(5))
+            .put("mysql", " SELECT CONCAT( 'insert into ', table_name, '(', GROUP_CONCAT( COLUMN_NAME ),') value (', GROUP_CONCAT( '#{',COLUMN_NAME,'}' ), ')' ) as insertText FROM information_schema.COLUMNS WHERE table_schema = '{}' AND table_name = '{}'  ")
+
+            .build();
+
     public static String getViewSql(String database) {
         String dbType = DataSourceFactory.getDbType(database);
         if (ObjectUtil.isEmpty(dbType)) {
             return null;
         }
         return DATA_BASE_TABLE_VIEW_SQL.get(dbType);
+    }
+
+    public static String getInertSql(String database) {
+        String dbType = DataSourceFactory.getDbType(database);
+        if (ObjectUtil.isEmpty(dbType)) {
+            return null;
+        }
+        return DATA_BASE_TABLE_INSERT_SQL.get(dbType);
     }
 }

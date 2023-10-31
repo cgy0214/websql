@@ -85,8 +85,8 @@ public class DataSourceManagerController {
                 }
                 return AjaxResult.success("连接成功!");
             }
-            pre = conn.prepareStatement(model.getDbUrl());
-            rs = pre.executeQuery(model.getDbCheckUrl());
+            pre = conn.prepareStatement(model.getDbCheckUrl());
+            rs = pre.executeQuery();
             if (rs.next()) {
                 return AjaxResult.success("连接成功!");
             } else {

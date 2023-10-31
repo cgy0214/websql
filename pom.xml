@@ -22,7 +22,7 @@
         <oracle.version>19.3.0.0</oracle.version>
         <sqllite.version>3.42.0.0</sqllite.version>
         <sqlserver.version>4.0</sqlserver.version>
-        <druid.version>1.2.20</druid.version>
+        <druid.version>1.2.16</druid.version>
         <hutool.version>5.8.22</hutool.version>
         <saToken.version>1.37.0</saToken.version>
         <easyCaptcha.version>1.6.2</easyCaptcha.version>

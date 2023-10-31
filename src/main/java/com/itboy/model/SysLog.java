@@ -53,4 +53,15 @@ public class SysLog extends Pages {
     @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss")
     private String logDate;
 
+    public SysLog() {
+    }
+
+    public SysLog(String logName, String logType, String logDbSource, String logContent, String userid, String logDate) {
+        this.logName = logName;
+        this.logType = logType;
+        this.logDbSource = logDbSource;
+        this.logContent = logContent;
+        this.userid = userid;
+        this.logDate = logDate;
+    }
 }
