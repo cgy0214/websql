@@ -217,7 +217,6 @@ public class DbSourceServiceImpl implements DbSourceService {
             if (parserVoList.isEmpty()) {
                 return AjaxResult.error("解析SQL失败,返回为空请重试!");
             }
-
             List<SqlExecuteResultVo> resultVos = new ArrayList<>(parserVoList.size());
             for (SqlParserVo sqlParserVo : parserVoList) {
                 TimeInterval timer = DateUtil.timer();
@@ -227,14 +226,17 @@ public class DbSourceServiceImpl implements DbSourceService {
                 vo.setParserSql(sqlParserVo.getSqlContent());
                 vo.setDataBaseKey(sql.getDataBaseName());
                 if (SqlParserHandler.SELECT.equals(sqlParserVo.getMethodType())) {
-                    Map<String, Object> resultData = JdbcUtils.findMoreResult(sql.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());
-                    vo.setData(resultData);
+                    Map<String, Object> moreResult = JdbcUtils.findMoreResult(sql.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());
+                    vo.setData(moreResult.get("data"));
+                    vo.setStatus(Integer.parseInt(moreResult.get("code").toString()));
                     vo.setType(0);
+                    vo.setErrorMessage(moreResult.get("msg").toString());
                 } else {
-                    Map<String, Object> resultData = JdbcUtils.updateByPreparedStatement(sql.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());
+                    Map<String, Object> moreResult = JdbcUtils.updateByPreparedStatement(sql.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());
                     vo.setType(1);
-                    vo.setData(resultData);
-                    vo.setMessage(resultData.get("data").toString());
+                    vo.setData(moreResult.get("data"));
+                    vo.setStatus(Integer.parseInt(moreResult.get("code").toString()));
+                    vo.setErrorMessage(moreResult.get("msg").toString());
                 }
                 vo.setTime(timer.intervalRestart());
                 resultVos.add(vo);

@@ -2,8 +2,6 @@ package com.itboy.model;
 
 import lombok.Data;
 
-import java.util.Map;
-
 /**
  * @ClassName : SqlExecuteResultVo
  * @Description : 返回对象
@@ -32,12 +30,18 @@ public class SqlExecuteResultVo {
     /**
      * 数据字段
      */
-    private Map<String, Object> data;
+    private Object data;
 
     /**
-     * 信息字段
+     * 执行状态
      */
-    private String message;
+    private int status;
+
+    /**
+     * 执行失败的错误信息
+     */
+    private String errorMessage;
+
 
     /**
      * 执行SQL

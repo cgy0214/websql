@@ -32,7 +32,7 @@ public class SqlManagerController {
 
     @RequestMapping("/sqlPage")
     public String sqlPage() {
-        return "sqlPage";
+        return "sqlPageNew";
     }
 
     @RequestMapping("/sqlTextPage")
