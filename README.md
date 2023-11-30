@@ -4,9 +4,10 @@
 <p align="center">
 	<a href="https://gitee.com/boy_0214/websql/stargazers"><img src="https://gitee.com/boy_0214/websql/badge/star.svg?theme=gvp"></a>
 	<a href="https://gitee.com/boy_0214/websql/members"><img src="https://gitee.com/boy_0214/websql/badge/fork.svg?theme=gvp"></a>
-	<a href="https://maven.apache.org"><img src="https://img.shields.io/badge/JDK-8+-orange)"></a>
-    <a href="https://maven.apache.org"><img src="https://img.shields.io/badge/Maven-3.5.0+-brightgreen.svg"></a>
+	<a href="https://www.oracle.com/cn/java/technologies/downloads/"><img src="https://img.shields.io/badge/JDK-1.8+-orange)"></a>
+    <a href="https://maven.apache.org"><img src="https://img.shields.io/badge/maven-3.5+-e4ec27.svg"></a>
     <a href="https://gitee.com/boy_0214/websql/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL3.0-blue.svg"></a>
+    <a href="https://websql.cgycms.cn"><img src="https://img.shields.io/badge/demo-%E6%BC%94%E7%A4%BA%E7%8E%AF%E5%A2%83-8A2BE2.svg"></a>
 </p>
 
 ---
@@ -104,6 +105,14 @@ Websql 主要分为五大功能模块：数据源管理、SQL管理、ETL管理�
     
     docker logs websql
 
+## 演示环境
+
+
+[演示环境](http://websql.cgycms.cn)
+
+账号密码：**demo** / **demo123**
+
+配置低,经常GG。
 
 ## 交流群
 QQ交流群：498265967 [点击加入](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=HHuK-ks_qF9KdaWI8UuIPzp22Qg3jSJ7&authKey=fBFgaomxUn3%2BfMgrRzHq9ZMyBZZ0eSAaU2JBO1oXe94RbnkUhlSI2SKjHjVK8Mij&noverify=0&group_code=498265967)
@@ -116,4 +125,3 @@ QQ交流群：498265967 [点击加入](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k
 - 群主虽然是个菜鸟但是乐于助人。
 - 第一时间收到框架更新通知。
 - 第一时间收到框架 bug 通知。
-
