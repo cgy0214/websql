@@ -3,14 +3,15 @@ package com.itboy.security;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.hutool.core.util.ObjectUtil;
 import com.itboy.dao.SysUserRoleRepository;
+import com.itboy.model.SysRole;
 import com.itboy.model.SysUserRole;
+import com.itboy.service.LoginService;
 import com.itboy.util.CacheUtils;
 import com.itboy.util.StpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,10 @@ public class StpInterfaceImpl implements StpInterface {
     @Autowired
     private SysUserRoleRepository sysUserRoleRepository;
 
+
+    @Autowired
+    private LoginService loginService;
+
     @Override
     public List<String> getPermissionList(Object loginId, String s) {
         // 暂不实现按钮权限
@@ -36,8 +41,13 @@ public class StpInterfaceImpl implements StpInterface {
 
     @Override
     public List<String> getRoleList(Object loginId, String s) {
+        List<String> superRoles = CacheUtils.get("super_user_roles_model", List.class);
         if (StpUtils.currentSuperAdmin()) {
-            return Arrays.asList("*");
+            if (ObjectUtil.isNull(superRoles)) {
+                superRoles = loginService.queryRolesSelect().stream().map(SysRole::getRole).filter(role -> !"demo-admin".equals(role)).collect(Collectors.toList());
+                CacheUtils.put("super_user_roles_model", superRoles);
+            }
+            return superRoles;
         }
         List<String> roles = CacheUtils.get("user_roles_model", List.class);
         if (ObjectUtil.isNull(roles)) {

@@ -255,6 +255,7 @@ public class DbSourceServiceImpl implements DbSourceService {
         }
     }
 
+
     @Override
     public Integer selectDbByName(String paramName) {
         return dbSourceRepository.findDataSourceByName(paramName);
@@ -431,4 +432,11 @@ public class DbSourceServiceImpl implements DbSourceService {
         resultMap.put("deleteSql", "todo");
         return AjaxResult.success(resultMap);
     }
+
+
+    @Override
+    public DataSourceModel selectDbById(Long id) {
+        return dbSourceRepository.selectById(id);
+    }
+
 }

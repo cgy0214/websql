@@ -51,9 +51,8 @@ public class TimingServiceImpl implements TimingService {
     }
 
     @Override
-    public void delTiming(String id) {
-        Long ids = Long.valueOf(id);
-        timingRepository.deleteById(ids);
+    public void delTiming(Long id) {
+        timingRepository.deleteById(id);
     }
 
 

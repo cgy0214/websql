@@ -1,5 +1,6 @@
 package com.itboy.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.itboy.config.DbSourceFactory;
 import com.itboy.config.ExamineVersionFactory;
@@ -108,9 +109,12 @@ public class LoginController {
     }
 
 
-    @RequestMapping("userController/updateUsers")
+    @RequestMapping("/userController/updateUsers")
     @ResponseBody
     public AjaxResult updateUsers(@RequestBody SysUser sysUser) {
+        if (StpUtil.hasRole("demo-admin")) {
+            return AjaxResult.error("抱歉,演示账号不允许修改个人信息!");
+        }
         return AjaxResult.success(loginService.updateUsers(sysUser));
     }
 
@@ -163,7 +167,7 @@ public class LoginController {
     }
 
     @ResponseBody
-    @RequestMapping(value ="/getSiteConfig", method = RequestMethod.POST)
+    @RequestMapping(value = "/getSiteConfig", method = RequestMethod.POST)
     public AjaxResult getSiteConfig() {
         return AjaxResult.success(dbSourceFactory.getSysSetUp());
     }
