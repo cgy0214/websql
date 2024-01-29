@@ -40,7 +40,7 @@ public class JobExecuteFactory {
         models.setTitle(jobName);
         TimingService timingService = SpringContextHolder.getBean(TimingService.class);
         List<TimingVo> voList = timingService.timingList(models).getList();
-        if (voList.size() == 0) {
+        if (voList.isEmpty()) {
             log.error("任务已不存在了" + jobName);
             ScheduleUtils.Job job = new ScheduleUtils.Job();
             job.setJobName(jobName);

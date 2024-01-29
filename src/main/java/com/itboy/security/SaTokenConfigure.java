@@ -8,6 +8,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @ClassName : SaTokenConfigure
  * @Description : 权限控制器
@@ -20,6 +23,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new SaInterceptor(handler -> {
+
             SaRouter.match("/**")
                     .notMatch("/login/**")
                     .notMatch("/code/**")
@@ -31,15 +35,45 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                     .notMatch("/openApiManager/**")
                     .notMatch("/unlockLoginUser")
                     .check(r -> StpUtil.checkLogin());
+
+            List<String> list = Arrays.asList("/dataSourceManager/page",
+                    "/dataSourceManager/dataSourceList",
+                    "/sqlManager/sqlPage",
+                    "/dataSourceManager/findDataSourceList",
+                    "/sqlManager/querySqlTextSelect",
+                    "/sqlManager/findTableField",
+                    "/sqlManager/executeSqlNew",
+                    "/sqlManager/sqlTextPage",
+                    "/sqlManager/querySqlTextList",
+                    "/sqlManager/saveSqlText",
+                    "/timingManager/listPage",
+                    "/timingManager/addPage",
+                    "/timingManager/addTimingData",
+                    "/timingManager/historyPage",
+                    "/timingManager/jobLogList",
+                    "/timingManager/timingList",
+                    "/logManager/logPage",
+                    "/logManager/getLogList",
+                    "/logManager/userLogPage",
+                    "/logManager/getUserLogList",
+                    "/settingManager/driverConfigPage",
+                    "/settingManager/driverConfigList");
+            SaRouter.match(list).check(r -> {
+                if (StpUtil.hasRole("demo-admin")) {
+                    r.stop();
+                }
+            });
+
             SaRouter.match("/dataSourceManager/**")
                     .notMatch("/dataSourceManager/findDataSourceList")
-                    .check(r -> StpUtil.checkRoleOr("database-admin"));
-            SaRouter.match("/logManager/**", r -> StpUtil.checkRole("log-admin"));
-            SaRouter.match("/sqlManager/**", r -> StpUtil.checkRole("sql-admin"));
-            SaRouter.match("/timingManager/**", r -> StpUtil.checkRole("timing-admin"));
-            SaRouter.match("/settingManager/**", r -> StpUtil.checkRole("super-admin"));
-            SaRouter.match("/sshManager/**", r -> StpUtil.checkRole("super-admin"));
+                    .check(r -> StpUtil.checkRoleOr("database-admin", "super-admin"));
+            SaRouter.match("/logManager/**", r -> StpUtil.checkRoleOr("log-admin", "super-admin"));
+            SaRouter.match("/sqlManager/**", r -> StpUtil.checkRoleOr("sql-admin", "super-admin"));
+            SaRouter.match("/timingManager/**", r -> StpUtil.checkRoleOr("timing-admin", "super-admin"));
+            SaRouter.match("/settingManager/**", r -> StpUtil.checkRoleOr("super-admin"));
+            SaRouter.match("/sshManager/**", r -> StpUtil.checkRoleOr("super-admin"));
             SaRouter.match("/openApiManager/**", r -> StpUtils.checkOpenAuth());
+
         })).addPathPatterns("/**");
     }
 }

@@ -52,6 +52,7 @@
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
         <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
+        <button type="button" class="layui-btn layui-btn-xs layui-bg-orange" lay-event="showDataSourcePassword">解密</button>
         <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="update">编辑</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
@@ -82,7 +83,7 @@
                     {field: 'maxIdle', title: '最大空闲数', sort: true, fixed: true},
                     {field: 'maxWait', title: '最大等待时间', sort: true, fixed: true},
                     {field: 'dbState', title: '状态', sort: true, fixed: true},
-                    {fixed: 'right', title: '操作', width: 150, minWidth: 150, toolbar: '#toolbarTable'}
+                    {fixed: 'right', title: '操作', width: 190, minWidth: 190, toolbar: '#toolbarTable'}
                 ]
             ],
             parseData: res => parseData(res)
@@ -92,7 +93,7 @@
             var data = obj.data;
             switch (obj.event) {
                 case 'view':
-                    const content = laytpl('<div style="margin: 20px;">地址：{{= d.address }} <br> 账号：{{= d.name}} <br> 密码： {{= d.password}} <br>暂不支持查看原始密码</div>').render({
+                    let content = laytpl('<div style="margin: 20px;">地址：{{= d.address }} <br> 账号：{{= d.name}} <br> 密码： {{= d.password}} </div>').render({
                         address: data.dbUrl,
                         name: data.dbAccount,
                         password: data.dbPassword
@@ -127,7 +128,20 @@
                         });
                     });
                     break;
-
+                case 'showDataSourcePassword':
+                    post(ctx + "dataSourceManager/showDataSourcePassword?id=" + data.id, null, (res) => {
+                        if (res.code === 200) {
+                            let content = laytpl('<div style="margin: 20px;">地址：{{= d.address }} <br> 账号：{{= d.name}} <br> 密码： {{= d.password}} </div>').render({
+                                address: res.data.dbUrl,
+                                name: res.data.dbAccount,
+                                password: res.data.dbPassword
+                            });
+                            openContent("查看原始密码", content);
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    })
+                    break;
             }
         });
 
@@ -139,8 +153,7 @@
             });
             return false;
         });
-
-
     });
+
 </script>
 </html>

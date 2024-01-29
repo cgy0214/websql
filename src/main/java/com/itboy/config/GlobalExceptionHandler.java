@@ -4,6 +4,7 @@ import cn.dev33.satoken.exception.ApiDisabledException;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.exception.NotRoleException;
+import cn.dev33.satoken.stp.StpUtil;
 import com.itboy.model.AjaxResult;
 import com.itboy.util.StpUtils;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -20,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
  * @Date: 2023/1/28 23:42
  */
 @ControllerAdvice
+@ResponseBody
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotLoginException.class)
@@ -29,22 +31,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotPermissionException.class)
     public Object handlerException(HttpServletRequest request, NotPermissionException e) {
+        String message = "您没有[" + e.getPermission() + "]权限不允许访问此功能，请联系管理员开通!";
         if (isAjax(request)) {
-            return AjaxResult.error("缺少权限：" + e.getPermission(), e.getMessage());
+            return AjaxResult.error(message, e.getMessage());
         } else {
             ModelAndView modelAndView = new ModelAndView("main");
-            modelAndView.addObject("errorMsg", "您没有[" + e.getPermission() + "]权限不允许访问此功能，请联系管理员开通!");
+            modelAndView.addObject("errorMsg", message);
             return modelAndView;
         }
     }
 
     @ExceptionHandler(NotRoleException.class)
     public Object handlerException(HttpServletRequest request, NotRoleException e) {
+        boolean isDemo = StpUtil.hasRole("demo-admin");
+        String message = isDemo ? "抱歉,演示角色不允许执行此操作!" : "您没有[" + e.getRole() + "]角色不允许访问此功能，请联系管理员开通!";
         if (isAjax(request)) {
-            return AjaxResult.error("缺少角色：" + e.getRole(), e.getMessage());
+            return AjaxResult.error(message, e.getMessage());
         } else {
             ModelAndView modelAndView = new ModelAndView("main");
-            modelAndView.addObject("errorMsg", "您没有[" + e.getRole() + "]角色不允许访问此功能，请联系管理员开通!");
+            modelAndView.addObject("errorMsg", message);
             return modelAndView;
         }
     }
@@ -52,7 +57,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApiDisabledException.class)
     @ResponseBody
     public AjaxResult handlerException(HttpServletRequest request, ApiDisabledException e) {
-        return AjaxResult.error(e.getMessage(),"请联系管理员处理!");
+        return AjaxResult.error(e.getMessage(), "请联系管理员处理!");
     }
 
 

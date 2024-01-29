@@ -232,6 +232,7 @@ public class LoginServiceImpl implements LoginService {
         sysUserRepository.deleteById(id);
         sysUserRoleRepository.delete(new SysUserRole().setUserId(id));
         CacheUtils.remove("user_roles_model");
+        CacheUtils.remove("super_user_roles_model");
         return true;
     }
 
@@ -279,6 +280,7 @@ public class LoginServiceImpl implements LoginService {
     public Boolean updateUserRoles(SysUser param) {
         if (ObjectUtil.isNotEmpty(param.getSysRoleName())) {
             CacheUtils.remove("user_roles_model");
+            CacheUtils.remove("super_user_roles_model");
             List<String> roles = Arrays.asList(param.getSysRoleName().split(","));
             sysUserRoleRepository.deleteByUserId(param.getUserId());
             Map<String, SysRole> roleMap = sysRoleRepository.findAll().stream().collect(Collectors.toMap(SysRole::getRole, s -> s, (k1, k2) -> k1));
@@ -346,7 +348,7 @@ public class LoginServiceImpl implements LoginService {
         if (ObjectUtil.isNotNull(sysSetup) && ObjectUtil.isNotNull(sysSetup.getFailLogin())) {
             failLogin = sysSetup.getFailLogin();
         }
-        if (count >= failLogin) {
+        if (count >= failLogin && failLogin>-1) {
             sysUserRepository.updateStateByUserName(userLog.getUserName(), 1);
         }
     }
@@ -488,6 +490,13 @@ public class LoginServiceImpl implements LoginService {
             role5.setRoleId(5L);
             role5.setRemark("所属作业管理菜单");
             sysRoleRepository.save(role5);
+
+            SysRole role6 = new SysRole();
+            role6.setRole("demo-admin");
+            role6.setDescription("系统演示角色");
+            role6.setRoleId(6L);
+            role6.setRemark("系统演示功能");
+            sysRoleRepository.save(role6);
 
             //初始化人员角色
             SysUserRole sysUserRole1 = new SysUserRole();
