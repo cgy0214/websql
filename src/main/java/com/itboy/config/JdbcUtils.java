@@ -63,8 +63,7 @@ public class JdbcUtils {
     public static Map<String, Object> findMoreResult(String sourceKey, String sql, List<Object> params) {
         Connection connection = getConnections(sourceKey);
         Map<String, Object> map = new HashMap<>(4);
-        //JSONArray list = new JSONArray();
-        List list = new ArrayList();
+        JSONArray list = new JSONArray();
         map.put("code", "1");
         map.put("msg", "执行成功");
         map.put("rawSql", sql);
@@ -93,7 +92,7 @@ public class JdbcUtils {
                     String columnType = metaData.getColumnTypeName(i + 1);
                     //colsValue = resultSet.getObject(colsName);   列名可能是重复的会覆盖，所以用下面的索引方法。
                     colsValue = resultSet.getObject(i + 1);
-                    logger.info("键:{},值:{}", colsName, colsValue);
+                    logger.debug("键:{},值:{}", colsName, colsValue);
                     if (ObjectUtil.isNotNull(colsValue) && "DATETIME".equals(columnType)) {
                         if (colsValue instanceof ZonedDateTime) {
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
