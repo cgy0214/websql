@@ -99,8 +99,10 @@ Websql 主要分为五大功能模块：数据源管理、SQL管理、ETL管理�
 
 ### Docker部署
 
+    pull拉取失败，可以加群寻找国内镜像地址
+
     docker pull cgycms/websql:latest
-    
+
     docker run -di --name websql -p 80:80 cgycms/websql:latest
     
     docker logs websql
