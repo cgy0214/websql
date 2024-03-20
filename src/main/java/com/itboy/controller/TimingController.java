@@ -1,5 +1,6 @@
 package com.itboy.controller;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.itboy.model.AjaxResult;
 import com.itboy.model.JobLogs;
 import com.itboy.model.TimingVo;
@@ -52,14 +53,25 @@ public class TimingController {
     @RequestMapping("/addTimingData")
     @ResponseBody
     public AjaxResult addTimingData(@RequestBody TimingVo model) {
-        TimingVo timingVo = null;
+        if (ObjectUtil.isEmpty(model.getTitle())) {
+            return AjaxResult.error("作业名称不能为空哦!");
+        }
+        if (ObjectUtil.isEmpty(model.getExecuteTime())) {
+            return AjaxResult.error("Cron表达式不能为空哦!");
+        }
+        if (ObjectUtil.isEmpty(model.getSyncTable())) {
+            return AjaxResult.error("目标数据表名不能为空哦!");
+        }
+        Long id = null;
         try {
-            timingVo = timingService.addtimingData(model);
+            id = timingService.addtimingData(model).getId();
             createJob(model.getExecuteTime(), model.getTitle(), 1);
             return AjaxResult.success();
         } catch (Exception e) {
             e.printStackTrace();
-            timingService.delTiming(timingVo.getId().toString());
+            if (ObjectUtil.isNotNull(id)) {
+                timingService.delTiming(id);
+            }
             return AjaxResult.error(e.getMessage());
         }
     }
@@ -100,7 +112,7 @@ public class TimingController {
                     createJob(cron, vo.getTitle(), 1);
                     break;
                 case 4:
-                    timingService.delTiming(String.valueOf(id));
+                    timingService.delTiming(id);
                     ScheduleUtils.cancel(job);
                     break;
                 case 5:

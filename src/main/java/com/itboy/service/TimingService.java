@@ -13,7 +13,7 @@ import com.itboy.model.TimingVo;
 public interface TimingService {
     TimingVo addtimingData(TimingVo model) throws Exception;
 
-    void delTiming(String id);
+    void delTiming(Long id);
 
     Result<TimingVo> timingList(TimingVo model);
 

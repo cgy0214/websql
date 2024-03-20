@@ -12,4 +12,7 @@ public interface DbSourceRepository extends JpaSpecificationExecutor<DataSourceM
 
     @Query(value = "SELECT count(*)   FROM SQL_DATASOURCE WHERE db_name= ?1", nativeQuery = true)
     Integer findDataSourceByName(String paramName);
+
+    @Query(value = "select * from SQL_DATASOURCE where id = ?1",nativeQuery = true)
+    DataSourceModel selectById(Long id);
 }
