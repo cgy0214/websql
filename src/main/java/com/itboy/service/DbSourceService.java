@@ -52,4 +52,6 @@ public interface DbSourceService {
     void sqlTextDeleteAll();
 
     AjaxResult executeSqlNew(ExecuteSql sql);
+
+    DataSourceModel selectDbById(Long id);
 }

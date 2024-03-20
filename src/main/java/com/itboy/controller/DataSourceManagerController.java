@@ -1,13 +1,17 @@
 package com.itboy.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.druid.DbType;
 import com.itboy.config.DataSourceFactory;
 import com.itboy.config.JdbcUtils;
 import com.itboy.model.AjaxResult;
 import com.itboy.model.DataSourceModel;
+import com.itboy.model.Result;
 import com.itboy.service.DbSourceService;
 import com.itboy.service.LoginService;
+import com.itboy.util.PasswordUtil;
+import com.itboy.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -60,7 +64,11 @@ public class DataSourceManagerController {
     @RequestMapping("/dataSourceList")
     @ResponseBody
     public AjaxResult dataSourceList(DataSourceModel model) {
-        return AjaxResult.success(dbSourceService.selectDbSourceList(model));
+        Result<DataSourceModel> dataSourceModelResult = dbSourceService.selectDbSourceList(model);
+        if (StpUtil.hasRole("demo-admin")) {
+            dataSourceModelResult.getList().forEach(s -> s.setDbUrl("****************"));
+        }
+        return AjaxResult.success(dataSourceModelResult);
     }
 
     /***
@@ -195,6 +203,27 @@ public class DataSourceManagerController {
             e.printStackTrace();
             return AjaxResult.error(e.getMessage());
         }
+    }
+
+    @RequestMapping("/showDataSourcePassword")
+    @ResponseBody
+    public AjaxResult showDataSourcePassword(Long id) {
+        if (!StpUtils.currentSuperAdmin()) {
+            return AjaxResult.error("抱歉，您不是超级管理员无法查看!");
+        }
+        DataSourceModel dataSourceModelResult = dbSourceService.selectDbById(id);
+        if (ObjectUtil.isNull(dataSourceModelResult)) {
+            return AjaxResult.error("请重新刷新页面,没有找到此数据源配置信息!");
+        }
+        if (ObjectUtil.isNotEmpty(dataSourceModelResult.getDbPassword())) {
+            String encrypt = PasswordUtil.decrypt(dataSourceModelResult.getDbPassword());
+            dataSourceModelResult.setDbPassword(encrypt);
+        }
+        if (ObjectUtil.isNotEmpty(dataSourceModelResult.getDbAccount())) {
+            String encrypt = PasswordUtil.decrypt(dataSourceModelResult.getDbAccount());
+            dataSourceModelResult.setDbAccount(encrypt);
+        }
+        return AjaxResult.success(dataSourceModelResult);
     }
 
 }

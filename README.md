@@ -1,5 +1,5 @@
 
-<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v3.3</h1>
+<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v3.4</h1>
 <h4 align="center">websql 轻量级网页sql管理工具,在线执行SQL、ETL同步、动态多数据源、常用sql管理等众多功能，体积小开箱即用 ———简约而不简单</h4>
 <p align="center">
 	<a href="https://gitee.com/boy_0214/websql/stargazers"><img src="https://gitee.com/boy_0214/websql/badge/star.svg?theme=gvp"></a>
@@ -99,8 +99,10 @@ Websql 主要分为五大功能模块：数据源管理、SQL管理、ETL管理�
 
 ### Docker部署
 
+    pull拉取失败，可以加群寻找国内镜像地址
+
     docker pull cgycms/websql:latest
-    
+
     docker run -di --name websql -p 80:80 cgycms/websql:latest
     
     docker logs websql
