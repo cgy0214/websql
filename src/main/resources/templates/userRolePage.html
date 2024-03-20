@@ -108,8 +108,9 @@
                         title: '请输入新密码',
                         area: ['300px', '200px']
                     }, function (value, index) {
+                        let param = {"password":value,"userId":data.userId};
                         layer.confirm("确认修改用户密码吗？", function () {
-                            post(ctx + "settingManager/updateResetPassword/" + data.userId + "/" + value, null, (res) => {
+                            post(ctx + "settingManager/updateResetPassword", param, (res) => {
                                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                     $(".search-btn").click();
                                     layer.closeAll();

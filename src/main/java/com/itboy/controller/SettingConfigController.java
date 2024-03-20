@@ -134,13 +134,14 @@ public class SettingConfigController {
     }
 
 
-    @RequestMapping("/updateResetPassword/{userId}/{password}")
+    @RequestMapping("/updateResetPassword")
     @ResponseBody
-    public AjaxResult updateResetPassword(@PathVariable Long userId, @PathVariable String password) {
-        if (ObjectUtil.isNull(userId) || ObjectUtil.isEmpty(password)) {
+    public AjaxResult updateResetPassword(@RequestBody Map<String, String> body) {
+        if (ObjectUtil.isNull(body) || ObjectUtil.isEmpty(body) ||
+                ObjectUtil.isNull(body.get("userId")) || ObjectUtil.isNull(body.get("password"))) {
             return AjaxResult.error("必填参数不能为空!");
         }
-        return AjaxResult.success(loginService.updateResetPassword(userId, password));
+        return AjaxResult.success(loginService.updateResetPassword(Long.valueOf(body.get("userId")), body.get("password")));
     }
 
     @RequestMapping("/queryRolesSelect")
