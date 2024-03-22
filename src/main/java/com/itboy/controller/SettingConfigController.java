@@ -2,6 +2,7 @@ package com.itboy.controller;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.itboy.config.DbSourceFactory;
+import com.itboy.config.ExamineVersionFactory;
 import com.itboy.model.*;
 import com.itboy.service.LoginService;
 import com.itboy.util.EnvBeanUtil;
@@ -12,8 +13,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName : SettingConfigController
@@ -34,6 +38,9 @@ public class SettingConfigController {
     @Autowired
     private LoginService loginService;
 
+    @Autowired
+    private ExamineVersionFactory examineVersionFactory;
+
 
     @RequestMapping("/userRolePage")
     public String userRolePage() {
@@ -44,6 +51,11 @@ public class SettingConfigController {
     @RequestMapping("/addUserPage")
     public String addUserPage() {
         return "addUserPage";
+    }
+
+    @RequestMapping("/addTeamPage")
+    public String addTeamPage() {
+        return "addTeamPage";
     }
 
     @RequestMapping("/addDriverConfigPage")
@@ -93,7 +105,14 @@ public class SettingConfigController {
         if (sysUserResult.getList().size() == 0) {
             throw new RuntimeException("没有找到用户信息，请重试!");
         }
-        return new ModelAndView("updateUserRolesPage").addObject("user", sysUserResult.getList().get(0));
+        List<TeamResourceModel> resourceModels = loginService.queryTeamResourceById(Collections.singletonList(id), "USER");
+        String teams = resourceModels.stream().filter(s -> ObjectUtil.isNotEmpty(s.getTeamId())).map(s -> s.getTeamId().toString()).collect(Collectors.joining(","));
+        return new ModelAndView("updateUserRolesPage").addObject("user", sysUserResult.getList().get(0)).addObject("teams", teams);
+    }
+
+    @RequestMapping("/teamManagerPage")
+    public String teamManagerPage() {
+        return "teamListPage";
     }
 
 
@@ -102,6 +121,7 @@ public class SettingConfigController {
         ModelAndView mav = new ModelAndView("sysSetUpPage");
         SysSetup sysSetup = dbSourceFactory.getSysSetUp();
         mav.addObject("obj", sysSetup);
+        mav.addObject("version", examineVersionFactory.getVersionModel());
         return mav;
     }
 
@@ -194,6 +214,47 @@ public class SettingConfigController {
     @ResponseBody
     public AjaxResult saveOrUpdateDriverConfig(@RequestBody SysDriverConfig sysDriverConfig) {
         return AjaxResult.success(loginService.saveOrUpdateDriverConfig(sysDriverConfig));
+    }
+
+
+    @RequestMapping("/queryTeamList")
+    @ResponseBody
+    public AjaxResult queryTeamList(TeamSourceModel teamSourceModel) {
+        return AjaxResult.success(loginService.selectTeamList(teamSourceModel));
+    }
+
+    @RequestMapping("/addTeamSource")
+    @ResponseBody
+    public AjaxResult addTeamSource(@RequestBody TeamSourceModel teamSourceModel) {
+        if (ObjectUtil.isEmpty(teamSourceModel.getTeamName())) {
+            return AjaxResult.error("团队名称不能为空!");
+        }
+        if (ObjectUtil.isEmpty(teamSourceModel.getUserId())) {
+            return AjaxResult.error("团队负责人不能为空!");
+        }
+        return loginService.addTeamSource(teamSourceModel);
+    }
+
+    @RequestMapping("/deleteTeam/{id}")
+    @ResponseBody
+    public AjaxResult deleteTeam(@PathVariable Long id) {
+        if (ObjectUtil.isNull(id)) {
+            return AjaxResult.error("必填参数不能为空!");
+        }
+        return loginService.deleteTeam(id);
+    }
+
+    /***
+     * 加载人员数据源
+     * @return
+     */
+    @RequestMapping("/queryTeamAllBySelect")
+    @ResponseBody
+    public Map queryTeamAllBySelect() {
+        Map result = new HashMap(2);
+        result.put("code", 0);
+        result.put("data", loginService.queryTeamAllBySelect());
+        return result;
     }
 
 }

@@ -6,7 +6,7 @@
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
 <style>
-    .layui-form-pane .layui-form-label{
+    .layui-form-pane .layui-form-label {
         width: 120px;
     }
 </style>
@@ -14,6 +14,17 @@
 
 <div style="margin:5px;">
     <form class="layui-form layui-form-pane" action="" lay-filter="val-filter">
+        <div class="layui-form-item" style="padding-top: 10px;">
+            <label class="layui-form-label" pane>系统版本</label>
+            <div class="layui-input-inline">
+                <input type="text" name="" placeholder="当前版本" class="layui-input" th:value="${version.localVersion}"
+                       disabled>
+            </div>
+            <div class="layui-form-mid layui-text-em" th:if="${version.push == true}">
+                <span class="layui-badge-dot"></span>
+                    <a th:href="${version.link}" target="_blank">最新版本已发布,请及时更新!</a>
+            </div>
+        </div>
         <div class="layui-form-item">
             <label class="layui-form-label" pane>数据加载</label>
             <div class="layui-input-inline">

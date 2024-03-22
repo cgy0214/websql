@@ -120,9 +120,11 @@ public class SqlManagerController {
 
     /***
      * 执行器
+     * 此接口已经弃用，请使用executeSqlNew
      * @param sql
      * @return
      */
+    @Deprecated
     @RequestMapping("/executeSql")
     @ResponseBody
     public Map executeSql(@RequestBody ExecuteSql sql) {

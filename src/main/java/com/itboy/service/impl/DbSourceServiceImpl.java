@@ -157,6 +157,11 @@ public class DbSourceServiceImpl implements DbSourceService {
         sysUserLogRepository.deleteAll();
     }
 
+    /**
+     * 此方法执行存在性能问题，后期3.X版本未来将会移除。替代方法使用executeSqlNew
+     * @param sql
+     * @return
+     */
     @Override
     public Map executeSql(ExecuteSql sql) {
         Map result = new HashMap(3);
@@ -169,10 +174,6 @@ public class DbSourceServiceImpl implements DbSourceService {
                 throw new NullPointerException("请选择数据源或编写SQL!");
             }
             Map<String, Object> sqlParser = SqlDruidParser.sqlParser(sql.getDataBaseName(), sql.getSqlText());
-
-            List<SqlParserVo> parserVo = SqlParserHandler.getParserVo(sql.getDataBaseName(), sql.getSqlText());
-            System.out.println(JSON.toJSON(parserVo));
-
             if (sqlParser.get("executeType") == null) {
                 throw new NullPointerException("SQL解析异常");
             }
@@ -295,7 +296,7 @@ public class DbSourceServiceImpl implements DbSourceService {
         dataSourceList.stream().filter(s -> s.get("code").equals(source)).forEach(s -> s.put("short", "1"));
         dataSourceList.stream().filter(s -> !s.get("code").equals(source)).forEach(s -> s.put("short", "2"));
         dataSourceList.sort(Comparator.comparingInt((Map o) -> Integer.valueOf(o.get("short").toString())));
-        if (dataSourceList.size() > 0) {
+        if (!dataSourceList.isEmpty()) {
             dataSourceList.stream().skip(1).forEach(s -> s.put("select", "false"));
             dataSourceList.get(0).put("select", "true");
         }

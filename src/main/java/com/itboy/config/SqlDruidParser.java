@@ -13,12 +13,14 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 
 /**
- * @ClassName SqlDruidParser
+ * @ClassName SqlDruidParser ， 请使用SqlParserHandler，3.x版本未来会移除此类。
  * @Description sql解析器
  * @Author 超 boy_0214@sina.com
  * @Date 2019/6/24 0024 10:16
  **/
 @Slf4j
+@Deprecated
+
 public class SqlDruidParser {
 
 

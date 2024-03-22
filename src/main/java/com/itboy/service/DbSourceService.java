@@ -37,6 +37,12 @@ public interface DbSourceService {
 
     void delUserLog();
 
+    /**
+     * 替代方法使用executeSqlNew
+     * @param sql
+     * @return
+     */
+    @Deprecated
     Map executeSql(ExecuteSql sql);
 
     Integer selectDbByName(String dbName);

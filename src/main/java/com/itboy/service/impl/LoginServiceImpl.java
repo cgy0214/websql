@@ -17,6 +17,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -59,6 +60,12 @@ public class LoginServiceImpl implements LoginService {
 
     @Resource
     private SysDriverConfigRepository sysDriverConfigRepository;
+
+    @Resource
+    private TeamSourceRepository teamSourceRepository;
+
+    @Resource
+    private TeamResourceRepository teamResourceRepository;
 
 
     @Value("${spring.datasource.driverClassName}")
@@ -267,6 +274,10 @@ public class LoginServiceImpl implements LoginService {
         LoginServiceImpl loginService = (LoginServiceImpl) AopContext.currentProxy();
         loginService.updateUsers(param);
         loginService.updateUserRoles(param);
+        List<String> teams = Arrays.stream(param.getSysTeamName().split(",")).filter(ObjectUtil::isNotEmpty).collect(Collectors.toList());
+        if (!teams.isEmpty()) {
+            loginService.updateTeamResources(teams, Collections.singletonList(param.getUserId()), "USER");
+        }
         return true;
     }
 
@@ -291,6 +302,35 @@ public class LoginServiceImpl implements LoginService {
                     sysUserRole.setRole(role);
                     sysUserRole.setRoleId(roleMap.get(role).getRoleId());
                     sysUserRoleRepository.save(sysUserRole);
+                }
+            }
+        }
+        return true;
+    }
+
+
+    /**
+     * 修改团队所属资源
+     *
+     * @param teams       团队IDS
+     * @param resourceIds 资源IDS
+     * @param type        资源类型
+     * @return
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean updateTeamResources(List<String> teams, List<Long> resourceIds, String type) {
+        if (!teams.isEmpty()) {
+            if (!resourceIds.isEmpty()) {
+                teamResourceRepository.deleteResourceByUserId(resourceIds, type);
+            }
+            for (Long resourceId : resourceIds) {
+                for (String id : teams) {
+                    TeamResourceModel teamResourceModel = new TeamResourceModel();
+                    teamResourceModel.setResourceId(resourceId);
+                    teamResourceModel.setTeamId(Long.valueOf(id));
+                    teamResourceModel.setResourceType(type);
+                    teamResourceModel.setCreateTime(DateUtil.date());
+                    teamResourceRepository.save(teamResourceModel);
                 }
             }
         }
@@ -348,7 +388,7 @@ public class LoginServiceImpl implements LoginService {
         if (ObjectUtil.isNotNull(sysSetup) && ObjectUtil.isNotNull(sysSetup.getFailLogin())) {
             failLogin = sysSetup.getFailLogin();
         }
-        if (count >= failLogin && failLogin>-1) {
+        if (count >= failLogin && failLogin > -1) {
             sysUserRepository.updateStateByUserName(userLog.getUserName(), 1);
         }
     }
@@ -442,6 +482,87 @@ public class LoginServiceImpl implements LoginService {
 
 
     @Override
+    public Result<TeamSourceModel> selectTeamList(TeamSourceModel model) {
+        Result<TeamSourceModel> result = new Result<>();
+        Specification<TeamSourceModel> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<Predicate>(1);
+            if (ObjectUtil.isNotEmpty(model.getTeamName())) {
+                predicates.add(cb.like(root.get("teamName"), "%" + model.getTeamName() + "%"));
+            }
+            query.orderBy(cb.desc(root.get("id")));
+            return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+        };
+        Page<TeamSourceModel> all = teamSourceRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
+        if (!all.getContent().isEmpty()) {
+            List<SysUser> userList = sysUserRepository.findAllById(all.getContent().stream().map(TeamSourceModel::getUserId).filter(ObjectUtil::isNotNull).collect(Collectors.toSet()));
+            Map<Long, String> userMap = userList.stream().collect(Collectors.toMap(SysUser::getUserId, SysUser::getName));
+            all.getContent().parallelStream().forEach(s -> {
+                s.setStateName(s.getState() == 0 ? "启用" : "禁用");
+                s.setUserName(userMap.get(s.getUserId()) == null ? "" : userMap.get(s.getUserId()));
+            });
+        }
+        result.setList(all.getContent());
+        result.setCount((int) all.getTotalElements());
+        return result;
+    }
+
+    @Override
+    public List<Map<String, String>> queryUsersAllBySelect() {
+        SysUser param = new SysUser();
+        param.setState(0);
+        List<SysUser> userList = sysUserRepository.findAll(Example.of(param));
+        List<Map<String, String>> resultList = new ArrayList<>(userList.size());
+        for (SysUser user : userList) {
+            Map<String, String> item = new HashMap<>(4);
+            item.put("code", user.getUserId().toString());
+            item.put("value", user.getName());
+            item.put("select", "false");
+            resultList.add(item);
+        }
+        return resultList;
+    }
+
+    @Override
+    public AjaxResult addTeamSource(TeamSourceModel teamSourceModel) {
+        TeamSourceModel param = new TeamSourceModel();
+        param.setTeamName(teamSourceModel.getTeamName());
+        if (teamSourceRepository.count(Example.of(param)) > 0) {
+            return AjaxResult.error("团队名称已经存在,换个名字!");
+        }
+        teamSourceModel.setCreateTime(DateUtil.date());
+        teamSourceRepository.save(teamSourceModel);
+        return AjaxResult.success("新增成功!");
+    }
+
+    @Override
+    public AjaxResult deleteTeam(Long id) {
+        //TODO 查询是否存在资源，存在不允许删除。
+        teamSourceRepository.deleteById(id);
+        return AjaxResult.success();
+    }
+
+    @Override
+    public List<Map<String, String>> queryTeamAllBySelect() {
+        TeamSourceModel param = new TeamSourceModel();
+        param.setState(0);
+        List<TeamSourceModel> teamList = teamSourceRepository.findAll(Example.of(param));
+        List<Map<String, String>> resultList = new ArrayList<>(teamList.size());
+        for (TeamSourceModel teamSourceModel : teamList) {
+            Map<String, String> item = new HashMap<>(4);
+            item.put("code", teamSourceModel.getId().toString());
+            item.put("value", teamSourceModel.getTeamName());
+            item.put("select", "false");
+            resultList.add(item);
+        }
+        return resultList;
+    }
+
+    @Override
+    public List<TeamResourceModel> queryTeamResourceById(List<Long> ids, String type) {
+        return teamResourceRepository.queryTeamResourceById(ids, type);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void initSystem() {
         try {
@@ -504,6 +625,17 @@ public class LoginServiceImpl implements LoginService {
             sysUserRole1.setRole(role1.getRole());
             sysUserRole1.setRoleId(role1.getRoleId());
             sysUserRoleRepository.save(sysUserRole1);
+
+            //初始化团队信息
+            TeamSourceModel teamSourceModel = new TeamSourceModel();
+            teamSourceModel.setId(1L);
+            teamSourceModel.setCreateTime(DateUtil.date());
+            teamSourceModel.setDescription("Default");
+            teamSourceModel.setTeamName("Default");
+            teamSourceModel.setUserId(1L);
+            teamSourceModel.setState(0);
+            teamSourceRepository.save(teamSourceModel);
+
 
             //初始化系统设置
             SysSetup sysSetup = SysSetup.getInstance();

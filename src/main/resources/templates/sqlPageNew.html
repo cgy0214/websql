@@ -502,17 +502,23 @@
                 let item = data[i];
                 let statusMsg;
                 if ((typeof item.data === 'number' && !isNaN(item.data))) {
-                    statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功影响" + item.data + "条数据!";
+                    statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功影响【" + item.data + "】条数据!";
                 }
                 if (item.data === null) {
                     statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功返回为空!";
                 }
                 if (item.data instanceof Array) {
-                    statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功返回" + item.data.length + "条数据呈现!";
+                    statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功返回【" + item.data.length + "】条数据呈现!";
                 }
-                let msg = "第【" + index + "】条SQL语句" + statusMsg + "<br>";
+                if (typeof item.data  == 'string') {
+                    statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功返回【" + item.data + "】!";
+                }
+                let msg = "第[" + index + "]条SQL语句" + statusMsg + "<br>";
                 $("#msgSpan").append(msg);
                 if (item.type === 1) {
+                    continue;
+                }
+                if(item.status === 2){
                     continue;
                 }
                 //渲染表格

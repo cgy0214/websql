@@ -6,6 +6,14 @@
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
+<style>
+    .layui-input-inline b {
+        color: rgba(68, 65, 30, 0.44);
+        font-size: 13px;
+        margin: 0 10px;
+        font-weight: normal;
+    }
+</style>
 <body>
 <form class="layui-form">
     <div class="layui-panel">
@@ -65,7 +73,7 @@
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
         <a class="layui-btn layui-btn-xs" lay-event="updatePassword">修改密码</a>
-        <a class="layui-btn layui-bg-orange layui-btn-xs" lay-event="updateRole">配置角色</a>
+        <a class="layui-btn layui-bg-orange layui-btn-xs" lay-event="updateRole">配置权限</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="deleteUser">删除用户</a>
     </div>
 </script>

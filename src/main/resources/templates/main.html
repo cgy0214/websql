@@ -5,11 +5,16 @@
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
 <body>
-
 <div style="text-align: center; width: 100%;">
-    <img th:src="@{/static/img/indexHome.png}" style="margin: 0 auto;cursor:default">
-    <div></div>
-    <div id="roleMsg"></div>
+    <img th:src="@{/static/img/indexHome.png}" style="margin: 0 auto;cursor:default" alt="logo">
+
+    <div class="layui-panel" id="message" style="display:none;margin: 0 auto;width: 60%;height: 60%">
+        <div style="padding-top: 22px;color:red;font-size: 20px;">[[${errorMsg}]]</div>
+        <div id="url" style="padding: 22px;">
+            <h3><a
+                href="https://gitee.com/boy_0214/websql/wikis/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"
+                target="_blank">帮助手册</a></h3></div>
+    </div>
 </div>
 </body>
 <script th:src="@{/static/layui.js}"></script>
@@ -19,9 +24,8 @@
     layui.use(function () {
         const $ = layui.jquery;
         let errorMsg = [[${errorMsg}]];
-        if (errorMsg != null && errorMsg != undefined) {
-            $("#roleMsg").show();
-            $("#roleMsg").html("<span style='color: red;font-size: 20px;'>" + errorMsg + "</span>");
+        if (errorMsg != null && errorMsg !== undefined) {
+            $("#message").show();
         }
     });
 </script>

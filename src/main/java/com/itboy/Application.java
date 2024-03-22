@@ -1,5 +1,6 @@
 package com.itboy;
 
+import cn.hutool.core.net.NetUtil;
 import com.itboy.util.EnvBeanUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.SpringApplication;
@@ -18,11 +19,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Log4j2
 @ServletComponentScan
 @EnableAspectJAutoProxy(exposeProxy = true, proxyTargetClass = true)
-public class WebplsqlApplication {
+public class Application {
 
     public static void main(String[] args) {
-        SpringApplication.run(WebplsqlApplication.class, args);
-        log.info("WELCOME WEBSQL-PROJECT http://localhost:{}", EnvBeanUtil.getString("server.port"));
+        SpringApplication.run(Application.class, args);
+        log.info("WELCOME WEBSQL-PROJECT http://{}:{}", NetUtil.getLocalhostStr(), EnvBeanUtil.getString("server.port"));
     }
 
 

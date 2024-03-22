@@ -105,9 +105,15 @@
         },
         {
           "title": "用户管理",
-          "icon": "layui-icon layui-icon-group",
+          "icon": "layui-icon layui-icon-username",
           "target": "_self",
           "href": "settingManager/userRolePage"
+        },
+        {
+          "title": "团队管理",
+            "icon": "layui-icon layui-icon-group",
+          "target": "_self",
+          "href": "settingManager/teamManagerPage"
         },
         {
           "title": "参数设置",
