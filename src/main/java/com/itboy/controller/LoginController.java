@@ -22,6 +22,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -172,4 +173,16 @@ public class LoginController {
         return AjaxResult.success(dbSourceFactory.getSysSetUp());
     }
 
+    /***
+     * 加载人员数据源
+     * @return
+     */
+    @RequestMapping("/queryUsersAllBySelect")
+    @ResponseBody
+    public Map queryUsersAllBySelect() {
+        Map result = new HashMap(2);
+        result.put("code", 0);
+        result.put("data", loginService.queryUsersAllBySelect());
+        return result;
+    }
 }

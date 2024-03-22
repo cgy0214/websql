@@ -7,6 +7,7 @@ import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.itboy.model.VersionModel;
 import com.itboy.util.ScheduleUtils;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,7 @@ public class ExamineVersionFactory {
     @Value("${examine.version.enabled}")
     private Boolean enabled;
 
+    @Getter
     private VersionModel versionModel;
 
 
@@ -66,7 +68,4 @@ public class ExamineVersionFactory {
         }
     }
 
-    public VersionModel getVersionModel() {
-        return versionModel;
-    }
 }

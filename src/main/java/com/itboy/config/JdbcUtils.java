@@ -1,7 +1,5 @@
 package com.itboy.config;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -9,14 +7,8 @@ import com.itboy.model.DataSourceIndexMeta;
 import com.itboy.model.DataSourceMeta;
 import com.itboy.model.DataSourceTableMeta;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.sql.Date;
 import java.sql.*;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,8 +20,6 @@ import java.util.stream.Collectors;
  **/
 @Slf4j
 public class JdbcUtils {
-
-    static Logger logger = LoggerFactory.getLogger(JdbcUtils.class);
 
     public static Map<String, Object> updateByPreparedStatement(String sourceKey, String sql, List<Object> params) {
         Map<String, Object> map = new HashMap<>(4);
@@ -86,33 +76,16 @@ public class JdbcUtils {
                 //update 2020.06.12 感谢Mr.Guo 提出顺序展示问题
                 JSONObject json = new JSONObject(new LinkedHashMap<>(colsLength));
                 //新建数组
-                Map<String,Integer> temp = new HashMap();
+                Map<String, Integer> temp = new HashMap();
                 for (int i = 0; i < colsLength; i++) {
-                    colsName = metaData.getColumnLabel(i + 1);
-                    String columnType = metaData.getColumnTypeName(i + 1);
-                    //colsValue = resultSet.getObject(colsName);   列名可能是重复的会覆盖，所以用下面的索引方法。
-                    colsValue = resultSet.getObject(i + 1);
-                    logger.debug("键:{},值:{}", colsName, colsValue);
-                    if (ObjectUtil.isNotNull(colsValue) && "DATETIME".equals(columnType)) {
-                        if (colsValue instanceof ZonedDateTime) {
-                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                            colsValue = formatter.format((ZonedDateTime) colsValue);
-                        }
-                        if (colsValue instanceof LocalDateTime) {
-                            colsValue = DateUtil.formatLocalDateTime((LocalDateTime) colsValue);
-                        }
-                        if (colsValue instanceof Date) {
-                            colsValue = DateUtil.format((Date) colsValue, "yyyy-MM-dd hh:mm:ss");
-                        }
-                    }
-                    if (colsValue == null) {
-                        colsValue = "";
-                    }
+                    int rowIndex = i + 1;
+                    colsName = metaData.getColumnLabel(rowIndex);
+                    colsValue = ColumnTypeCastUtil.getDataTypeResult(resultSet, rowIndex, metaData);
                     //查询的sql中的列可能是重复的，处理下列名后面自动追加数字。
-                    if(json.containsKey(colsName)){
+                    if (json.containsKey(colsName)) {
                         temp.put(colsName, temp.containsKey(colsName) ? temp.get(colsName) + 1 : 0);
                         json.put(colsName + temp.get(colsName), colsValue);
-                    }else{
+                    } else {
                         json.put(colsName, colsValue);
                     }
                 }
@@ -170,28 +143,11 @@ public class JdbcUtils {
             ResultSetMetaData metaData = resultSet.getMetaData();
             int colsLength = metaData.getColumnCount();
             String colsName;
-            Object colsValue;
             while (resultSet.next()) {
                 for (int i = 0; i < colsLength; i++) {
-                    colsName = metaData.getColumnLabel(i + 1);
-                    String columnType = metaData.getColumnTypeName(i + 1);
-                    colsValue = resultSet.getObject(colsName);
-                    if (ObjectUtil.isNotNull(colsValue) && "DATETIME".equals(columnType)) {
-                        if (colsValue instanceof ZonedDateTime) {
-                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                            colsValue = formatter.format((ZonedDateTime) colsValue);
-                        }
-                        if (colsValue instanceof LocalDateTime) {
-                            colsValue = DateUtil.formatLocalDateTime((LocalDateTime) colsValue);
-                        }
-                        if (colsValue instanceof Date) {
-                            colsValue = DateUtil.format((Date) colsValue, "yyyy-MM-dd hh:mm:ss");
-                        }
-                    }
-                    if (colsValue == null) {
-                        colsValue = "";
-                    }
-                    map.put(colsName, colsValue);
+                    int rowIndex = i + 1;
+                    colsName = metaData.getColumnLabel(rowIndex);
+                    map.put(colsName, ColumnTypeCastUtil.getDataTypeResult(resultSet, rowIndex, metaData));
                 }
             }
             return map;

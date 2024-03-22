@@ -2,49 +2,56 @@ package com.itboy.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
+
 
 /**
- * @ClassName SysUser
- * @Description 用户BEAN
+ * @ClassName TeamSourceModel
+ * @Description 团队管理功能
  * @Author 超 boy_0214@sina.com
- * @Date 2019/6/26 0026 16:37
+ * @Date 2024/03/21 18:15
  **/
-@Entity
-@Table(name = "AUTH_USER")
+
+@Accessors(chain = true)
 @Data
-public class SysUser extends Pages implements Serializable {
+@Entity
+@Table(name = "SYS_TEAM_SOURCE")
+public class TeamSourceModel extends Pages implements Serializable {
 
     @Id
     @GenericGenerator(name = "generator", strategy = "native")
     @GeneratedValue(generator = "generator")
+    private Long id;
+
+
+    /***
+     * 团队负责人ID
+     */
+    @Column(nullable = false)
     private Long userId;
-    /**
-     * 登录账号
-     */
-    @Column(nullable = false, unique = true)
-    private String userName;
 
     /**
-     * 昵称
+     * 团队名称
      */
-    @Column(nullable = false)
-    private String name;
+    @Column
+    private String teamName;
 
     /**
-     * 密码
+     * 团队描述
      */
     @Column(nullable = false)
-    private String password;
+    private String description;
+
 
     /**
      * 状态 0有效 1无效
      */
+    @Column
     private Integer state;
 
     /**
@@ -53,21 +60,15 @@ public class SysUser extends Pages implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss")
     private Date createTime;
 
-    private String email;
-
-    /**
-     * 所属团队id，多个#分割
+    /***
+     * 团队负责人名称
      */
     @Transient
-    private String sysTeamName;
-
-    @Transient
-    private List<SysUserRole> sysRoles;
-
-    @Transient
-    private String sysRoleName;
-
+    private String userName;
+    /***
+     * 状态名称
+     */
     @Transient
     private String stateName;
-
 }
+
