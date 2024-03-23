@@ -27,15 +27,17 @@
             url: ctx + 'settingManager/queryTeamResourceList?id=' + id,
             toolbar: true,
             defaultToolbar: ['filter', 'exports', 'print'],
-            page: true,
+            page: false,
             height: '525',
             cols: [
                 [
-                    {field: 'teamId', title: '团队ID', sort: true, fixed: true},
+                    {field: 'teamId', title: '团队ID', sort: true, fixed: true,width: 100},
                     {field: 'teamName', title: '团队名称', sort: true, fixed: true, width: 200},
                     {field: 'resourceId', title: '资源ID', sort: true, fixed: true, width: 200},
                     {field: 'resourceName', title: '资源名称', sort: true, fixed: true},
-                    {field: 'resourceType', title: '资源类型', sort: true, fixed: true}
+                    {field: 'resourceType', title: '资源类型', sort: true, fixed: true},
+                    {field: 'datetime', title: '授权时间', sort: true, fixed: true}
+
                 ]
             ],
             parseData: res => parseData(res)

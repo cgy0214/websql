@@ -2,10 +2,7 @@ package com.itboy.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.itboy.dao.DbSourceRepository;
-import com.itboy.dao.SysUserRepository;
-import com.itboy.dao.TeamResourceRepository;
-import com.itboy.dao.TeamSourceRepository;
+import com.itboy.dao.*;
 import com.itboy.model.*;
 import com.itboy.service.TeamSourceService;
 import org.springframework.data.domain.Example;
@@ -40,6 +37,9 @@ public class TeamSourceServiceImpl implements TeamSourceService {
 
     @Resource
     private DbSourceRepository dbSourceRepository;
+
+    @Resource
+    private DbSqlTextRepository dbSqlTextRepository;
 
     /**
      * 修改团队所属资源
@@ -92,6 +92,7 @@ public class TeamSourceServiceImpl implements TeamSourceService {
     public List<TeamResourceModel> queryTeamResourceById(List<Long> ids, String type) {
         return teamResourceRepository.queryTeamResourceById(ids, type);
     }
+
     @Override
     public List<TeamResourceModel> queryTeamResourceByTeamId(List<Long> ids, String type) {
         return teamResourceRepository.queryTeamResourceByTeamId(ids, type);
@@ -161,8 +162,7 @@ public class TeamSourceServiceImpl implements TeamSourceService {
         param.setTeamId(id);
         List<TeamResourceModel> list = teamResourceRepository.findAll(Example.of(param));
         //团队
-        List<TeamSourceModel> teamSourceModels = queryTeamByIds(list.stream().map(TeamResourceModel::getTeamId).collect(Collectors.toList()));
-        Map<Long, TeamSourceModel> teamMap = teamSourceModels.stream().collect(Collectors.toMap(TeamSourceModel::getId, s -> s));
+        TeamSourceModel teamSourceModel = teamSourceRepository.findById(id).get();
         //人员
         List<SysUser> userList = sysUserRepository.findAllById(list.stream().filter(s -> "USER".equals(s.getResourceType())).map(TeamResourceModel::getResourceId).collect(Collectors.toList()));
         Map<Long, SysUser> userMap = userList.stream().collect(Collectors.toMap(SysUser::getUserId, s -> s));
@@ -170,17 +170,17 @@ public class TeamSourceServiceImpl implements TeamSourceService {
         List<DataSourceModel> dataSourceModels = dbSourceRepository.findAllById(list.stream().filter(s -> "DATASOURCE".equals(s.getResourceType())).map(TeamResourceModel::getResourceId).collect(Collectors.toList()));
         Map<Long, DataSourceModel> dataMap = dataSourceModels.stream().collect(Collectors.toMap(DataSourceModel::getId, s -> s));
 
-        //TODO SQL文本，作业任务
+        //TODO 作业任务
         List<Map<String, Object>> resultList = new ArrayList<>();
         for (TeamResourceModel teamResourceModel : list) {
-            TeamSourceModel teamSourceModel = teamMap.get(teamResourceModel.getTeamId());
             Map<String, Object> item = new HashMap<>();
             item.put("teamId", teamResourceModel.getTeamId());
-            item.put("teamName", teamSourceModel == null ? "" : teamSourceModel.getTeamName());
+            item.put("teamName", teamSourceModel.getTeamName());
+            item.put("datetime",DateUtil.formatDateTime(teamResourceModel.getCreateTime()));
             if ("USER".equals(teamResourceModel.getResourceType())) {
                 SysUser sysUser = userMap.get(teamResourceModel.getResourceId());
                 item.put("resourceId", sysUser == null ? "" : sysUser.getUserId());
-                item.put("resourceName", sysUser == null ? "" : "登录账号:"+ sysUser.getUserName());
+                item.put("resourceName", sysUser == null ? "" : "登录账号:" + sysUser.getUserName());
                 item.put("resourceType", "登录用户");
             }
             if ("DATASOURCE".equals(teamResourceModel.getResourceType())) {
@@ -189,6 +189,19 @@ public class TeamSourceServiceImpl implements TeamSourceService {
                 item.put("resourceName", data == null ? "" : data.getDbName());
                 item.put("resourceType", "数据源");
             }
+            resultList.add(item);
+        }
+
+        //sql文本
+        List<DbSqlText> sqlTextList = dbSqlTextRepository.queryListByTeamId(id);
+        for (DbSqlText sqlText : sqlTextList) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("teamId", id);
+            item.put("teamName", teamSourceModel.getTeamName());
+            item.put("resourceId", sqlText.getId());
+            item.put("resourceName", sqlText.getTitle());
+            item.put("resourceType", "SQL文本");
+            item.put("datetime",sqlText.getSqlCreateDate());
             resultList.add(item);
         }
         Result<Map<String, Object>> result = new Result<>();

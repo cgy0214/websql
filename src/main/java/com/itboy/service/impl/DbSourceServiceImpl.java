@@ -79,7 +79,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             Predicate p1 = cb.like(dbName, "%" + dbname2 + "%");
             Predicate p2 = cb.like(dbAccount, "%" + account1 + "%");
             Predicate p3 = cb.like(dbUrl, "%" + dbUrl1 + "%");
-            Predicate p = cb.and(p1, p2, p3,root.get("id").in(resourceModels.stream().map(TeamResourceModel::getResourceId).collect(Collectors.toList())));
+            Predicate p = cb.and(p1, p2, p3, root.get("id").in(resourceModels.stream().map(TeamResourceModel::getResourceId).collect(Collectors.toList())));
             query.orderBy(cb.desc(root.get("id")));
             return p;
         };
@@ -300,11 +300,16 @@ public class DbSourceServiceImpl implements DbSourceService {
                 Map<String, String> item = new HashMap<>(3);
                 item.put("code", dataSourceModel.getDbName());
                 item.put("value", dataSourceModel.getDbName());
+                item.put("id", dataSourceModel.getId().toString());
                 item.put("select", "false");
                 dataSourceList.add(item);
             }
             CacheUtils.put("data_source_model", dataSourceList);
         }
+        //按照团队过滤
+        Long teamId = StpUtils.getCurrentActiveTeam().getId();
+        List<String> resourceIds = teamSourceService.queryTeamResourceByTeamId(Collections.singletonList(teamId), "DATASOURCE").stream().map(s->s.getResourceId().toString()).collect(Collectors.toList());
+        dataSourceList = dataSourceList.stream().filter(s -> resourceIds.contains(s.get("id"))).collect(Collectors.toList());
         //按最近使用的数据源推荐并选中此数据源
         String source = sysLogRepository.querySysLogDataSource();
         dataSourceList.stream().filter(s -> s.get("code").equals(source)).forEach(s -> s.put("short", "1"));

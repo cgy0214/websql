@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * @ClassName DbSqlTextRepository
  * @Description sql文本持久层
@@ -19,4 +21,7 @@ public interface DbSqlTextRepository extends JpaSpecificationExecutor<DbSqlText>
     @Query("DELETE FROM DbSqlText WHERE id= ?1")
     @Modifying
     void delsqlText(Integer id);
+
+    @Query(value = "select * from sql_text where team_id = ?1",nativeQuery = true)
+    List<DbSqlText> queryListByTeamId(Long id);
 }
