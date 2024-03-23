@@ -5,7 +5,9 @@ import cn.hutool.core.util.ObjectUtil;
 import com.itboy.config.DbSourceFactory;
 import com.itboy.config.ExamineVersionFactory;
 import com.itboy.model.AjaxResult;
+import com.itboy.model.SysSetup;
 import com.itboy.model.SysUser;
+import com.itboy.model.TeamSourceModel;
 import com.itboy.service.LoginService;
 import com.itboy.util.CheckLoginUserResetUtils;
 import com.itboy.util.EnvBeanUtil;
@@ -22,8 +24,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @ClassName LoginController
@@ -170,7 +171,10 @@ public class LoginController {
     @ResponseBody
     @RequestMapping(value = "/getSiteConfig", method = RequestMethod.POST)
     public AjaxResult getSiteConfig() {
-        return AjaxResult.success(dbSourceFactory.getSysSetUp());
+        SysSetup sysSetUp = dbSourceFactory.getSysSetUp();
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("enabledNotification", sysSetUp.getEnabledNotification());
+        return AjaxResult.success(resultMap);
     }
 
     /***
@@ -185,4 +189,57 @@ public class LoginController {
         result.put("data", loginService.queryUsersAllBySelect());
         return result;
     }
+
+    /***
+     * 当前用户的团队信息
+     * @return
+     */
+    @RequestMapping("/queryUserTeams")
+    @ResponseBody
+    public Map queryUserTeams() {
+        List<TeamSourceModel> teamList = StpUtils.getTeamList();
+        List<Map<String, String>> resultList = new ArrayList<>(teamList.size());
+        if (!teamList.isEmpty()) {
+            for (TeamSourceModel team : teamList) {
+                Map<String, String> item = new HashMap<>(3);
+                item.put("code", team.getId().toString());
+                item.put("value", team.getTeamName());
+                item.put("select", "false");
+                if (ObjectUtil.isNotEmpty(StpUtils.getCurrentActiveTeam())) {
+                    if (ObjectUtil.equal(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId(), team.getId())) {
+                        item.put("select", "true");
+                    }
+                }
+                resultList.add(item);
+            }
+        }
+        Map<String, Object> result = new HashMap<>(2);
+        result.put("code", 0);
+        result.put("data", resultList);
+        return result;
+    }
+
+    /**
+     * 当前用户切换团队信息
+     *
+     * @return
+     */
+    @RequestMapping("/updateUserActiveTeam/{teamId}")
+    @ResponseBody
+    public AjaxResult updateUserTeamActive(@PathVariable Long teamId) {
+        if (ObjectUtil.isNull(teamId)) {
+            return AjaxResult.error("必填参数为空!");
+        }
+        List<TeamSourceModel> teamList = StpUtils.getTeamList();
+        if (!teamList.isEmpty()) {
+            for (TeamSourceModel team : teamList) {
+                if (ObjectUtil.equal(team.getId(), teamId)) {
+                    StpUtil.getSession().set(StpUtils.SESSION_TEAM_ACTIVE_KEY, team);
+                    return AjaxResult.success();
+                }
+            }
+        }
+        return AjaxResult.error();
+    }
+
 }

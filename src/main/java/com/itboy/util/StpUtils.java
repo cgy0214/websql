@@ -4,10 +4,13 @@ import cn.dev33.satoken.exception.ApiDisabledException;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.itboy.model.SysUser;
+import com.itboy.model.TeamSourceModel;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @ClassName : StpUtils
@@ -19,6 +22,11 @@ public class StpUtils {
 
     private final static String SESSION_USER_KEY = "login_user";
 
+    public final static String SESSION_TEAM_KEY = "login_user_team";
+
+    public final static String SESSION_TEAM_ACTIVE_KEY = "login_user_team_active";
+
+
     public static SysUser getCurrentUser() {
         if (!getCurrentLogin()) {
             throw new RuntimeException("当前用户暂未登录!");
@@ -26,6 +34,7 @@ public class StpUtils {
         SysUser user = (SysUser) StpUtil.getSession().get(SESSION_USER_KEY);
         return user;
     }
+
 
     public static String getCurrentUserName() {
         return getCurrentUser().getName();
@@ -76,4 +85,41 @@ public class StpUtils {
         SysUser user = getCurrentUser();
         return user.getUserId() + ":" + user.getUserName();
     }
+
+
+    /**
+     * 当前用户拥有的所有团队
+     *
+     * @return
+     */
+    public static List<TeamSourceModel> getTeamList() {
+        Object object = StpUtil.getSession().get(SESSION_TEAM_KEY);
+        if (ObjectUtil.isNotEmpty(object)) {
+            List<TeamSourceModel> teamSourceModels = (List<TeamSourceModel>) object;
+            return teamSourceModels;
+        }
+        return new ArrayList<>(0);
+    }
+
+    /**
+     * 当前使用的团队
+     *
+     * @return
+     */
+    public static TeamSourceModel getCurrentActiveTeam() {
+        Object object = StpUtil.getSession().get(SESSION_TEAM_ACTIVE_KEY);
+        if (ObjectUtil.isNotEmpty(object)) {
+            return (TeamSourceModel) object;
+        } else {
+            List<TeamSourceModel> teamList = getTeamList();
+            if (!teamList.isEmpty()) {
+                TeamSourceModel teamSourceModel = teamList.get(0);
+                StpUtil.getSession().set(SESSION_TEAM_ACTIVE_KEY, teamSourceModel);
+                return teamSourceModel;
+            }
+        }
+        return null;
+    }
+
+
 }

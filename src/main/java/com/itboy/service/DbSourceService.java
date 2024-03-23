@@ -13,6 +13,9 @@ import java.util.Map;
  * @Date 2019/6/14 0014 17:33
  **/
 public interface DbSourceService {
+
+    List<DataSourceModel> reloadDataSourceList();
+
     Result<DataSourceModel> selectDbSourceList(DataSourceModel model);
 
     void addDbSource(DataSourceModel model);

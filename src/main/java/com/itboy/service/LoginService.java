@@ -54,15 +54,10 @@ public interface LoginService {
 
     Boolean saveOrUpdateDriverConfig(SysDriverConfig sysDriverConfig);
 
-    Result<TeamSourceModel> selectTeamList(TeamSourceModel teamSourceModel);
 
     List<Map<String, String>> queryUsersAllBySelect();
 
-    AjaxResult addTeamSource(TeamSourceModel teamSourceModel);
 
-    AjaxResult deleteTeam(Long id);
 
-    List<Map<String, String>> queryTeamAllBySelect();
 
-    List<TeamResourceModel> queryTeamResourceById(List<Long> longs, String type);
 }

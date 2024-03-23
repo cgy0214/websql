@@ -45,9 +45,10 @@
                         <i class="layui-icon layui-icon-lock"></i>
                     </a>
                 </li>
-                <li class="layui-nav-item mobile layui-hide-xs" lay-unselect>
-                    <a href="javascript:;" data-check-screen="full"><i class="layui-icon layui-icon-screen-full"></i>
-                    </a>
+                <li class="layui-nav-item mobile layui-hide-xs">
+                    <div class="layui-form" style="width: 110px;">
+                        <select name="teams" id="teams" lay-filter="teams" lay-search="" lay-affix="clear"></select>
+                    </div>
                 </li>
                 <li class="layui-nav-item layuimini-setting">
                     <a href="javascript:;"> [[${users.name}]] </a>
@@ -117,14 +118,16 @@
 <script th:src="@{/static/lay-config.js}"></script>
 <script th:replace="~{base::ctx}"></script>
 <script>
-    layui.use(['jquery', 'layer', 'miniAdmin'], function () {
+    layui.use(['jquery', 'layer', 'miniAdmin', 'laySelect', 'form', 'util'], function () {
         const $ = layui.jquery,
             layer = layui.layer,
             miniAdmin = layui.miniAdmin,
             util = layui.util,
             form = layui.form,
             laytpl = layui.laytpl,
-            lockKey = "lockscreen";
+            select = layui.laySelect,
+            lockKey = "lockscreen",
+            activeTeam = "currentUserTeam";
 
         let options = {
             iniUrl: ctx + "api/init.json",
@@ -179,6 +182,32 @@
                 $(".version").html(content);
             }
         })
+
+        /**
+         * 加载当前用户团队
+         */
+        select.render({
+            elem: "#teams",
+            url: ctx + 'queryUserTeams',
+            select: 10000,
+            title: '请选择团队',
+            format: function (data) {
+                return parseSelectData(data);
+            },
+            success: function (data, activeData) {
+                localStorage.setItem(activeTeam, activeData[0].code);
+            },
+            onselect: function (data) {
+                if (localStorage.getItem(activeTeam) === data || data === '' || data === undefined) {
+                    return;
+                }
+                post(ctx + "updateUserActiveTeam/" + data, null, (res) => {
+                    if (res.code === 200) {
+                        localStorage.setItem(activeTeam, data);
+                    }
+                })
+            }
+        });
 
         /**
          * 锁定屏幕

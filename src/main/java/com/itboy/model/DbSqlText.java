@@ -34,4 +34,7 @@ public class DbSqlText extends Pages {
 
     @Column
     private String sqlCreateUser;
+
+    @Column
+    private Long teamId;
 }

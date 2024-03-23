@@ -21,4 +21,9 @@ public interface TeamResourceRepository extends JpaSpecificationExecutor<TeamRes
     @Transactional
     @Query(value = "select * FROM SYS_TEAM_RESOURCE WHERE resource_id  in(?1) and resource_type = ?2 ", nativeQuery = true)
     List<TeamResourceModel> queryTeamResourceById(List<Long> ids, String type);
+
+
+    @Transactional
+    @Query(value = "select * FROM SYS_TEAM_RESOURCE WHERE team_id  in(?1) and resource_type = ?2 ", nativeQuery = true)
+    List<TeamResourceModel> queryTeamResourceByTeamId(List<Long> teamIds, String type);
 }
