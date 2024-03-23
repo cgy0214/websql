@@ -1,5 +1,6 @@
 package com.itboy.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.thread.ThreadUtil;
@@ -10,6 +11,7 @@ import com.itboy.dao.*;
 import com.itboy.model.*;
 import com.itboy.service.DbSourceService;
 import com.itboy.service.LoginService;
+import com.itboy.service.TeamSourceService;
 import com.itboy.util.CacheUtils;
 import com.itboy.util.PasswordUtil;
 import com.itboy.util.StpUtils;
@@ -65,7 +67,7 @@ public class LoginServiceImpl implements LoginService {
     private TeamSourceRepository teamSourceRepository;
 
     @Resource
-    private TeamResourceRepository teamResourceRepository;
+    private TeamSourceService teamSourceService;
 
 
     @Value("${spring.datasource.driverClassName}")
@@ -105,7 +107,18 @@ public class LoginServiceImpl implements LoginService {
                 return AjaxResult.error("账号或密码错误!");
             }
             log.setUserId(user.getUserId());
-            return AjaxResult.success("欢迎您:" + StpUtils.login(user));
+            String name = StpUtils.login(user);
+            List<TeamSourceModel> teamList;
+            if (StpUtils.currentSuperAdmin()) {
+                teamList = teamSourceService.queryValidTeamList();
+            } else {
+                List<TeamResourceModel> resourceModels = teamSourceService.queryTeamResourceById(Collections.singletonList(user.getUserId()), "USER");
+                teamList = teamSourceService.queryTeamByIds(resourceModels.stream().map(TeamResourceModel::getTeamId).filter(ObjectUtil::isNotEmpty).collect(Collectors.toList()));
+            }
+            if (ObjectUtil.isNotNull(teamList) && !teamList.isEmpty()) {
+                StpUtil.getSession().set(StpUtils.SESSION_TEAM_KEY, teamList);
+            }
+            return AjaxResult.success("欢迎您:" + name);
         } catch (Exception e) {
             e.printStackTrace();
             log.setLoginFlag(e.getMessage());
@@ -276,7 +289,7 @@ public class LoginServiceImpl implements LoginService {
         loginService.updateUserRoles(param);
         List<String> teams = Arrays.stream(param.getSysTeamName().split(",")).filter(ObjectUtil::isNotEmpty).collect(Collectors.toList());
         if (!teams.isEmpty()) {
-            loginService.updateTeamResources(teams, Collections.singletonList(param.getUserId()), "USER");
+            teamSourceService.updateTeamResources(teams, Collections.singletonList(param.getUserId()), "USER");
         }
         return true;
     }
@@ -310,35 +323,6 @@ public class LoginServiceImpl implements LoginService {
 
 
     /**
-     * 修改团队所属资源
-     *
-     * @param teams       团队IDS
-     * @param resourceIds 资源IDS
-     * @param type        资源类型
-     * @return
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public Boolean updateTeamResources(List<String> teams, List<Long> resourceIds, String type) {
-        if (!teams.isEmpty()) {
-            if (!resourceIds.isEmpty()) {
-                teamResourceRepository.deleteResourceByUserId(resourceIds, type);
-            }
-            for (Long resourceId : resourceIds) {
-                for (String id : teams) {
-                    TeamResourceModel teamResourceModel = new TeamResourceModel();
-                    teamResourceModel.setResourceId(resourceId);
-                    teamResourceModel.setTeamId(Long.valueOf(id));
-                    teamResourceModel.setResourceType(type);
-                    teamResourceModel.setCreateTime(DateUtil.date());
-                    teamResourceRepository.save(teamResourceModel);
-                }
-            }
-        }
-        return true;
-    }
-
-
-    /**
      * 新增用户角色信息
      *
      * @param param
@@ -356,6 +340,10 @@ public class LoginServiceImpl implements LoginService {
         sysUserRepository.save(param);
         LoginServiceImpl loginService = (LoginServiceImpl) AopContext.currentProxy();
         loginService.updateUserRoles(param);
+        List<String> teams = Arrays.stream(param.getSysTeamName().split(",")).filter(ObjectUtil::isNotEmpty).collect(Collectors.toList());
+        if (!teams.isEmpty()) {
+            teamSourceService.updateTeamResources(teams, Collections.singletonList(param.getUserId()), "USER");
+        }
         return AjaxResult.success();
     }
 
@@ -481,30 +469,7 @@ public class LoginServiceImpl implements LoginService {
     }
 
 
-    @Override
-    public Result<TeamSourceModel> selectTeamList(TeamSourceModel model) {
-        Result<TeamSourceModel> result = new Result<>();
-        Specification<TeamSourceModel> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<Predicate>(1);
-            if (ObjectUtil.isNotEmpty(model.getTeamName())) {
-                predicates.add(cb.like(root.get("teamName"), "%" + model.getTeamName() + "%"));
-            }
-            query.orderBy(cb.desc(root.get("id")));
-            return cb.and(predicates.toArray(new Predicate[predicates.size()]));
-        };
-        Page<TeamSourceModel> all = teamSourceRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
-        if (!all.getContent().isEmpty()) {
-            List<SysUser> userList = sysUserRepository.findAllById(all.getContent().stream().map(TeamSourceModel::getUserId).filter(ObjectUtil::isNotNull).collect(Collectors.toSet()));
-            Map<Long, String> userMap = userList.stream().collect(Collectors.toMap(SysUser::getUserId, SysUser::getName));
-            all.getContent().parallelStream().forEach(s -> {
-                s.setStateName(s.getState() == 0 ? "启用" : "禁用");
-                s.setUserName(userMap.get(s.getUserId()) == null ? "" : userMap.get(s.getUserId()));
-            });
-        }
-        result.setList(all.getContent());
-        result.setCount((int) all.getTotalElements());
-        return result;
-    }
+
 
     @Override
     public List<Map<String, String>> queryUsersAllBySelect() {
@@ -513,7 +478,7 @@ public class LoginServiceImpl implements LoginService {
         List<SysUser> userList = sysUserRepository.findAll(Example.of(param));
         List<Map<String, String>> resultList = new ArrayList<>(userList.size());
         for (SysUser user : userList) {
-            Map<String, String> item = new HashMap<>(4);
+            Map<String, String> item = new HashMap<>(3);
             item.put("code", user.getUserId().toString());
             item.put("value", user.getName());
             item.put("select", "false");
@@ -522,45 +487,6 @@ public class LoginServiceImpl implements LoginService {
         return resultList;
     }
 
-    @Override
-    public AjaxResult addTeamSource(TeamSourceModel teamSourceModel) {
-        TeamSourceModel param = new TeamSourceModel();
-        param.setTeamName(teamSourceModel.getTeamName());
-        if (teamSourceRepository.count(Example.of(param)) > 0) {
-            return AjaxResult.error("团队名称已经存在,换个名字!");
-        }
-        teamSourceModel.setCreateTime(DateUtil.date());
-        teamSourceRepository.save(teamSourceModel);
-        return AjaxResult.success("新增成功!");
-    }
-
-    @Override
-    public AjaxResult deleteTeam(Long id) {
-        //TODO 查询是否存在资源，存在不允许删除。
-        teamSourceRepository.deleteById(id);
-        return AjaxResult.success();
-    }
-
-    @Override
-    public List<Map<String, String>> queryTeamAllBySelect() {
-        TeamSourceModel param = new TeamSourceModel();
-        param.setState(0);
-        List<TeamSourceModel> teamList = teamSourceRepository.findAll(Example.of(param));
-        List<Map<String, String>> resultList = new ArrayList<>(teamList.size());
-        for (TeamSourceModel teamSourceModel : teamList) {
-            Map<String, String> item = new HashMap<>(4);
-            item.put("code", teamSourceModel.getId().toString());
-            item.put("value", teamSourceModel.getTeamName());
-            item.put("select", "false");
-            resultList.add(item);
-        }
-        return resultList;
-    }
-
-    @Override
-    public List<TeamResourceModel> queryTeamResourceById(List<Long> ids, String type) {
-        return teamResourceRepository.queryTeamResourceById(ids, type);
-    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)

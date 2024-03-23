@@ -5,6 +5,7 @@ import com.itboy.config.DbSourceFactory;
 import com.itboy.config.ExamineVersionFactory;
 import com.itboy.model.*;
 import com.itboy.service.LoginService;
+import com.itboy.service.TeamSourceService;
 import com.itboy.util.EnvBeanUtil;
 import com.itboy.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,9 @@ public class SettingConfigController {
     @Autowired
     private ExamineVersionFactory examineVersionFactory;
 
+    @Autowired
+    private TeamSourceService teamSourceService;
+
 
     @RequestMapping("/userRolePage")
     public String userRolePage() {
@@ -56,6 +60,19 @@ public class SettingConfigController {
     @RequestMapping("/addTeamPage")
     public String addTeamPage() {
         return "addTeamPage";
+    }
+
+
+    @RequestMapping("/teamManagerPage")
+    public String teamManagerPage() {
+        return "teamListPage";
+    }
+
+    @RequestMapping("/showTeamResourcePage/{id}")
+    public ModelAndView showTeamResourcePage(@PathVariable Long id) {
+        ModelAndView modelAndView = new ModelAndView("showTeamResourcePage");
+        modelAndView.addObject("id", id);
+        return modelAndView;
     }
 
     @RequestMapping("/addDriverConfigPage")
@@ -102,17 +119,12 @@ public class SettingConfigController {
         SysUser sysUser = new SysUser();
         sysUser.setUserId(id);
         Result<SysUser> sysUserResult = loginService.selectUserRoleList(sysUser);
-        if (sysUserResult.getList().size() == 0) {
+        if (sysUserResult.getList().isEmpty()) {
             throw new RuntimeException("没有找到用户信息，请重试!");
         }
-        List<TeamResourceModel> resourceModels = loginService.queryTeamResourceById(Collections.singletonList(id), "USER");
+        List<TeamResourceModel> resourceModels = teamSourceService.queryTeamResourceById(Collections.singletonList(id), "USER");
         String teams = resourceModels.stream().filter(s -> ObjectUtil.isNotEmpty(s.getTeamId())).map(s -> s.getTeamId().toString()).collect(Collectors.joining(","));
         return new ModelAndView("updateUserRolesPage").addObject("user", sysUserResult.getList().get(0)).addObject("teams", teams);
-    }
-
-    @RequestMapping("/teamManagerPage")
-    public String teamManagerPage() {
-        return "teamListPage";
     }
 
 
@@ -220,7 +232,7 @@ public class SettingConfigController {
     @RequestMapping("/queryTeamList")
     @ResponseBody
     public AjaxResult queryTeamList(TeamSourceModel teamSourceModel) {
-        return AjaxResult.success(loginService.selectTeamList(teamSourceModel));
+        return AjaxResult.success(teamSourceService.selectTeamList(teamSourceModel));
     }
 
     @RequestMapping("/addTeamSource")
@@ -232,7 +244,7 @@ public class SettingConfigController {
         if (ObjectUtil.isEmpty(teamSourceModel.getUserId())) {
             return AjaxResult.error("团队负责人不能为空!");
         }
-        return loginService.addTeamSource(teamSourceModel);
+        return teamSourceService.addTeamSource(teamSourceModel);
     }
 
     @RequestMapping("/deleteTeam/{id}")
@@ -241,7 +253,7 @@ public class SettingConfigController {
         if (ObjectUtil.isNull(id)) {
             return AjaxResult.error("必填参数不能为空!");
         }
-        return loginService.deleteTeam(id);
+        return teamSourceService.deleteTeam(id);
     }
 
     /***
@@ -253,8 +265,23 @@ public class SettingConfigController {
     public Map queryTeamAllBySelect() {
         Map result = new HashMap(2);
         result.put("code", 0);
-        result.put("data", loginService.queryTeamAllBySelect());
+        result.put("data", teamSourceService.queryTeamAllBySelect());
         return result;
+    }
+
+
+    @RequestMapping("/queryTeamResourceList")
+    @ResponseBody
+    public AjaxResult queryTeamResourceList(@RequestParam Long id) {
+        return AjaxResult.success(teamSourceService.queryTeamResourceList(id));
+    }
+
+
+    @RequestMapping("/reloadDataSourceAll")
+    @ResponseBody
+    public AjaxResult reloadDataSourceAll() {
+        int size = dbSourceFactory.initDataSource();
+        return AjaxResult.success(size);
     }
 
 }

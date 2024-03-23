@@ -79,11 +79,7 @@
             var data = obj.data;
             switch (obj.event) {
                 case 'view':
-                    let strParam = data.logContent || "";
-                    let content1 = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
-                        content: util.unescape(strParam)
-                    });
-                    openPage('查看授权资源信息', ctx + 'settingManager/addTeamPage')
+                    openPage('查看授权资源信息', ctx + 'settingManager/showTeamResourcePage/' + data.id)
                     break;
                 case 'delete':
                     layer.confirm('您确定要删除吗?', {icon: 3}, function () {

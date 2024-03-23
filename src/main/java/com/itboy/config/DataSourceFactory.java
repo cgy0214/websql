@@ -29,10 +29,11 @@ public class DataSourceFactory {
      * 根据jdbc参数获得数据源连接池dbcp，并放入ConcurrentHashMap
      */
     @Primary
-    public static void initDataSource(List<DataSourceModel> mapList) {
+    public static void initDataSource(List<DataSourceModel> dataSourceModels) {
         DruidDataSource ds = null;
         int index = 0;
-        for (DataSourceModel config : mapList) {
+        for (DataSourceModel config : dataSourceModels) {
+            removeDataSource(config.getDbName());
             ds = new DruidDataSource();
             ds.setDriverClassName(config.getDriverClass().trim());
             ds.setUsername(config.getDbAccount().trim());
@@ -103,7 +104,7 @@ public class DataSourceFactory {
         //shutdownDataSource(ds);
         DATA_SOURCE_MAP.remove(sourceKey.trim());
         DruidDataSourceStatManager.removeDataSource(ds);
-        log.info("Successful Delete  DbSources ");
+        log.info(" Delete DataSource {} Successful.", sourceKey);
     }
 
 

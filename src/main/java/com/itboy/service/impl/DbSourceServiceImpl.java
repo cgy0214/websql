@@ -13,6 +13,7 @@ import com.itboy.config.SqlParserHandler;
 import com.itboy.dao.*;
 import com.itboy.model.*;
 import com.itboy.service.DbSourceService;
+import com.itboy.service.TeamSourceService;
 import com.itboy.util.CacheUtils;
 import com.itboy.util.PasswordUtil;
 import com.itboy.util.StpUtils;
@@ -54,11 +55,21 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Resource
     private SysUserLogRepository sysUserLogRepository;
 
+    @Resource
+    private TeamSourceService teamSourceService;
+
+
+    @Override
+    public List<DataSourceModel> reloadDataSourceList() {
+        return dbSourceRepository.reloadDataSourceList();
+    }
+
     @Override
     public Result<DataSourceModel> selectDbSourceList(DataSourceModel result) {
         Result<DataSourceModel> result1 = new Result<DataSourceModel>();
         PageRequest pageRequest = PageRequest.of(result.getPage() - 1, result.getLimit());
-        Specification<DataSourceModel> spec = (Specification<DataSourceModel>) (root, query, cb) -> {
+        List<TeamResourceModel> resourceModels = teamSourceService.queryTeamResourceByTeamId(Collections.singletonList(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId()), "DATASOURCE");
+        Specification<DataSourceModel> spec = (root, query, cb) -> {
             Path<String> dbName = root.get("dbName");
             Path<String> dbAccount = root.get("dbAccount");
             Path<String> dbUrl = root.get("dbUrl");
@@ -68,7 +79,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             Predicate p1 = cb.like(dbName, "%" + dbname2 + "%");
             Predicate p2 = cb.like(dbAccount, "%" + account1 + "%");
             Predicate p3 = cb.like(dbUrl, "%" + dbUrl1 + "%");
-            Predicate p = cb.and(p1, p2, p3);
+            Predicate p = cb.and(p1, p2, p3,root.get("id").in(resourceModels.stream().map(TeamResourceModel::getResourceId).collect(Collectors.toList())));
             query.orderBy(cb.desc(root.get("id")));
             return p;
         };
@@ -82,14 +93,15 @@ public class DbSourceServiceImpl implements DbSourceService {
     public Result<DbSqlText> getDbSqlText(DbSqlText model) {
         Result<DbSqlText> result1 = new Result<DbSqlText>();
         PageRequest request = PageRequest.of(model.getPage() - 1, model.getLimit());
-        Specification<DbSqlText> spec = (Specification<DbSqlText>) (root, query, cb) -> {
+        Long teamId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
+        Specification<DbSqlText> spec = (root, query, cb) -> {
             Path<String> title = root.get("title");
             Path<String> sqlText = root.get("sqlText");
             String sqlText1 = model.getSqlText() == null ? "" : model.getSqlText();
             String title1 = model.getTitle() == null ? "" : model.getTitle();
             Predicate p2 = cb.like(sqlText, "%" + sqlText1 + "%");
             Predicate p3 = cb.like(title, "%" + title1 + "%");
-            Predicate p = cb.and(p2, p3);
+            Predicate p = cb.and(p2, p3, root.get("teamId").in(teamId));
             query.orderBy(cb.desc(root.get("id")));
             return p;
         };
@@ -159,6 +171,7 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     /**
      * 此方法执行存在性能问题，后期3.X版本未来将会移除。替代方法使用executeSqlNew
+     *
      * @param sql
      * @return
      */
@@ -273,7 +286,8 @@ public class DbSourceServiceImpl implements DbSourceService {
             String encrypt = PasswordUtil.encrypt(model.getDbAccount());
             model.setDbAccount(encrypt);
         }
-        dbSourceRepository.save(model);
+        DataSourceModel save = dbSourceRepository.save(model);
+        teamSourceService.updateTeamResources(Collections.singletonList(String.valueOf(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId())), Collections.singletonList(save.getId()), "DATASOURCE");
     }
 
     @Override
@@ -306,6 +320,7 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Override
     public void saveSqlText(DbSqlText model) {
         model.setSqlCreateUser(StpUtils.getCurrentUserName());
+        model.setTeamId(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId());
         CacheUtils.remove("sql_text_model");
         dbSqlTextRepository.save(model);
     }
@@ -321,7 +336,8 @@ public class DbSourceServiceImpl implements DbSourceService {
         List<Map<String, String>> sqlTextModelList = CacheUtils.get("sql_text_model", List.class);
         if (ObjectUtil.isNull(sqlTextModelList)) {
             sqlTextModelList = new ArrayList<>();
-            List<DbSqlText> all = dbSqlTextRepository.findAll().stream().sorted(Comparator.comparing(DbSqlText::getId).reversed()).collect(Collectors.toList());
+            Long itemId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
+            List<DbSqlText> all = dbSqlTextRepository.findAll().stream().filter(s -> s.getTeamId().equals(itemId)).sorted(Comparator.comparing(DbSqlText::getId).reversed()).collect(Collectors.toList());
             for (DbSqlText dbSqlText : all) {
                 Map<String, String> item = new HashMap<>(2);
                 item.put("code", dbSqlText.getSqlText());
