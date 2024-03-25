@@ -41,6 +41,9 @@ public class TeamSourceServiceImpl implements TeamSourceService {
     @Resource
     private DbSqlTextRepository dbSqlTextRepository;
 
+    @Resource
+    private TimingRepository timingRepository;
+
     /**
      * 修改团队所属资源
      *
@@ -100,7 +103,10 @@ public class TeamSourceServiceImpl implements TeamSourceService {
 
     @Override
     public AjaxResult deleteTeam(Long id) {
-        //TODO 查询是否存在资源，存在不允许删除。
+        Result<Map<String, Object>> mapResult = queryTeamResourceList(id);
+        if (mapResult.getCount() > 0) {
+            return AjaxResult.error("存在已授权资源,不允许删除!");
+        }
         teamSourceRepository.deleteById(id);
         return AjaxResult.success();
     }
@@ -169,14 +175,12 @@ public class TeamSourceServiceImpl implements TeamSourceService {
         //数据源
         List<DataSourceModel> dataSourceModels = dbSourceRepository.findAllById(list.stream().filter(s -> "DATASOURCE".equals(s.getResourceType())).map(TeamResourceModel::getResourceId).collect(Collectors.toList()));
         Map<Long, DataSourceModel> dataMap = dataSourceModels.stream().collect(Collectors.toMap(DataSourceModel::getId, s -> s));
-
-        //TODO 作业任务
         List<Map<String, Object>> resultList = new ArrayList<>();
         for (TeamResourceModel teamResourceModel : list) {
             Map<String, Object> item = new HashMap<>();
             item.put("teamId", teamResourceModel.getTeamId());
             item.put("teamName", teamSourceModel.getTeamName());
-            item.put("datetime",DateUtil.formatDateTime(teamResourceModel.getCreateTime()));
+            item.put("datetime", DateUtil.formatDateTime(teamResourceModel.getCreateTime()));
             if ("USER".equals(teamResourceModel.getResourceType())) {
                 SysUser sysUser = userMap.get(teamResourceModel.getResourceId());
                 item.put("resourceId", sysUser == null ? "" : sysUser.getUserId());
@@ -191,7 +195,6 @@ public class TeamSourceServiceImpl implements TeamSourceService {
             }
             resultList.add(item);
         }
-
         //sql文本
         List<DbSqlText> sqlTextList = dbSqlTextRepository.queryListByTeamId(id);
         for (DbSqlText sqlText : sqlTextList) {
@@ -201,7 +204,19 @@ public class TeamSourceServiceImpl implements TeamSourceService {
             item.put("resourceId", sqlText.getId());
             item.put("resourceName", sqlText.getTitle());
             item.put("resourceType", "SQL文本");
-            item.put("datetime",sqlText.getSqlCreateDate());
+            item.put("datetime", sqlText.getSqlCreateDate());
+            resultList.add(item);
+        }
+        //作业任务
+        List<TimingVo> timingVoList = timingRepository.queryListByTeamId(id);
+        for (TimingVo timingVo : timingVoList) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("teamId", id);
+            item.put("teamName", teamSourceModel.getTeamName());
+            item.put("resourceId", timingVo.getId());
+            item.put("resourceName", timingVo.getTitle());
+            item.put("resourceType", "作业任务");
+            item.put("datetime", timingVo.getSqlCreateDate());
             resultList.add(item);
         }
         Result<Map<String, Object>> result = new Result<>();

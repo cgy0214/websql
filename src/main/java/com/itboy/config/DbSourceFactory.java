@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -32,11 +31,8 @@ public class DbSourceFactory {
     @Autowired
     private LoginService loginService;
 
-    /**
-     * 初始化数据源
-     */
-    @PostConstruct
-    private void initSystem() {
+
+    public void initSystem() {
         SysSetup sysSetup = getSysSetUp();
         //系统第一次启动会加载数据
         if (sysSetup.getInitDataSource() == 0) {

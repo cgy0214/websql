@@ -5,7 +5,7 @@ import com.itboy.model.AjaxResult;
 import com.itboy.model.JobLogs;
 import com.itboy.model.TimingVo;
 import com.itboy.service.TimingService;
-import com.itboy.util.ScheduleUtils;
+import com.itboy.task.ScheduleUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,7 +65,7 @@ public class TimingController {
         Long id = null;
         try {
             id = timingService.addtimingData(model).getId();
-            createJob(model.getExecuteTime(), model.getTitle(), 1);
+            createJob(model.getExecuteTime(), model.getId(), model.getTitle());
             return AjaxResult.success();
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,29 +94,28 @@ public class TimingController {
             TimingVo models = new TimingVo();
             models.setId(id);
             TimingVo vo = timingService.timingList(models).getList().get(0);
-            ScheduleUtils.Job job = createJob(vo.getExecuteTime(), vo.getTitle(), 2);
             switch (type) {
                 case 1:
-                    ScheduleUtils.cancel(job);
+                    ScheduleUtils.removeTask(id);
                     vo.setState("停用");
                     timingService.updateTiming(vo);
                     break;
                 case 2:
-                    createJob(vo.getExecuteTime(), vo.getTitle(), 1);
+                    createJob(vo.getExecuteTime(), vo.getId(), vo.getTitle());
                     vo.setState("休眠");
                     timingService.updateTiming(vo);
                     break;
                 case 3:
                     vo.setExecuteTime(cron);
                     timingService.updateTiming(vo);
-                    createJob(cron, vo.getTitle(), 1);
+                    createJob(cron, vo.getId(), vo.getTitle());
                     break;
                 case 4:
                     timingService.delTiming(id);
-                    ScheduleUtils.cancel(job);
+                    ScheduleUtils.removeTask(id);
                     break;
                 case 5:
-                    createJob(vo.getExecuteTime(), vo.getTitle(), 4);
+                    createJob(vo.getExecuteTime(), vo.getId(), vo.getTitle());
                     break;
                 default:
                     throw new RuntimeException("错误的类型!" + type);
@@ -128,23 +127,9 @@ public class TimingController {
         }
     }
 
-    private ScheduleUtils.Job createJob(String Corn, String JobName, int status) throws Exception {
-        ScheduleUtils.Job job2 = new ScheduleUtils.Job();
-        job2.setClassName("com.itboy.config.JobExecuteFactory");
-        job2.setMethodName("executeSql");
-        job2.setCron(Corn);
-        job2.setJobName(JobName);
-        job2.setStatus(1);
-        if (status == 1) {
-            ScheduleUtils.cancel(job2);
-            ScheduleUtils.add(job2);
-        } else if (status == 4) {
-            ScheduleUtils.cancel(job2);
-            ScheduleUtils.add(job2);
-            Thread.sleep(1000);
-            ScheduleUtils.cancel(job2);
-        }
-        return job2;
+    private void createJob(String cron, Long id, String JobName) throws Exception {
+        ScheduleUtils.removeTask(id);
+        ScheduleUtils.addTimingTask(cron, id, JobName);
     }
 
     /***

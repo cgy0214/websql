@@ -1,18 +1,16 @@
-package com.itboy.config;
+package com.itboy.task;
 
 import cn.hutool.core.comparator.VersionComparator;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.cron.task.Task;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.itboy.model.VersionModel;
-import com.itboy.util.ScheduleUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @ClassName : ExamineVersionFactory
@@ -22,7 +20,7 @@ import javax.annotation.PostConstruct;
  */
 @Slf4j
 @Component
-public class ExamineVersionFactory {
+public class ExamineVersionFactory implements Task {
 
     @Value("${examine.version.enabled}")
     private Boolean enabled;
@@ -31,28 +29,18 @@ public class ExamineVersionFactory {
     private VersionModel versionModel;
 
 
-    @PostConstruct
+
     public void run() {
         versionModel = JSON.parseObject(ResourceUtil.readUtf8Str("version.json"), VersionModel.class);
         versionModel.setLocalVersion(versionModel.getVersion());
         if (!enabled) {
             return;
         }
-        ScheduleUtils.Job job = new ScheduleUtils.Job();
-        job.setCron("0 0 10 * * ?");
-        job.setJobName("examineVersion");
-        job.setClassName("com.itboy.config.ExamineVersionFactory");
-        job.setMethodName("execute");
-        job.setStatus(1);
-        try {
-            ScheduleUtils.add(job);
-            execute("");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        ScheduleUtils.addTask(10000L, "0 0 10 * * ?", this);
     }
 
-    public void execute(String name) {
+    @Override
+    public void execute() {
         try {
             VersionModel remoteVersion = JSON.parseObject(HttpUtil.get("https://gitee.com/boy_0214/websql/raw/master/src/main/resources/version.json", CharsetUtil.CHARSET_UTF_8), VersionModel.class);
             log.info("remote new version :{},release:{}", remoteVersion.getVersion(), remoteVersion.getDate());
@@ -67,5 +55,6 @@ public class ExamineVersionFactory {
             log.error("pull remote new version error!");
         }
     }
+
 
 }
