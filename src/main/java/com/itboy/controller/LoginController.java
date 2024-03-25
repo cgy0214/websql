@@ -9,10 +9,7 @@ import com.itboy.model.SysUser;
 import com.itboy.model.TeamSourceModel;
 import com.itboy.service.LoginService;
 import com.itboy.task.ExamineVersionFactory;
-import com.itboy.util.CheckLoginUserResetUtils;
-import com.itboy.util.EnvBeanUtil;
-import com.itboy.util.IpUtil;
-import com.itboy.util.StpUtils;
+import com.itboy.util.*;
 import com.wf.captcha.GifCaptcha;
 import com.wf.captcha.base.Captcha;
 import com.wf.captcha.utils.CaptchaUtil;
@@ -235,6 +232,7 @@ public class LoginController {
             for (TeamSourceModel team : teamList) {
                 if (ObjectUtil.equal(team.getId(), teamId)) {
                     StpUtil.getSession().set(StpUtils.SESSION_TEAM_ACTIVE_KEY, team);
+                    CacheUtils.put("login_team_" + StpUtils.getCurrentUserName(), teamId,Integer.MAX_VALUE);
                     return AjaxResult.success();
                 }
             }

@@ -338,7 +338,8 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public List<Map<String, String>> sqlTextList(DataSourceModel model) {
-        List<Map<String, String>> sqlTextModelList = CacheUtils.get("sql_text_model", List.class);
+        String key = "sql_text_model" + StpUtils.getCurrentActiveTeam().getId();
+        List<Map<String, String>> sqlTextModelList = CacheUtils.get(key, List.class);
         if (ObjectUtil.isNull(sqlTextModelList)) {
             sqlTextModelList = new ArrayList<>();
             Long itemId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
@@ -349,7 +350,7 @@ public class DbSourceServiceImpl implements DbSourceService {
                 item.put("value", dbSqlText.getTitle());
                 sqlTextModelList.add(item);
             }
-            CacheUtils.put("sql_text_model", sqlTextModelList);
+            CacheUtils.put(key, sqlTextModelList);
         }
         return sqlTextModelList;
     }
@@ -360,7 +361,8 @@ public class DbSourceServiceImpl implements DbSourceService {
         if (ObjectUtil.isNull(sysSetup) || ObjectUtil.notEqual(sysSetup.getEnabledHint(), 0)) {
             return AjaxResult.success("系统关闭提示功能，可以再参数中设置开启。");
         }
-        Map<String, List<String>> resultMap = CacheUtils.get("table_field_list" + database, Map.class);
+        String key = "table_field_list" + database + StpUtils.getCurrentActiveTeam().getId();
+        Map<String, List<String>> resultMap = CacheUtils.get(key, Map.class);
         if (ObjectUtil.isNull(resultMap)) {
             String viewSql = TableFieldSqlUtils.getViewSql(database);
             if (ObjectUtil.isEmpty(viewSql)) {
@@ -372,7 +374,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             }
             List<Map> list = (List<Map>) map.get("data");
             resultMap = list.stream().collect(Collectors.groupingBy(s -> s.get("TABLE_NAME").toString(), Collectors.mapping(s -> s.get("TABLE_FIELD").toString(), Collectors.toList())));
-            CacheUtils.put("table_field_list" + database, resultMap);
+            CacheUtils.put(key, resultMap);
         }
         return AjaxResult.success(resultMap);
     }
