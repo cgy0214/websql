@@ -11,6 +11,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName : StpUtils
@@ -113,9 +114,16 @@ public class StpUtils {
         } else {
             List<TeamSourceModel> teamList = getTeamList();
             if (!teamList.isEmpty()) {
-                TeamSourceModel teamSourceModel = teamList.get(0);
-                StpUtil.getSession().set(SESSION_TEAM_ACTIVE_KEY, teamSourceModel);
-                return teamSourceModel;
+                Long teamId = CacheUtils.get("login_team_" + getCurrentUserName(), Long.class);
+                if (ObjectUtil.isNotNull(teamId)) {
+                    List<TeamSourceModel> item = teamList.stream().filter(s -> s.getId().equals(teamId)).collect(Collectors.toList());
+                    if (!item.isEmpty()) {
+                        StpUtil.getSession().set(SESSION_TEAM_ACTIVE_KEY, item.get(0));
+                        return item.get(0);
+                    }
+                }
+                StpUtil.getSession().set(SESSION_TEAM_ACTIVE_KEY, teamList.get(0));
+                return teamList.get(0);
             }
         }
         return null;

@@ -469,8 +469,6 @@ public class LoginServiceImpl implements LoginService {
     }
 
 
-
-
     @Override
     public List<Map<String, String>> queryUsersAllBySelect() {
         SysUser param = new SysUser();
