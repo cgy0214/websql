@@ -4,6 +4,8 @@ import com.itboy.model.JobLogs;
 import com.itboy.model.Result;
 import com.itboy.model.TimingVo;
 
+import java.util.List;
+
 /**
  * @program: websql
  * @description: 作业服务
@@ -26,4 +28,10 @@ public interface TimingService {
     Result<JobLogs> jobLogsList(JobLogs model);
 
     void jobLogDelete();
+
+    List<TimingVo> queryTimingJobList(String name);
+
+    TimingVo queryTimingJobById(Long id);
+
+
 }

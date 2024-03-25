@@ -70,4 +70,7 @@ public class TimingVo extends Pages {
     @Column
     private String sqlCreateUser;
 
+    @Column
+    private Long teamId;
+
 }

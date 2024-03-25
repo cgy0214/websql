@@ -308,7 +308,7 @@ public class DbSourceServiceImpl implements DbSourceService {
         }
         //按照团队过滤
         Long teamId = StpUtils.getCurrentActiveTeam().getId();
-        List<String> resourceIds = teamSourceService.queryTeamResourceByTeamId(Collections.singletonList(teamId), "DATASOURCE").stream().map(s->s.getResourceId().toString()).collect(Collectors.toList());
+        List<String> resourceIds = teamSourceService.queryTeamResourceByTeamId(Collections.singletonList(teamId), "DATASOURCE").stream().map(s -> s.getResourceId().toString()).collect(Collectors.toList());
         dataSourceList = dataSourceList.stream().filter(s -> resourceIds.contains(s.get("id"))).collect(Collectors.toList());
         //按最近使用的数据源推荐并选中此数据源
         String source = sysLogRepository.querySysLogDataSource();
@@ -379,13 +379,17 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public void updateDataSourceName(Long id, String name) throws SQLException {
-        DataSourceModel one = dbSourceRepository.getOne(id);
-        String oldName = one.getDbName();
-        one.setDbName(name);
-        dbSourceRepository.save(one);
+        DataSourceModel dataSourceModel = dbSourceRepository.selectById(id);
+        dataSourceModel.setDbName(name);
+        dbSourceRepository.save(dataSourceModel);
         CacheUtils.remove("data_source_model");
-        DataSourceFactory.removeDataSource(oldName);
-        DataSourceFactory.saveDataSource(one);
+        if (ObjectUtil.isNotEmpty(dataSourceModel.getDbPassword()) && ObjectUtil.isNotEmpty(dataSourceModel.getDbAccount())) {
+            String account = PasswordUtil.decrypt(dataSourceModel.getDbAccount());
+            dataSourceModel.setDbAccount(account);
+            String password = PasswordUtil.decrypt(dataSourceModel.getDbPassword());
+            dataSourceModel.setDbPassword(password);
+            DataSourceFactory.initDataSource(Collections.singletonList(dataSourceModel));
+        }
     }
 
     @Override

@@ -16,12 +16,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @program: websql
@@ -37,12 +36,12 @@ public class TimingServiceImpl implements TimingService {
     private TimingRepository timingRepository;
     @Resource
     private JobLogsRepository jobLogsRepository;
-    @PersistenceContext
-    private EntityManager em;
+
 
     @Override
     public TimingVo addtimingData(TimingVo model) throws Exception {
         model.setSqlCreateUser(StpUtils.getCurrentUserName());
+        model.setTeamId(StpUtils.getCurrentActiveTeam().getId());
         Map<String, Object> sqlParser = SqlDruidParser.sqlParser(model.getTimingName(), model.getSqlText());
         if (sqlParser.get("executeType") == null) {
             throw new RuntimeException("SQL解析异常");
@@ -59,6 +58,7 @@ public class TimingServiceImpl implements TimingService {
     @Override
     public Result<TimingVo> timingList(TimingVo model) {
         Result<TimingVo> result = new Result<>();
+        Long teamId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
         Specification<TimingVo> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<Predicate>(4);
             if (ObjectUtil.isNotEmpty(model.getTitle())) {
@@ -73,6 +73,7 @@ public class TimingServiceImpl implements TimingService {
             if (ObjectUtil.isNotEmpty(model.getState())) {
                 predicates.add(cb.like(root.get("state"), "%" + model.getState() + "%"));
             }
+            predicates.add(cb.and(root.get("teamId").in(teamId)));
             query.orderBy(cb.desc(root.get("id")));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };
@@ -100,6 +101,7 @@ public class TimingServiceImpl implements TimingService {
     @Override
     public Result<JobLogs> jobLogsList(JobLogs model) {
         Result<JobLogs> result = new Result<>();
+        Long teamId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
         Specification<JobLogs> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<Predicate>(3);
             if (ObjectUtil.isNotEmpty(model.getTaskName())) {
@@ -111,6 +113,7 @@ public class TimingServiceImpl implements TimingService {
             if (ObjectUtil.isNotEmpty(model.getTaskState())) {
                 predicates.add(cb.like(root.get("taskState"), "%" + model.getTaskState() + "%"));
             }
+            predicates.add(cb.and(root.get("teamId").in(teamId)));
             query.orderBy(cb.desc(root.get("id")));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };
@@ -125,4 +128,17 @@ public class TimingServiceImpl implements TimingService {
         jobLogsRepository.deleteAll();
     }
 
+    @Override
+    public List<TimingVo> queryTimingJobList(String name) {
+        if (ObjectUtil.isNotNull(name)) {
+            return timingRepository.queryTimingJobByTitleName(name);
+        } else {
+            return timingRepository.queryTimingJobList();
+        }
+    }
+
+    @Override
+    public TimingVo queryTimingJobById(Long id) {
+        return timingRepository.findById(id).get();
+    }
 }

@@ -1,21 +1,22 @@
-package com.itboy.config;
+package com.itboy.task;
 
-import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.cron.task.Task;
 import com.alibaba.fastjson.JSONObject;
+import com.itboy.config.JdbcUtils;
+import com.itboy.config.SqlParserHandler;
 import com.itboy.model.JobLogs;
+import com.itboy.model.SqlParserVo;
 import com.itboy.model.TimingVo;
 import com.itboy.service.TimingService;
-import com.itboy.util.ScheduleUtils;
 import com.itboy.util.SpringContextHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @program: JobExecuteFactory
@@ -24,52 +25,61 @@ import java.util.Map;
  * @create: 2019-09-17 15:58
  **/
 @Slf4j
-@Component
-public class JobExecuteFactory {
+public class JobExecuteFactory implements Task {
 
+
+    private final Long id;
+
+    private final String jobName;
+
+    public JobExecuteFactory(Long id, String jobName) {
+        this.id = id;
+        this.jobName = jobName;
+    }
 
     /**
      * 执行作业
-     *
-     * @param jobName
      */
-    public synchronized void executeSql(String jobName) {
+    @Override
+    public void execute() {
         Long begin = System.currentTimeMillis();
         log.info("{}-作业任务开始.", jobName);
-        TimingVo models = new TimingVo();
-        models.setTitle(jobName);
         TimingService timingService = SpringContextHolder.getBean(TimingService.class);
-        List<TimingVo> voList = timingService.timingList(models).getList();
-        if (voList.isEmpty()) {
-            log.error("任务已不存在了" + jobName);
-            ScheduleUtils.Job job = new ScheduleUtils.Job();
-            job.setJobName(jobName);
-            ScheduleUtils.cancel(job);
+        TimingVo vo = timingService.queryTimingJobById(id);
+        if (ObjectUtil.isNull(vo)) {
+            ScheduleUtils.removeTask(id);
             return;
         }
+        vo.setState("作业中");
+        timingService.updateStatus(vo);
         StringBuffer param = new StringBuffer();
         StringBuffer values = new StringBuffer();
         JobLogs logs = new JobLogs();
-        TimingVo vo = voList.get(0);
-        vo.setState("作业中");
-        timingService.updateStatus(vo);
+        logs.setTeamId(vo.getTeamId());
         try {
             String sql = vo.getSqlText();
             if (ObjectUtil.isEmpty(sql)) {
                 throw new NullPointerException("作业SQL为空");
             }
             //SQL预处理
-            Map<String, Object> sqlParser = SqlDruidParser.sqlParser(vo.getTimingName(), sql);
-            List<String> executeSqlList = (List<String>) sqlParser.get("executeSql");
+            List<SqlParserVo> parserVoList = SqlParserHandler.getParserVo(vo.getTimingName(), sql);
             //sync
             if (!ObjectUtil.isEmpty(vo.getSyncName()) && !"请选择".equals(vo.getSyncName())) {
-                for (String executeSql : executeSqlList) {
-                    Map<String, Object> resultData = JdbcUtils.findMoreResult(vo.getTimingName(), executeSql, new ArrayList<>());
+                for (SqlParserVo executeSql : parserVoList) {
+                    Map<String, Object> resultData = JdbcUtils.findMoreResult(vo.getTimingName(), executeSql.getSqlContent(), new ArrayList<>());
                     if ("2".equals(resultData.get("code"))) {
                         throw new NullPointerException("作业SQL执行异常.error:" + resultData.get("msg"));
                     }
                     List itemList = (List) resultData.get("data");
-                    if (itemList.size() > 0) {
+                    //表中没有数据时，数据占位忽略。
+                    if (itemList.size() == 1) {
+                        JSONObject object = (JSONObject) itemList.get(0);
+                        List<Object> webSqlPlaceholder = object.values().stream().filter(s -> s.equals("WEB_SQL_PLACEHOLDER")).collect(Collectors.toList());
+                        if (object.keySet().size() == webSqlPlaceholder.size()) {
+                            return;
+                        }
+                    }
+                    if (!itemList.isEmpty()) {
                         JSONObject jo = (JSONObject) itemList.get(0);
                         Iterator<String> keys = jo.keySet().iterator();
                         while (keys.hasNext()) {
@@ -79,8 +89,7 @@ public class JobExecuteFactory {
                         }
                         param = param.deleteCharAt(0);
                         values = values.deleteCharAt(0);
-                        String tableName = (String) sqlParser.get("tableName");
-                        ;
+                        String tableName = executeSql.getTableNameList().get(0);
                         if (!ObjectUtil.isEmpty(vo.getSyncTable())) {
                             tableName = vo.getSyncTable();
                         }
@@ -91,13 +100,6 @@ public class JobExecuteFactory {
                         logs.setTaskContent(itemSql);
                         logs.setTaskValue(itemList.toString());
                     }
-                }
-            } else {
-                for (String executeSql : executeSqlList) {
-                    Map<String, Object> stringObjectMap = JdbcUtils.findMoreResult(vo.getTimingName(), executeSql, new ArrayList<>());
-                    logs.setTaskError(stringObjectMap.get("msg") + ";执行结果:" + stringObjectMap.get("data").toString());
-                    logs.setTaskState(stringObjectMap.get("code") == "1" ? "执行成功" : "执行失败");
-                    logs.setTaskContent(executeSql);
                 }
             }
         } catch (Exception e) {
@@ -118,31 +120,5 @@ public class JobExecuteFactory {
         }
     }
 
-    /**
-     * 初始化作业任务
-     */
-    @PostConstruct
-    void initTask() {
-        TimingVo models = new TimingVo();
-        models.setState("休眠");
-        TimingService timingService = SpringContextHolder.getBean(TimingService.class);
-        List<TimingVo> initList = timingService.timingList(models).getList();
-        log.info("Successful initialization  {}  timerTask.", initList.size());
-        ThreadUtil.execAsync(() -> {
-            for (TimingVo timingVo : initList) {
-                ScheduleUtils.Job job = new ScheduleUtils.Job();
-                job.setCron(timingVo.getExecuteTime());
-                job.setJobName(timingVo.getTitle());
-                job.setClassName("com.itboy.config.JobExecuteFactory");
-                job.setMethodName("executeSql");
-                job.setStatus(1);
-                try {
-                    ScheduleUtils.add(job);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
 
 }
