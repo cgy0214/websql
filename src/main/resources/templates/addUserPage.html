@@ -146,6 +146,10 @@
                     role_value.push(roles[i].value);
                 }
             });
+            if (role_value.length === 0) {
+                layer.msg("请选择角色!", {icon: 2});
+                return false;
+            }
             field["sysRoleName"] = role_value.toString();
             let team_value = [];
             let teams = document.getElementsByName("teams");
@@ -154,6 +158,10 @@
                     team_value.push(teams[i].value);
                 }
             });
+            if (team_value.length === 0) {
+                layer.msg("请选择团队!", {icon: 2});
+                return false;
+            }
             field["sysTeamName"] = team_value.toString();
             post(ctx + "settingManager/addUserRoleSource", field, (res) => {
                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {

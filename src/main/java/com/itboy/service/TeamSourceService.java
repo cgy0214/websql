@@ -41,4 +41,7 @@ public interface TeamSourceService {
 
     Result<Map<String, Object>> queryTeamResourceList(Long id);
 
+
+    void deleteResourceByResIds(List<Long> ids, String type);
+
 }

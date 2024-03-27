@@ -76,7 +76,7 @@ public class JdbcUtils {
                 //update 2020.06.12 感谢Mr.Guo 提出顺序展示问题
                 JSONObject json = new JSONObject(new LinkedHashMap<>(colsLength));
                 //新建数组
-                Map<String, Integer> temp = new HashMap();
+                Map<String, Integer> temp = new HashMap<>(colsLength);
                 for (int i = 0; i < colsLength; i++) {
                     int rowIndex = i + 1;
                     colsName = metaData.getColumnLabel(rowIndex);

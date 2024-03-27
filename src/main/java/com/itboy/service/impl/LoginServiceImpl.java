@@ -67,6 +67,9 @@ public class LoginServiceImpl implements LoginService {
     private TeamSourceRepository teamSourceRepository;
 
     @Resource
+    private TeamResourceRepository teamResourceRepository;
+
+    @Resource
     private TeamSourceService teamSourceService;
 
 
@@ -251,6 +254,7 @@ public class LoginServiceImpl implements LoginService {
     public Boolean deleteUserRole(Long id) {
         sysUserRepository.deleteById(id);
         sysUserRoleRepository.delete(new SysUserRole().setUserId(id));
+        teamResourceRepository.deleteResourceByResId(Collections.singletonList(id),"USER");
         CacheUtils.remove("user_roles_model");
         CacheUtils.remove("super_user_roles_model");
         return true;
@@ -560,6 +564,15 @@ public class LoginServiceImpl implements LoginService {
             teamSourceModel.setState(0);
             teamSourceRepository.save(teamSourceModel);
 
+            //初始化团队资源
+            TeamResourceModel resourceModel = new TeamResourceModel();
+            resourceModel.setId(1L);
+            resourceModel.setTeamId(1L);
+            resourceModel.setRoleType("负责人");
+            resourceModel.setResourceId(1L);
+            resourceModel.setResourceType("USER");
+            resourceModel.setCreateTime(DateUtil.date());
+            teamResourceRepository.save(resourceModel);
 
             //初始化系统设置
             SysSetup sysSetup = SysSetup.getInstance();
@@ -591,7 +604,7 @@ public class LoginServiceImpl implements LoginService {
                     .setMaxWait(20)
                     .setDbState("有效");
             DataSourceFactory.saveDataSource(model);
-            dbSourceService.addDbSource(model);
+            dbSourceService.addDbSource(model,teamSourceModel.getId());
         } catch (Exception e) {
             log.error("初始化系统报错" + e.getMessage());
             e.printStackTrace();

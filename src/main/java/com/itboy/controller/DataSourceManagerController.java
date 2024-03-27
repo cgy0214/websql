@@ -10,6 +10,7 @@ import com.itboy.model.DataSourceModel;
 import com.itboy.model.Result;
 import com.itboy.service.DbSourceService;
 import com.itboy.service.LoginService;
+import com.itboy.service.TeamSourceService;
 import com.itboy.util.PasswordUtil;
 import com.itboy.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,6 +42,9 @@ public class DataSourceManagerController {
 
     @Resource
     private LoginService loginService;
+
+    @Resource
+    private TeamSourceService teamSourceService;
 
 
     @RequestMapping("/page")
@@ -132,7 +137,7 @@ public class DataSourceManagerController {
                 return AjaxResult.error("连接名称已经存在,请换一个！");
             }
             DataSourceFactory.saveDataSource(model);
-            dbSourceService.addDbSource(model);
+            dbSourceService.addDbSource(model, null);
             log.info("Successful Add  DbSources ");
             return AjaxResult.success();
         } catch (Exception e) {
@@ -152,6 +157,7 @@ public class DataSourceManagerController {
         try {
             DataSourceModel model = dbSourceService.delDbSource(id);
             DataSourceFactory.removeDataSource(model.getDbName());
+            teamSourceService.deleteResourceByResIds(Collections.singletonList(Long.valueOf(id)), "DATASOURCE");
             return AjaxResult.success();
         } catch (Exception e) {
             e.printStackTrace();
