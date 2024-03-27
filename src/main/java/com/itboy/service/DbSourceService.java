@@ -18,7 +18,7 @@ public interface DbSourceService {
 
     Result<DataSourceModel> selectDbSourceList(DataSourceModel model);
 
-    void addDbSource(DataSourceModel model);
+    void addDbSource(DataSourceModel model,Long id);
 
     List<Map<String, String>> dbsourceSqlList(DataSourceModel model);
 

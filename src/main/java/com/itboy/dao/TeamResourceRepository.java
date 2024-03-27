@@ -16,7 +16,7 @@ public interface TeamResourceRepository extends JpaSpecificationExecutor<TeamRes
     @Transactional
     @Query("DELETE FROM TeamResourceModel WHERE resourceId  in(?1) and resourceType = ?2 ")
     @Modifying
-    void deleteResourceByUserId(List<Long> userId, String type);
+    void deleteResourceByResId(List<Long> resIds, String type);
 
     @Transactional
     @Query(value = "select * FROM SYS_TEAM_RESOURCE WHERE resource_id  in(?1) and resource_type = ?2 ", nativeQuery = true)

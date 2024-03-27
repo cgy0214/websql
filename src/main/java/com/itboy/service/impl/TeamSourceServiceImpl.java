@@ -57,7 +57,7 @@ public class TeamSourceServiceImpl implements TeamSourceService {
     public Boolean updateTeamResources(List<String> teams, List<Long> resourceIds, String type) {
         if (!teams.isEmpty()) {
             if (!resourceIds.isEmpty()) {
-                teamResourceRepository.deleteResourceByUserId(resourceIds, type);
+                teamResourceRepository.deleteResourceByResId(resourceIds, type);
             }
             for (Long resourceId : resourceIds) {
                 for (String id : teams) {
@@ -224,4 +224,11 @@ public class TeamSourceServiceImpl implements TeamSourceService {
         result.setCount(resultList.size());
         return result;
     }
+
+
+    @Override
+    public void deleteResourceByResIds(List<Long> ids, String type) {
+        teamResourceRepository.deleteResourceByResId(ids, type);
+    }
+
 }

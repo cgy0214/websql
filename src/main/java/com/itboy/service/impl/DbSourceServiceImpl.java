@@ -276,7 +276,7 @@ public class DbSourceServiceImpl implements DbSourceService {
     }
 
     @Override
-    public void addDbSource(DataSourceModel model) {
+    public void addDbSource(DataSourceModel model, Long teamId) {
         CacheUtils.remove("data_source_model");
         if (ObjectUtil.isNotEmpty(model.getDbPassword())) {
             String encrypt = PasswordUtil.encrypt(model.getDbPassword());
@@ -287,7 +287,10 @@ public class DbSourceServiceImpl implements DbSourceService {
             model.setDbAccount(encrypt);
         }
         DataSourceModel save = dbSourceRepository.save(model);
-        teamSourceService.updateTeamResources(Collections.singletonList(String.valueOf(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId())), Collections.singletonList(save.getId()), "DATASOURCE");
+        //兼容系统初始化时获取不到teamId问题
+        Long tid = teamId == null ? StpUtils.getCurrentActiveTeam().getId() : teamId;
+        teamSourceService.updateTeamResources(Collections.singletonList(tid.toString()), Collections.singletonList(save.getId()), "DATASOURCE");
+
     }
 
     @Override

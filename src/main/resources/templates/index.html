@@ -198,7 +198,11 @@
                 localStorage.setItem(activeTeam, activeData[0].code);
             },
             onselect: function (data) {
-                if (localStorage.getItem(activeTeam) === data || data === '' || data === undefined) {
+                debugger;
+                let active = localStorage.getItem(activeTeam);
+                if (active === data || data === '' || data === undefined) {
+                    $("#teams").val(active);
+                    form.render('select');
                     return;
                 }
                 post(ctx + "updateUserActiveTeam/" + data, null, (res) => {

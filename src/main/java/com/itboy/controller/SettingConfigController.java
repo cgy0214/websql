@@ -203,6 +203,9 @@ public class SettingConfigController {
         if (ObjectUtil.isEmpty(sysUser.getSysRoleName())) {
             return AjaxResult.error("请选择角色信息！!");
         }
+        if (ObjectUtil.isEmpty(sysUser.getSysTeamName())) {
+            return AjaxResult.error("请选择团队信息！!");
+        }
         return loginService.addUserRoleSource(sysUser);
     }
 
