@@ -86,6 +86,7 @@
 </form>
 </body>
 <script th:src="@{/static/layui.js}"></script>
+<script th:src="@{/static/base64.min.js}"></script>
 <script th:replace="~{base::ctx}"/>
 <script th:inline="javascript">
     layui.use(function () {
@@ -103,7 +104,9 @@
                 layer.msg("系统已关闭登录入口,请联系管理员!");
                 return false;
             }
-            post(ctx + "login", data.field, (res) => {
+            data.field.timestamp = new Date().getTime();
+            let param = Base64.encode(JSON.stringify(data.field));
+            post(ctx + "login", param, (res) => {
                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                     location.href = ctx;
                 });

@@ -14,168 +14,234 @@
 
 <div style="margin:5px;">
     <form class="layui-form layui-form-pane" action="" lay-filter="val-filter">
-        <div class="layui-form-item" style="padding-top: 10px;">
-            <label class="layui-form-label" pane>系统版本</label>
-            <div class="layui-input-inline">
-                <input type="text" name="" placeholder="当前版本" class="layui-input" th:value="${version.localVersion}"
-                       disabled>
-            </div>
-            <div class="layui-form-mid layui-text-em" th:if="${version.push == true}">
-                <span class="layui-badge-dot"></span>
-                    <a th:href="${version.link}" target="_blank">最新版本已发布,请及时更新!</a>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label" pane>数据加载</label>
-            <div class="layui-input-inline">
-                <select name="initDataSource" id="initDataSource">
-                    <option value="1">开启</option>
-                    <option value="2">关闭</option>
-                </select>
-                <input type="hidden" name="id" th:value="${obj.id}">
-                <input type="hidden" id="initDataSourceVal" th:value="${obj.initDataSource}">
-            </div>
-            <div class="layui-form-mid layui-text-em" lay-on="tips-right1">
-                <i class="layui-icon layui-icon-tips"></i>
-            </div>
-        </div>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label" pane>日志记录</label>
-            <div class="layui-input-inline">
-                <select name="enabledSqlLog" id="enabledSqlLog">
-                    <option value="1">开启</option>
-                    <option value="2">关闭</option>
-                </select>
-                <input type="hidden" id="enabledSqlLogVal" th:value="${obj.enabledSqlLog}">
-            </div>
-            <div class="layui-form-mid layui-text-em" lay-on="tips-right2">
-                <i class="layui-icon layui-icon-tips"></i>
-            </div>
-        </div>
+        <div class="layui-bg-gray" style="padding: 16px;">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md6">
+                    <div class="layui-card">
+                        <div class="layui-card-header" style="background-color: #16baaa">参数配置</div>
+                        <div class="layui-card-body">
+                            <div class="layui-form-item" style="padding-top: 10px;">
+                                <label class="layui-form-label" pane>系统版本</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="" placeholder="当前版本" class="layui-input"
+                                           th:value="${version.localVersion}"
+                                           disabled>
+                                </div>
+                                <div class="layui-form-mid layui-text-em" th:if="${version.push == true}">
+                                    <span class="layui-badge-dot"></span>
+                                    <a th:href="${version.link}" target="_blank">最新版本已发布,请及时更新!</a>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" pane>数据加载</label>
+                                <div class="layui-input-inline">
+                                    <select name="initDataSource" id="initDataSource">
+                                        <option value="1">开启</option>
+                                        <option value="2">关闭</option>
+                                    </select>
+                                    <input type="hidden" name="id" th:value="${obj.id}">
+                                    <input type="hidden" id="initDataSourceVal" th:value="${obj.initDataSource}">
+                                </div>
+                                <div class="layui-form-mid layui-text-em" lay-on="tips-right1">
+                                    <i class="layui-icon layui-icon-tips"></i>
+                                </div>
+                            </div>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label" pane>锁屏展示</label>
-            <div class="layui-input-inline">
-                <select name="enabledLockView" id="enabledLockView">
-                    <option value="0">开启</option>
-                    <option value="1">关闭</option>
-                </select>
-                <input type="hidden" id="enabledLockViewVal" th:value="${obj.enabledLockView}">
-            </div>
-            <div class="layui-form-mid layui-text-em" lay-on="tips-right3">
-                <i class="layui-icon layui-icon-tips"></i>
-            </div>
-        </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" pane>日志记录</label>
+                                <div class="layui-input-inline">
+                                    <select name="enabledSqlLog" id="enabledSqlLog">
+                                        <option value="1">开启</option>
+                                        <option value="2">关闭</option>
+                                    </select>
+                                    <input type="hidden" id="enabledSqlLogVal" th:value="${obj.enabledSqlLog}">
+                                </div>
+                                <div class="layui-form-mid layui-text-em" lay-on="tips-right2">
+                                    <i class="layui-icon layui-icon-tips"></i>
+                                </div>
+                            </div>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label" pane>文档展示</label>
-            <div class="layui-input-inline">
-                <select name="enabledHelp" id="enabledHelp">
-                    <option value="0">开启</option>
-                    <option value="1">关闭</option>
-                </select>
-                <input type="hidden" id="enabledHelpVal" th:value="${obj.enabledHelp}">
-            </div>
-            <div class="layui-form-mid layui-text-em" lay-on="tips-right4">
-                <i class="layui-icon layui-icon-tips"></i>
-            </div>
-        </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" pane>锁屏展示</label>
+                                <div class="layui-input-inline">
+                                    <select name="enabledLockView" id="enabledLockView">
+                                        <option value="0">开启</option>
+                                        <option value="1">关闭</option>
+                                    </select>
+                                    <input type="hidden" id="enabledLockViewVal" th:value="${obj.enabledLockView}">
+                                </div>
+                                <div class="layui-form-mid layui-text-em" lay-on="tips-right3">
+                                    <i class="layui-icon layui-icon-tips"></i>
+                                </div>
+                            </div>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label" pane>提示信息</label>
-            <div class="layui-input-inline">
-                <select name="enabledHint" id="enabledHint">
-                    <option value="0">开启</option>
-                    <option value="1">关闭</option>
-                </select>
-                <input type="hidden" id="enabledHintVal" th:value="${obj.enabledHint}">
-            </div>
-            <div class="layui-form-mid layui-text-em" lay-on="tips-right8">
-                <i class="layui-icon layui-icon-tips"></i>
-            </div>
-        </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" pane>文档展示</label>
+                                <div class="layui-input-inline">
+                                    <select name="enabledHelp" id="enabledHelp">
+                                        <option value="0">开启</option>
+                                        <option value="1">关闭</option>
+                                    </select>
+                                    <input type="hidden" id="enabledHelpVal" th:value="${obj.enabledHelp}">
+                                </div>
+                                <div class="layui-form-mid layui-text-em" lay-on="tips-right4">
+                                    <i class="layui-icon layui-icon-tips"></i>
+                                </div>
+                            </div>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label" pane>windows通知</label>
-            <div class="layui-input-inline">
-                <select name="enabledNotification" id="enabledNotification">
-                    <option value="0">开启</option>
-                    <option value="1">关闭</option>
-                </select>
-                <input type="hidden" id="enabledNotificationVal" th:value="${obj.enabledNotification}">
-            </div>
-            <div class="layui-form-mid layui-text-em" lay-on="tips-right9">
-                <i class="layui-icon layui-icon-tips"></i>
-            </div>
-        </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" pane>提示信息</label>
+                                <div class="layui-input-inline">
+                                    <select name="enabledHint" id="enabledHint">
+                                        <option value="0">开启</option>
+                                        <option value="1">关闭</option>
+                                    </select>
+                                    <input type="hidden" id="enabledHintVal" th:value="${obj.enabledHint}">
+                                </div>
+                                <div class="layui-form-mid layui-text-em" lay-on="tips-right8">
+                                    <i class="layui-icon layui-icon-tips"></i>
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" pane>windows通知</label>
+                                <div class="layui-input-inline">
+                                    <select name="enabledNotification" id="enabledNotification">
+                                        <option value="0">开启</option>
+                                        <option value="1">关闭</option>
+                                    </select>
+                                    <input type="hidden" id="enabledNotificationVal"
+                                           th:value="${obj.enabledNotification}">
+                                </div>
+                                <div class="layui-form-mid layui-text-em" lay-on="tips-right9">
+                                    <i class="layui-icon layui-icon-tips"></i>
+                                </div>
+                            </div>
 
 
-        <div class="layui-form-item">
-            <label class="layui-form-label" pane>分页条数</label>
-            <div class="layui-input-inline" style="width: 400px;">
-                <input type="text" id="pageLimitMax" name="pageLimitMax" th:value="${obj.pageLimitMax}"
-                       lay-affix="number"
-                       class="layui-input">
-            </div>
-            <div class="layui-form-mid layui-text-em" lay-on="tips-right5">
-                <i class="layui-icon layui-icon-tips"></i>
-            </div>
-        </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" pane>分页条数</label>
+                                <div class="layui-input-inline" style="width: 400px;">
+                                    <input type="text" id="pageLimitMax" name="pageLimitMax"
+                                           th:value="${obj.pageLimitMax}"
+                                           lay-affix="number"
+                                           class="layui-input">
+                                </div>
+                                <div class="layui-form-mid layui-text-em" lay-on="tips-right5">
+                                    <i class="layui-icon layui-icon-tips"></i>
+                                </div>
+                            </div>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label" pane>语句限制</label>
-            <div class="layui-input-inline" style="width: 400px;">
-                <input type="text" id="riskText" name="riskText" th:value="${obj.riskText}" class="layui-input"
-                       lay-affix="clear">
-            </div>
-            <div class="layui-form-mid layui-text-em" lay-on="tips-right6">
-                <i class="layui-icon layui-icon-tips"></i>
-            </div>
-        </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" pane>语句限制</label>
+                                <div class="layui-input-inline" style="width: 400px;">
+                                    <input type="text" id="riskText" name="riskText" th:value="${obj.riskText}"
+                                           class="layui-input"
+                                           lay-affix="clear">
+                                </div>
+                                <div class="layui-form-mid layui-text-em" lay-on="tips-right6">
+                                    <i class="layui-icon layui-icon-tips"></i>
+                                </div>
+                            </div>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label" pane>失败次数</label>
-            <div class="layui-input-inline" style="width: 400px;">
-                <input type="text" id="failLogin" name="failLogin" th:value="${obj.failLogin}" lay-affix="number"
-                       class="layui-input">
-            </div>
-            <div class="layui-form-mid layui-text-em" lay-on="tips-right7">
-                <i class="layui-icon layui-icon-tips"></i>
-            </div>
-        </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" pane>失败次数</label>
+                                <div class="layui-input-inline" style="width: 400px;">
+                                    <input type="text" id="failLogin" name="failLogin" th:value="${obj.failLogin}"
+                                           lay-affix="number"
+                                           class="layui-input">
+                                </div>
+                                <div class="layui-form-mid layui-text-em" lay-on="tips-right7">
+                                    <i class="layui-icon layui-icon-tips"></i>
+                                </div>
+                            </div>
 
-        <div class="layui-form-item">
-            <div class="layui-input-block">
-                <button class="layui-btn layui-btn-primary layui-border-green" lay-submit lay-filter="save">
-                    <i class="layui-icon layui-icon-add-1"> </i>保存设置
-                </button>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn layui-btn-primary layui-border-green" lay-submit
+                                            lay-filter="save">
+                                        <i class="layui-icon layui-icon-add-1"> </i>保存设置
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md6">
+                    <div class="layui-card">
+                        <div class="layui-card-header" style="background-color: #16baaa">维护操作</div>
+                        <div class="layui-card-body">
+                            <div class="layui-form-item">
+                                <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                            onclick="btnPost('清除SQL执行日志','logManager/deleteLog/1');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>清空SQL执行记录
+                                    </button>
+                                </div>
+                                <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                            onclick="btnPost('清除用户登陆日志','logManager/deleteLog/2');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>清空登陆系统记录
+                                    </button>
+                                </div>
+                                <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                            onclick="btnPost('清除作业日志','timingManager/jobLogDelete');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>清空作业执行记录
+                                    </button>
+                                </div>
+                                <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                            onclick="btnPost('清除SQL常用记录','sqlManager/sqlTextDeleteAll');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>清空SQL常用列表
+                                    </button>
+                                </div>
+                            </div>
 
-                <button class="layui-btn layui-btn-primary layui-border-red"
-                        onclick="btnPost('清除SQL执行日志','logManager/deleteLog/1');return false;">
-                    <i class="layui-icon layui-icon-clear"> </i>清空SQL执行记录
-                </button>
+                            <div class="layui-form-item">
+                                <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-blue"
+                                            onclick="btnPost('重新创建所有数据源连接','settingManager/reloadDataSourceAll');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>重新创建数据源连接
+                                    </button>
+                                </div>
+                            </div>
 
-                <button class="layui-btn layui-btn-primary layui-border-red"
-                        onclick="btnPost('清除用户登陆日志','logManager/deleteLog/2');return false;">
-                    <i class="layui-icon layui-icon-clear"> </i>清空登陆系统记录
-                </button>
+                            <div class="layui-form-item">
+                                <div class="layui-input-inline">
+                                    <button type="button" class="layui-btn demo-class-accept"
+                                            lay-options="{accept: 'file'}">
+                                        <i class="layui-icon layui-icon-upload"></i>
+                                        导入数据源信息
+                                    </button>
+                                </div>
+                                <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                            onclick="btnPost('清除SQL常用记录','sqlManager/');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>导出数据源信息
+                                    </button>
+                                </div>
 
-                <button class="layui-btn layui-btn-primary layui-border-red"
-                        onclick="btnPost('清除作业日志','timingManager/jobLogDelete');return false;">
-                    <i class="layui-icon layui-icon-clear"> </i>清空作业执行记录
-                </button>
+                                <div class="layui-input-inline">
+                                    <button type="button" class="layui-btn demo-class-accept"
+                                            lay-options="{accept: 'file'}">
+                                        <i class="layui-icon layui-icon-upload"></i>
+                                        导入SQL文本信息
+                                    </button>
+                                </div>
+                                <div class="layui-input-inline">
 
-                <button class="layui-btn layui-btn-primary layui-border-red"
-                        onclick="btnPost('清除SQL常用记录','sqlManager/sqlTextDeleteAll');return false;">
-                    <i class="layui-icon layui-icon-clear"> </i>清空SQL常用列表
-                </button>
+                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                            onclick="btnPost('清除SQL常用记录','sqlManager/');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>导出SQL文本信息
+                                    </button>
+                                </div>
 
-                <button class="layui-btn layui-btn-primary layui-border-blue"
-                        onclick="btnPost('重新创建所有数据源连接','settingManager/reloadDataSourceAll');return false;">
-                    <i class="layui-icon layui-icon-clear"> </i>重新创建所有数据源连接
-                </button>
-
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </form>
@@ -189,6 +255,7 @@
         const form = layui.form;
         const $ = layui.jquery;
         const util = layui.util;
+        const upload = layui.upload;
 
         $("#initDataSource").each(function () {
             $(this).children("option").each(function () {
@@ -236,6 +303,9 @@
                 }
             });
         });
+
+
+
 
         form.render();
 
