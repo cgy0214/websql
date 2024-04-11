@@ -96,6 +96,7 @@
 <script th:src="@{/static/code/sql.js}"></script>
 <script th:src="@{/static/code/show-hint.js}"></script>
 <script th:src="@{/static/code/sql-hint.js}"></script>
+<script th:src="@{/static/base64.min.js}"></script>
 <script>
     layui.use(['jquery', 'layer', 'form', 'laySelect'], function () {
         const layer = layui.layer;
@@ -218,7 +219,7 @@
                 'timingName': activeDataSource,
                 'syncName': activeDataSource2,
                 'executeTime': field.executeTimeHidden,
-                'sqlText': sqlContent,
+                'sqlText': Base64.encode(sqlContent),
                 'state': '休眠',
                 'title': field.title,
                 'syncTable': field.syncTable

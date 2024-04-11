@@ -29,8 +29,10 @@ public class JobLogs extends Pages {
 
     @Column(columnDefinition = "TEXT")
     private String taskContent;//执行的sql
+
     @Column(columnDefinition = "TEXT")
     private String taskValue;//参数
+
     @Column
     private String taskState;//状态
 
