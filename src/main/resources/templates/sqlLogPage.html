@@ -81,7 +81,7 @@
                     break;
                 case 'viewResult':
                     let strResult = data.logResult || "";
-                    let content2 = laytpl('<div style="margin: 20px;"> {{= d.content}}</div>').render({
+                    let content2 = laytpl('<div style="margin: 5px;"><pre class="layui-code">{{= d.content}}</pre></div>').render({
                         content: strResult
                     });
                     openContent("查看执行SQL结果", content2);
