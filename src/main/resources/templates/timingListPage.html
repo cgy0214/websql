@@ -13,15 +13,18 @@
             <div class="layui-form-item">
                 <label class="layui-form-label">作业名称:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="title" id="title" placeholder="请输入作业名称" class="layui-input" lay-affix="clear">
+                    <input type="text" name="title" id="title" placeholder="请输入作业名称" class="layui-input"
+                           lay-affix="clear">
                 </div>
                 <label class="layui-form-label">作业数据源:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="timingName" id="timingName" placeholder="请输入作业数据源" class="layui-input" lay-affix="clear">
+                    <input type="text" name="timingName" id="timingName" placeholder="请输入作业数据源"
+                           class="layui-input" lay-affix="clear">
                 </div>
                 <label class="layui-form-label">同步数据源:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="syncName" id="syncName" placeholder="请输入同步数据源" class="layui-input" lay-affix="clear">
+                    <input type="text" name="syncName" id="syncName" placeholder="请输入同步数据源" class="layui-input"
+                           lay-affix="clear">
                 </div>
                 <label class="layui-form-label">作业状态:</label>
                 <div class="layui-input-inline">
@@ -49,14 +52,15 @@
 </form>
 </body>
 <script th:src="@{/static/layui.js}"></script>
+<script th:src="@{/static/base64.min.js}"></script>
 <script th:replace="~{base::ctx}"/>
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
-        <a class="layui-btn layui-btn-xs" lay-event="view">作业SQL</a>
-        <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="updateCron">修改CRON</a>
-        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="updateState2">启用任务</a>
-        <a class="layui-btn layui-bg-orange layui-btn-xs" lay-event="updateState1">停止任务</a>
-        <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除任务</a>
+        <a class="layui-btn layui-btn-xs" lay-event="view">SQL</a>
+        <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="updateCron">CRON</a>
+        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="updateState2">启用</a>
+        <a class="layui-btn layui-bg-orange layui-btn-xs" lay-event="updateState1">停止</a>
+        <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
 <script>
@@ -95,14 +99,13 @@
             var data = obj.data;
             switch (obj.event) {
                 case 'view':
-                    let str = data.sqlText || "";
-                    const content = laytpl('<div style="margin: 20px;">{{= d.content}}</div>').render({
-                        content: util.unescape(str),
-                    });
+                    let str = Base64.decode(data.sqlText) || "";
+                    const content = laytpl('<div style="margin: 5px;"><pre class="layui-code">{{= d.content}}</pre></div>')
+                        .render({content: str});
                     openContent("查看作业SQL内容", content);
                     break;
                 case 'updateCron':
-                  layer.prompt({
+                    layer.prompt({
                         formType: 2,
                         value: data.executeTime,
                         anim: 'slideLeft',
@@ -110,7 +113,7 @@
                         area: ['300px', '200px']
                     }, function (value, index) {
                         layer.confirm("确认修改CRON？", function () {
-                            post(ctx + "timingManager/executeOnce/3/" + data.id+"?cron="+value, null, (res) => {
+                            post(ctx + "timingManager/executeOnce/3/" + data.id + "?cron=" + value, null, (res) => {
                                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                     $(".search-btn").click();
                                     layer.closeAll();
@@ -121,7 +124,7 @@
                     break;
                 case 'updateState2':
                     layer.confirm("确定启用此任务吗？", function () {
-                        post(ctx + "timingManager/executeOnce/2/" +data.id, null, (res) => {
+                        post(ctx + "timingManager/executeOnce/2/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });
@@ -130,7 +133,7 @@
                     break;
                 case 'updateState1':
                     layer.confirm("确定停止此任务吗？", function () {
-                        post(ctx + "timingManager/executeOnce/1/" +data.id, null, (res) => {
+                        post(ctx + "timingManager/executeOnce/1/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });
@@ -139,7 +142,7 @@
                     break;
                 case 'delete':
                     layer.confirm("您确认要删除此任务吗？", function () {
-                        post(ctx + "timingManager/executeOnce/4/"+data.id, null, (res) => {
+                        post(ctx + "timingManager/executeOnce/4/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });
