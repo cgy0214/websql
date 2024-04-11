@@ -201,40 +201,47 @@
 
                             <div class="layui-form-item">
                                 <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                            onclick="btnPost('清空数据源列表','settingManager/deleteDataSourceAll');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>清空数据源列表
+                                    </button>
+                                </div>
+
+                                <div class="layui-input-inline">
                                     <button class="layui-btn layui-btn-primary layui-border-blue"
-                                            onclick="btnPost('重新创建所有数据源连接','settingManager/reloadDataSourceAll');return false;">
-                                        <i class="layui-icon layui-icon-clear"> </i>重新创建数据源连接
+                                            onclick="btnPost('重建数据源连接池','settingManager/reloadDataSourceAll');return false;">
+                                        <i class="layui-icon layui-icon-refresh"> </i>重建数据源连接池
                                     </button>
                                 </div>
                             </div>
 
                             <div class="layui-form-item">
                                 <div class="layui-input-inline">
-                                    <button type="button" class="layui-btn demo-class-accept"
+                                    <button type="button" class="layui-btn upload-datasource" id="upload-datasource"
+                                            lay-on="tips-right10"
                                             lay-options="{accept: 'file'}">
                                         <i class="layui-icon layui-icon-upload"></i>
                                         导入数据源信息
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-red"
-                                            onclick="btnPost('清除SQL常用记录','sqlManager/');return false;">
-                                        <i class="layui-icon layui-icon-clear"> </i>导出数据源信息
+                                    <button class="layui-btn layui-btn-primary layui-border-blue"
+                                            onclick="downloadFile('settingManager/downloadDataSourceJson');return false;">
+                                        <i class="layui-icon layui-icon-download-circle"> </i>导出数据源信息
                                     </button>
                                 </div>
 
                                 <div class="layui-input-inline">
-                                    <button type="button" class="layui-btn demo-class-accept"
+                                    <button type="button" class="layui-btn" id="upload-sqlText" lay-on="tips-right11"
                                             lay-options="{accept: 'file'}">
                                         <i class="layui-icon layui-icon-upload"></i>
                                         导入SQL文本信息
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
-
-                                    <button class="layui-btn layui-btn-primary layui-border-red"
-                                            onclick="btnPost('清除SQL常用记录','sqlManager/');return false;">
-                                        <i class="layui-icon layui-icon-clear"> </i>导出SQL文本信息
+                                    <button class="layui-btn layui-btn-primary layui-border-blue"
+                                            onclick="downloadFile('settingManager/downloadSqlTextJson');return false;">
+                                        <i class="layui-icon layui-icon-download-circle"> </i>导出SQL文本信息
                                     </button>
                                 </div>
 
@@ -305,12 +312,38 @@
         });
 
 
-
-
         form.render();
 
+        //上传数据源初始化
+        upload.render({
+            elem: '#upload-datasource',
+            url: ctx + 'settingManager/uploadDataSourceJson',
+            exts: 'json',
+            dataType: 'json',
+            done: function (res) {
+                layer.alert(res.msg, {icon: res.code === 200 ? 1 : 2});
+            }, error: function (index, upload) {
+                layer.msg("上传失败,请重试!", {icon: 2});
+                console.log(index, upload);
+            }
+        });
+
+        //上传sql文本信息初始化
+        upload.render({
+            elem: '#upload-sqlText',
+            url: ctx + 'settingManager/uploadSqlTextJson',
+            exts: 'json',
+            dataType: 'json',
+            done: function (res) {
+                layer.alert(res.msg, {icon: res.code === 200 ? 1 : 2});
+            }, error: function (index, upload) {
+                layer.msg("上传失败,请重试!", {icon: 2});
+                console.log(index, upload);
+            }
+        });
+
         // 提示信息
-        const tipsConfig = {tips: [2, '#16b777']};//{tips: [2, '#16b777']};
+        const tipsConfig = {tips: [2, '#16b777']};
         util.on('lay-on', {
             'tips-right1': function () {
                 layer.tips('开启时，启动项目时会主动加载数据源，启动速度慢，受链接失败影响。<br>关闭时，项目启动不会加载数据源，需要手动加载数据源，启动速度快，不会受链接失败影响。', this, tipsConfig);
@@ -338,6 +371,12 @@
             },
             'tips-right9': function () {
                 layer.tips('执行SQL完成后,页面离开态会进行Windows系统通知!<br>关闭将不会在发送通知，但不影响执行SQL使用。', this, tipsConfig);
+            },
+            'tips-right10': function () {
+                layer.tips('导入数据源时,确保地址正确能连接，不会覆盖原有数据!<br>如果导入的团队不存在，会绑定右上角选中的团队信息中。<br> 导入多条数据出现1条失败其余的都会成功,下次只需要导入失败条数。', this, tipsConfig);
+            },
+            'tips-right11': function () {
+                layer.tips('导入sql文本信息,不会覆盖原有数据!<br>如果导入的团队不存在，会绑定右上角选中的团队信息中。<br> 导入多条数据出现1条失败其余的都会成功,下次只需要导入失败条数。', this, tipsConfig);
             }
         })
 
@@ -363,6 +402,17 @@
             post(ctx + url, null, (res) => {
                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2});
             });
+        });
+    }
+
+    /**
+     * 下载请求
+     * @param url
+     */
+    function downloadFile(url) {
+        layer.confirm("导出的数据没有加密,确保数据安全？", function () {
+            window.open(ctx + url);
+            layer.closeAll();
         });
     }
 </script>
