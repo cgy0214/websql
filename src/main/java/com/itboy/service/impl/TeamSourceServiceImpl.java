@@ -93,6 +93,9 @@ public class TeamSourceServiceImpl implements TeamSourceService {
 
     @Override
     public List<TeamResourceModel> queryTeamResourceById(List<Long> ids, String type) {
+        if (ObjectUtil.isNull(ids) || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
         return teamResourceRepository.queryTeamResourceById(ids, type);
     }
 

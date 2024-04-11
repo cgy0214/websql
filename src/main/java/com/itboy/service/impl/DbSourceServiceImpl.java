@@ -113,12 +113,12 @@ public class DbSourceServiceImpl implements DbSourceService {
     }
 
     @Override
-    public DataSourceModel delDbSource(String id) {
-        Long ids = Long.valueOf(id);
+    public void deleteDataBaseSource(Long id) {
         CacheUtils.remove("data_source_model");
-        Optional<DataSourceModel> model = dbSourceRepository.findById(ids);
-        dbSourceRepository.deleteById(ids);
-        return model.get();
+        DataSourceModel dataSourceModel = dbSourceRepository.selectById(id);
+        dbSourceRepository.deleteById(id);
+        DataSourceFactory.removeDataSource(dataSourceModel.getDbName());
+        teamSourceService.deleteResourceByResIds(Collections.singletonList(Long.valueOf(id)), "DATASOURCE");
     }
 
     @Override
@@ -225,7 +225,7 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public AjaxResult executeSqlNew(ExecuteSql sql) {
-        SysLog log = new SysLog("sql执行记录", "1", sql.getDataBaseName(),Base64Encoder.encode(sql.getSqlText()), StpUtils.getUserExtName(), DateUtil.now());
+        SysLog log = new SysLog("sql执行记录", "1", sql.getDataBaseName(), Base64Encoder.encode(sql.getSqlText()), StpUtils.getUserExtName(), DateUtil.now());
         try {
             List<SqlParserVo> parserVoList = SqlParserHandler.getParserVo(sql.getDataBaseName(), sql.getSqlText());
             if (parserVoList.isEmpty()) {
@@ -277,6 +277,14 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public void addDbSource(DataSourceModel model, Long teamId) {
+        if (selectDbByName(model.getDbName()) > 0) {
+            throw new RuntimeException("数据源名称已经存在,请换一个!");
+        }
+        try {
+            DataSourceFactory.saveDataSource(model);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         CacheUtils.remove("data_source_model");
         if (ObjectUtil.isNotEmpty(model.getDbPassword())) {
             String encrypt = PasswordUtil.encrypt(model.getDbPassword());
@@ -328,7 +336,9 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Override
     public void saveSqlText(DbSqlText model) {
         model.setSqlCreateUser(StpUtils.getCurrentUserName());
-        model.setTeamId(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId());
+        if (ObjectUtil.isNull(model.getTeamId())) {
+            model.setTeamId(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId());
+        }
         dbSqlTextRepository.save(model);
     }
 
@@ -463,4 +473,19 @@ public class DbSourceServiceImpl implements DbSourceService {
         return dbSourceRepository.selectById(id);
     }
 
+    @Override
+    public List<DbSqlText> sqlTextListAll() {
+        return dbSqlTextRepository.findAll();
+    }
+
+    @Override
+    public void deleteDataSourceAll() {
+        List<DataSourceModel> all = dbSourceRepository.findAll();
+        for (DataSourceModel dataSourceModel : all) {
+            try {
+                deleteDataBaseSource(dataSourceModel.getId());
+            } catch (Exception ignored) {
+            }
+        }
+    }
 }
