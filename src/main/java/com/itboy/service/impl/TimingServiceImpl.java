@@ -1,5 +1,6 @@
 package com.itboy.service.impl;
 
+import cn.hutool.core.codec.Base64Decoder;
 import cn.hutool.core.util.ObjectUtil;
 import com.itboy.config.SqlDruidParser;
 import com.itboy.dao.JobLogsRepository;
@@ -42,7 +43,7 @@ public class TimingServiceImpl implements TimingService {
     public TimingVo addtimingData(TimingVo model) throws Exception {
         model.setSqlCreateUser(StpUtils.getCurrentUserName());
         model.setTeamId(StpUtils.getCurrentActiveTeam().getId());
-        Map<String, Object> sqlParser = SqlDruidParser.sqlParser(model.getTimingName(), model.getSqlText());
+        Map<String, Object> sqlParser = SqlDruidParser.sqlParser(model.getTimingName(), Base64Decoder.decodeStr(model.getSqlText()));
         if (sqlParser.get("executeType") == null) {
             throw new RuntimeException("SQL解析异常");
         }

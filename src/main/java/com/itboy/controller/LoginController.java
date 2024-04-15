@@ -1,7 +1,11 @@
 package com.itboy.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.codec.Base64Decoder;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.itboy.config.DbSourceFactory;
 import com.itboy.model.AjaxResult;
 import com.itboy.model.SysSetup;
@@ -81,14 +85,19 @@ public class LoginController {
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     @ResponseBody
-    public AjaxResult login(@RequestBody Map<String, String> map, HttpServletRequest request) throws Exception {
-        String userName = map.get("userName");
-        String password = map.get("password");
-        String code = map.get("captcha");
+    public AjaxResult login(@RequestBody String param, HttpServletRequest request) throws Exception {
+        if (ObjectUtil.isEmpty(param)) {
+            return AjaxResult.error("账号或密码不能为空!");
+        }
         Boolean loginEnabled = EnvBeanUtil.getBoolean("login-enabled");
         if (!loginEnabled) {
             return AjaxResult.error("系统已关闭登录入口,请联系管理员!");
         }
+        Map map = JSON.parseObject(Base64Decoder.decodeStr(param), Map.class);
+        String userName = MapUtil.getStr(map, "userName");
+        String password = MapUtil.getStr(map, "password");
+        String code = MapUtil.getStr(map, "captcha");
+        Long timestamp = MapUtil.getLong(map, "timestamp");
         if (ObjectUtil.isEmpty(userName) || ObjectUtil.isEmpty(password)) {
             return AjaxResult.error("账号或密码不能为空!");
         }
@@ -96,6 +105,9 @@ public class LoginController {
         if (captchaEnabled && (ObjectUtil.isEmpty(code) || !CaptchaUtil.ver(code.trim().toLowerCase(), request))) {
             CaptchaUtil.clear(request);
             return AjaxResult.error("验证码不正确!");
+        }
+        if (DateUtil.date().getTime() - timestamp > 5000) {
+            return AjaxResult.error("请求超时,请刷新页面重试!");
         }
         String ip = IpUtil.getIpAddress(request);
         return loginService.login(userName.trim().toLowerCase(), password.trim().toLowerCase(), ip);
@@ -232,7 +244,7 @@ public class LoginController {
             for (TeamSourceModel team : teamList) {
                 if (ObjectUtil.equal(team.getId(), teamId)) {
                     StpUtil.getSession().set(StpUtils.SESSION_TEAM_ACTIVE_KEY, team);
-                    CacheUtils.put("login_team_" + StpUtils.getCurrentUserName(), teamId,Integer.MAX_VALUE);
+                    CacheUtils.put("login_team_" + StpUtils.getCurrentUserName(), teamId, Integer.MAX_VALUE);
                     return AjaxResult.success();
                 }
             }

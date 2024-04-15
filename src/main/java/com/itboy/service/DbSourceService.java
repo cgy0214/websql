@@ -28,7 +28,7 @@ public interface DbSourceService {
 
     Result<DbSqlText> getDbSqlText(DbSqlText model);
 
-    DataSourceModel delDbSource(String id);
+    void deleteDataBaseSource(Long id);
 
     SysSetup initSysSetup();
 
@@ -63,4 +63,8 @@ public interface DbSourceService {
     AjaxResult executeSqlNew(ExecuteSql sql);
 
     DataSourceModel selectDbById(Long id);
+
+    List<DbSqlText> sqlTextListAll();
+
+    void deleteDataSourceAll();
 }
