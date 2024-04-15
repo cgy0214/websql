@@ -22,7 +22,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -132,13 +131,8 @@ public class DataSourceManagerController {
             if (ObjectUtil.isEmpty(model.getDbUrl())) {
                 return AjaxResult.error("连接地址不能为空！");
             }
-            Integer count = dbSourceService.selectDbByName(model.getDbName());
-            if (count > 0) {
-                return AjaxResult.error("连接名称已经存在,请换一个！");
-            }
-            DataSourceFactory.saveDataSource(model);
-            dbSourceService.addDbSource(model, null);
             log.info("Successful Add  DbSources ");
+            dbSourceService.addDbSource(model, null);
             return AjaxResult.success();
         } catch (Exception e) {
             e.printStackTrace();
@@ -155,9 +149,7 @@ public class DataSourceManagerController {
     @ResponseBody
     public AjaxResult deleteDataSource(@PathVariable String id) {
         try {
-            DataSourceModel model = dbSourceService.delDbSource(id);
-            DataSourceFactory.removeDataSource(model.getDbName());
-            teamSourceService.deleteResourceByResIds(Collections.singletonList(Long.valueOf(id)), "DATASOURCE");
+            dbSourceService.deleteDataBaseSource(Long.valueOf(id));
             return AjaxResult.success();
         } catch (Exception e) {
             e.printStackTrace();

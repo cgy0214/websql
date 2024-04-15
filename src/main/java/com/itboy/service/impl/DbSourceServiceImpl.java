@@ -1,5 +1,6 @@
 package com.itboy.service.impl;
 
+import cn.hutool.core.codec.Base64Encoder;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.text.StrFormatter;
@@ -112,12 +113,12 @@ public class DbSourceServiceImpl implements DbSourceService {
     }
 
     @Override
-    public DataSourceModel delDbSource(String id) {
-        Long ids = Long.valueOf(id);
+    public void deleteDataBaseSource(Long id) {
         CacheUtils.remove("data_source_model");
-        Optional<DataSourceModel> model = dbSourceRepository.findById(ids);
-        dbSourceRepository.deleteById(ids);
-        return model.get();
+        DataSourceModel dataSourceModel = dbSourceRepository.selectById(id);
+        dbSourceRepository.deleteById(id);
+        DataSourceFactory.removeDataSource(dataSourceModel.getDbName());
+        teamSourceService.deleteResourceByResIds(Collections.singletonList(Long.valueOf(id)), "DATASOURCE");
     }
 
     @Override
@@ -132,7 +133,6 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public void deleteSqlText(String id) {
-        CacheUtils.remove("sql_text_model");
         dbSqlTextRepository.delsqlText(Integer.valueOf(id));
     }
 
@@ -225,7 +225,7 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public AjaxResult executeSqlNew(ExecuteSql sql) {
-        SysLog log = new SysLog("sql执行记录", "1", sql.getDataBaseName(), sql.getSqlText(), StpUtils.getUserExtName(), DateUtil.now());
+        SysLog log = new SysLog("sql执行记录", "1", sql.getDataBaseName(), Base64Encoder.encode(sql.getSqlText()), StpUtils.getUserExtName(), DateUtil.now());
         try {
             List<SqlParserVo> parserVoList = SqlParserHandler.getParserVo(sql.getDataBaseName(), sql.getSqlText());
             if (parserVoList.isEmpty()) {
@@ -277,6 +277,14 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public void addDbSource(DataSourceModel model, Long teamId) {
+        if (selectDbByName(model.getDbName()) > 0) {
+            throw new RuntimeException("数据源名称已经存在,请换一个!");
+        }
+        try {
+            DataSourceFactory.saveDataSource(model);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         CacheUtils.remove("data_source_model");
         if (ObjectUtil.isNotEmpty(model.getDbPassword())) {
             String encrypt = PasswordUtil.encrypt(model.getDbPassword());
@@ -328,32 +336,27 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Override
     public void saveSqlText(DbSqlText model) {
         model.setSqlCreateUser(StpUtils.getCurrentUserName());
-        model.setTeamId(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId());
-        CacheUtils.remove("sql_text_model");
+        if (ObjectUtil.isNull(model.getTeamId())) {
+            model.setTeamId(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId());
+        }
         dbSqlTextRepository.save(model);
     }
 
     @Override
     public void sqlTextDeleteAll() {
-        CacheUtils.remove("sql_text_model");
         dbSqlTextRepository.deleteAll();
     }
 
     @Override
     public List<Map<String, String>> sqlTextList(DataSourceModel model) {
-        String key = "sql_text_model" + StpUtils.getCurrentActiveTeam().getId();
-        List<Map<String, String>> sqlTextModelList = CacheUtils.get(key, List.class);
-        if (ObjectUtil.isNull(sqlTextModelList)) {
-            sqlTextModelList = new ArrayList<>();
-            Long itemId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
-            List<DbSqlText> all = dbSqlTextRepository.findAll().stream().filter(s -> s.getTeamId().equals(itemId)).sorted(Comparator.comparing(DbSqlText::getId).reversed()).collect(Collectors.toList());
-            for (DbSqlText dbSqlText : all) {
-                Map<String, String> item = new HashMap<>(2);
-                item.put("code", dbSqlText.getSqlText());
-                item.put("value", dbSqlText.getTitle());
-                sqlTextModelList.add(item);
-            }
-            CacheUtils.put(key, sqlTextModelList);
+        List<Map<String, String>> sqlTextModelList = new ArrayList<>();
+        Long itemId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
+        List<DbSqlText> all = dbSqlTextRepository.findAll().stream().filter(s -> s.getTeamId().equals(itemId)).sorted(Comparator.comparing(DbSqlText::getId).reversed()).collect(Collectors.toList());
+        for (DbSqlText dbSqlText : all) {
+            Map<String, String> item = new HashMap<>(2);
+            item.put("code", dbSqlText.getSqlText());
+            item.put("value", dbSqlText.getTitle());
+            sqlTextModelList.add(item);
         }
         return sqlTextModelList;
     }
@@ -470,4 +473,19 @@ public class DbSourceServiceImpl implements DbSourceService {
         return dbSourceRepository.selectById(id);
     }
 
+    @Override
+    public List<DbSqlText> sqlTextListAll() {
+        return dbSqlTextRepository.findAll();
+    }
+
+    @Override
+    public void deleteDataSourceAll() {
+        List<DataSourceModel> all = dbSourceRepository.findAll();
+        for (DataSourceModel dataSourceModel : all) {
+            try {
+                deleteDataBaseSource(dataSourceModel.getId());
+            } catch (Exception ignored) {
+            }
+        }
+    }
 }

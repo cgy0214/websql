@@ -145,6 +145,7 @@
 <script th:src="@{/static/code/sql-formatter.min.cjs}"></script>
 <script th:src="@{/static/code/placeholder.js}"></script>
 <script th:src="@{/static/code/highlight.min.js}"></script>
+<script th:src="@{/static/base64.min.js}"></script>
 <script th:replace="~{tableSqlPageMeta}"></script>
 <script>
     layui.use(['jquery', 'layer', 'form', 'element', 'laySelect', 'table', 'dropdown', 'util', 'laytpl', 'code'], function () {
@@ -356,8 +357,9 @@
                 success: function (data, activeData) {
                 },
                 onselect: function (data) {
+                    data = Base64.decode(data);
                     let oldContent = editor.getValue();
-                    if (oldContent != "" || oldContent != null) {
+                    if (oldContent != null && oldContent.length > 0) {
                         data = oldContent + '\n' + data;
                     }
                     editor.setValue(data);
@@ -371,7 +373,7 @@
          * 保存SQL文本
          */
         form.on('submit(saveSqlText)', function (data) {
-            const sqlContent = editor.getValue().trim();
+            let sqlContent = editor.getValue().trim();
             if (sqlContent == "" || sqlContent == null) {
                 layer.msg("SQL语句为空，无需保存哦~", {icon: 2});
                 return false;
@@ -396,7 +398,7 @@
                     return false;
                 }
                 layer.close(index);
-                post(ctx + "sqlManager/saveSqlText", {'sqlText': sqlContent, 'title': data}, (res) => {
+                post(ctx + "sqlManager/saveSqlText", {'sqlText': Base64.encode(sqlContent), 'title': data}, (res) => {
                     layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, (res) => {
                         sqlTextSelect();
                     });
@@ -510,7 +512,7 @@
                 if (item.data instanceof Array) {
                     statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功返回【" + item.data.length + "】条数据呈现!";
                 }
-                if (typeof item.data  == 'string') {
+                if (typeof item.data == 'string') {
                     statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功返回【" + item.data + "】!";
                 }
                 let msg = "第[" + index + "]条SQL语句" + statusMsg + "<br>";
@@ -518,7 +520,7 @@
                 if (item.type === 1) {
                     continue;
                 }
-                if(item.status === 2){
+                if (item.status === 2) {
                     continue;
                 }
                 //渲染表格

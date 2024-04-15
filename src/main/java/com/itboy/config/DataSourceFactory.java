@@ -87,8 +87,13 @@ public class DataSourceFactory {
             ds.setBreakAfterAcquireFailure(true);
             ds.setConnectionErrorRetryAttempts(0);
             ds.setFailFast(true);
-            ds.init();
-            DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
+            try {
+                ds.init();
+                DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
+            } catch (Exception e) {
+                DruidDataSourceStatManager.removeDataSource(ds);
+                throw new RuntimeException(e);
+            }
         }
     }
 

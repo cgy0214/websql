@@ -1,5 +1,7 @@
 package com.itboy.task;
 
+import cn.hutool.core.codec.Base64Decoder;
+import cn.hutool.core.codec.Base64Encoder;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.cron.task.Task;
 import com.alibaba.fastjson.JSONObject;
@@ -57,7 +59,7 @@ public class JobExecuteFactory implements Task {
         JobLogs logs = new JobLogs();
         logs.setTeamId(vo.getTeamId());
         try {
-            String sql = vo.getSqlText();
+            String sql = Base64Decoder.decodeStr(vo.getSqlText());
             if (ObjectUtil.isEmpty(sql)) {
                 throw new NullPointerException("作业SQL为空");
             }
@@ -97,7 +99,7 @@ public class JobExecuteFactory implements Task {
                         Map<String, Object> result = JdbcUtils.updateTimers(vo.getSyncName(), itemSql, itemList, param);
                         logs.setTaskError((String) result.get("msg"));
                         logs.setTaskState(result.get("code") == "1" ? "执行成功" : "执行失败");
-                        logs.setTaskContent(itemSql);
+                        logs.setTaskContent(Base64Encoder.encode(itemSql));
                         logs.setTaskValue(itemList.toString());
                     }
                 }

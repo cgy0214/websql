@@ -13,11 +13,13 @@
             <div class="layui-form-item">
                 <label class="layui-form-label">名称:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="title" id="title" placeholder="请输入名称" class="layui-input" lay-affix="clear">
+                    <input type="text" name="title" id="title" placeholder="请输入名称" class="layui-input"
+                           lay-affix="clear">
                 </div>
                 <label class="layui-form-label">文本内容:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="sqlText" id="sqlText" placeholder="请输入文本内容" class="layui-input" lay-affix="clear">
+                    <input type="text" name="sqlText" id="sqlText" placeholder="请输入文本内容" class="layui-input"
+                           lay-affix="clear">
                 </div>
                 <div class="layui-input-normal">
                     <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit
@@ -36,6 +38,7 @@
 </form>
 </body>
 <script th:src="@{/static/layui.js}"></script>
+<script th:src="@{/static/base64.min.js}"></script>
 <script th:replace="~{base::ctx}"/>
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
@@ -75,10 +78,9 @@
             var data = obj.data;
             switch (obj.event) {
                 case 'view':
-                    let str = data.sqlText || "";
-                    const content = laytpl('<div style="margin: 20px;">{{= d.content}}</div>').render({
-                        content: util.unescape(str)
-                    });
+                    let str = Base64.decode(data.sqlText) || "";
+                    const content = laytpl('<div style="margin: 5px;"><pre class="layui-code">{{= d.content}}</pre></div>')
+                        .render({content: str});
                     openContent("查看SQL内容", content);
                     break;
                 case 'delete':
