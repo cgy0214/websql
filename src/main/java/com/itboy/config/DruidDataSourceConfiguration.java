@@ -98,8 +98,7 @@ public class DruidDataSourceConfiguration {
 
     @Bean
     public Slf4jLogFilter logFilter() {
-        Slf4jLogFilter filter = new Slf4jLogFilter();
-        return filter;
+        return new Slf4jLogFilter();
     }
 
 

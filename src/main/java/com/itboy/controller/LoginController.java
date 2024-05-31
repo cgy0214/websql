@@ -2,7 +2,6 @@ package com.itboy.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.codec.Base64Decoder;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
@@ -106,9 +105,10 @@ public class LoginController {
             CaptchaUtil.clear(request);
             return AjaxResult.error("验证码不正确!");
         }
-        if (DateUtil.date().getTime() - timestamp > 5000) {
+        //TODO 临时发包，需要改可以配置的超时时间。
+        /*if (DateUtil.date().getTime() - timestamp > 5000) {
             return AjaxResult.error("请求超时,请刷新页面重试!");
-        }
+        }*/
         String ip = IpUtil.getIpAddress(request);
         return loginService.login(userName.trim().toLowerCase(), password.trim().toLowerCase(), ip);
     }
