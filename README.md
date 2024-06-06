@@ -1,5 +1,5 @@
 
-<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v3.6</h1>
+<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v3.7</h1>
 <h4 align="center">websql 轻量级网页sql管理工具,在线执行SQL、ETL同步、动态多数据源、常用sql管理等众多功能，体积小开箱即用 ———简约而不简单</h4>
 <p align="center">
 	<a href="https://gitee.com/boy_0214/websql/stargazers"><img src="https://gitee.com/boy_0214/websql/badge/star.svg?theme=gvp"></a>
@@ -8,6 +8,7 @@
     <a href="https://maven.apache.org"><img src="https://img.shields.io/badge/maven-3.5+-e4ec27.svg"></a>
     <a href="https://gitee.com/boy_0214/websql/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL3.0-blue.svg"></a>
     <a href="https://websql.cgycms.cn"><img src="https://img.shields.io/badge/demo-%E6%BC%94%E7%A4%BA%E7%8E%AF%E5%A2%83-8A2BE2.svg"></a>
+    <a href="https://gitee.com/boy_0214/websql/wikis/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><img src="https://img.shields.io/badge/wiki-%E5%B8%AE%E5%8A%A9%E6%96%87%E6%A1%A3-16b777.svg"></a>
 </p>
 
 ---

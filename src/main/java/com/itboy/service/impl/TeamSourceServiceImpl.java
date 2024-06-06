@@ -234,4 +234,8 @@ public class TeamSourceServiceImpl implements TeamSourceService {
         teamResourceRepository.deleteResourceByResId(ids, type);
     }
 
+    @Override
+    public List<TeamSourceModel> selectTeamListAll() {
+        return teamSourceRepository.findAll();
+    }
 }

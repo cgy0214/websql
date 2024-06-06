@@ -50,7 +50,7 @@ public class JobLogs extends Pages {
 
     @Column
     @CreatedDate
-    @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private String executeDate;
 
     @Column
