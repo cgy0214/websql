@@ -122,7 +122,7 @@ public class SettingConfigController {
     @RequestMapping("/druidConsolePage")
     public ModelAndView druidConsolePage() {
         ModelAndView modelAndView = new ModelAndView("redirect:/druid");
-        if (!EnvBeanUtil.getBoolean("spring.h2.console.enabled")) {
+        if (!EnvBeanUtil.getBoolean("druid.login.enabled")) {
             modelAndView.setViewName("main");
             modelAndView.addObject("errorMsg", "抱歉，已关闭连接池控制台，请联系管理员修改启动配置!");
         }
