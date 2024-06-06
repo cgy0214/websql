@@ -1,5 +1,6 @@
 package com.itboy.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.itboy.model.AjaxResult;
 import com.itboy.model.JobLogs;
@@ -53,6 +54,9 @@ public class TimingController {
     @RequestMapping("/addTimingData")
     @ResponseBody
     public AjaxResult addTimingData(@RequestBody TimingVo model) {
+        if (StpUtil.hasRole("demo-admin")) {
+            return AjaxResult.error("抱歉,演示角色不允许创建作业任务!");
+        }
         if (ObjectUtil.isEmpty(model.getTitle())) {
             return AjaxResult.error("作业名称不能为空哦!");
         }
