@@ -11,7 +11,7 @@
     <artifactId>websql</artifactId>
     <version>3.7-Release</version>
     <name>webSql</name>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <description>webSql project for Spring Boot</description>
 
     <properties>
