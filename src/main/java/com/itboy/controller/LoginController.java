@@ -124,7 +124,7 @@ public class LoginController {
     @ResponseBody
     public AjaxResult updateUsers(@RequestBody SysUser sysUser) {
         if (StpUtil.hasRole("demo-admin")) {
-            return AjaxResult.error("抱歉,演示账号不允许修改个人信息!");
+            return AjaxResult.error("抱歉,演示角色不允许修改个人信息!");
         }
         return AjaxResult.success(loginService.updateUsers(sysUser));
     }
