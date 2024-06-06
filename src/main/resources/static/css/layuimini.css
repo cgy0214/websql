@@ -7,9 +7,7 @@
 }
 
 
-.layui-nav .menu-li > a > span  {
-    color: #999;
-}
+
 
 .layui-header > ul > .layui-nav-item.layui-this, .layuimini-tool i:hover {
     background-color: #197971 !important;

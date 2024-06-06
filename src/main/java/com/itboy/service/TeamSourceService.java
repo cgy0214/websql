@@ -44,4 +44,6 @@ public interface TeamSourceService {
 
     void deleteResourceByResIds(List<Long> ids, String type);
 
+    List<TeamSourceModel> selectTeamListAll();
+
 }
