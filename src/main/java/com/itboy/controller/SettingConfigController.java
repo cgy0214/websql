@@ -2,6 +2,7 @@ package com.itboy.controller;
 
 import cn.hutool.core.codec.Base64Decoder;
 import cn.hutool.core.codec.Base64Encoder;
+import cn.hutool.core.comparator.VersionComparator;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -114,7 +115,7 @@ public class SettingConfigController {
         ModelAndView modelAndView = new ModelAndView("redirect:/h2-console");
         if (!EnvBeanUtil.getBoolean("spring.h2.console.enabled")) {
             modelAndView.setViewName("main");
-            modelAndView.addObject("errorMsg", "抱歉，已关闭数据库控制台，请联系管理员修改启动配置!");
+            modelAndView.addObject("errorMsg", "已关闭数据库控制台，请查看帮助手册修改开启!");
         }
         return modelAndView;
     }
@@ -122,9 +123,9 @@ public class SettingConfigController {
     @RequestMapping("/druidConsolePage")
     public ModelAndView druidConsolePage() {
         ModelAndView modelAndView = new ModelAndView("redirect:/druid");
-        if (!EnvBeanUtil.getBoolean("spring.h2.console.enabled")) {
+        if (!EnvBeanUtil.getBoolean("druid.login.enabled")) {
             modelAndView.setViewName("main");
-            modelAndView.addObject("errorMsg", "抱歉，已关闭连接池控制台，请联系管理员修改启动配置!");
+            modelAndView.addObject("errorMsg", "已关闭连接池控制台，请查看帮助手册修改开启!");
         }
         return modelAndView;
     }
@@ -368,13 +369,56 @@ public class SettingConfigController {
         List<Map<String, Object>> resultList = new ArrayList<>(dataSourceModels.size());
         for (DbSqlText sqlText : dataSourceModels) {
             Map<String, Object> item = new HashMap<>(10);
-            item.put("title", sqlText.getTitle());
-            item.put("content", sqlText.getSqlText());
+            item.put("title", Base64Encoder.encode(sqlText.getTitle()));
+            item.put("content", Base64Encoder.encode(sqlText.getSqlText()));
             item.put("teamId", sqlText.getTeamId());
             item.put("version", examineVersionFactory.getVersionModel().getLocalVersion());
             resultList.add(item);
         }
         String fileName = "webSql_SqlTextSource.json";
+        Path tempFile = Files.createTempFile(fileName, "");
+        try {
+            Files.write(tempFile, JSONUtil.toJsonStr(resultList).getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(tempFile));
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(Files.size(tempFile))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(resource);
+    }
+
+    @GetMapping("/downloadTeamJson")
+    public ResponseEntity downloadTeamJson() throws IOException {
+        List<TeamSourceModel> teamSourceModelList = teamSourceService.selectTeamListAll();
+        if (teamSourceModelList.isEmpty()) {
+            return ResponseEntity.ok("团队信息没有数据，无法导出!");
+        }
+        if (teamSourceModelList.size() == 1) {
+            TeamSourceModel teamSourceModel = teamSourceModelList.get(0);
+            if (teamSourceModel.getId() == 1 && "Default".equals(teamSourceModel.getTeamName())) {
+                return ResponseEntity.ok("您只有一个默认团队,不需要导出备份!");
+            }
+        }
+        List<Map<String, Object>> resultList = new ArrayList<>(teamSourceModelList.size());
+        for (TeamSourceModel team : teamSourceModelList) {
+            if (team.getId() == 1 && "Default".equals(team.getTeamName())) {
+                continue;
+            }
+            Map<String, Object> item = new HashMap<>(10);
+            item.put("userId", team.getUserId());
+            item.put("teamName", Base64Encoder.encode(team.getTeamName()));
+            item.put("description", Base64Encoder.encode(team.getDescription()));
+            item.put("state", team.getState());
+            item.put("id", team.getId());
+            item.put("version", examineVersionFactory.getVersionModel().getLocalVersion());
+            resultList.add(item);
+        }
+        String fileName = "webSql_TeamDataSource.json";
         Path tempFile = Files.createTempFile(fileName, "");
         try {
             Files.write(tempFile, JSONUtil.toJsonStr(resultList).getBytes());
@@ -466,8 +510,8 @@ public class SettingConfigController {
                 Map<String, Object> map = (Map<String, Object>) object;
                 DbSqlText dbSqlText = new DbSqlText();
                 dbSqlText.setSqlCreateDate(DateUtil.now());
-                dbSqlText.setSqlText(MapUtil.getStr(map, "content"));
-                dbSqlText.setTitle(MapUtil.getStr(map, "title"));
+                dbSqlText.setSqlText(Base64Decoder.decodeStr(MapUtil.getStr(map, "content")));
+                dbSqlText.setTitle(Base64Decoder.decodeStr(MapUtil.getStr(map, "title")));
                 List<TeamSourceModel> teamSourceModels = teamSourceService.queryTeamByIds(Arrays.asList(MapUtil.getLong(map, "taemId")));
                 //导入的历史团队id不存在，将赋值给当前选中的团队。
                 if (!teamSourceModels.isEmpty()) {
@@ -481,6 +525,48 @@ public class SettingConfigController {
             return AjaxResult.error("导入失败!" + e.getMessage());
         }
     }
+
+    /**
+     * 上传团队信息
+     *
+     * @param file
+     * @return
+     */
+    @PostMapping("/uploadTeamJson")
+    @ResponseBody
+    public AjaxResult uploadTeamJson(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return AjaxResult.error("没有解析出文件!");
+        }
+        try {
+            JSONArray dataSourceJson = JSONUtil.parseArray(new String(file.getBytes(), StandardCharsets.UTF_8));
+            if (dataSourceJson.isEmpty()) {
+                return AjaxResult.error("没有解析出json数据，请检查！");
+            }
+            for (Object object : dataSourceJson) {
+                Map<String, Object> map = (Map<String, Object>) object;
+                int compare = VersionComparator.INSTANCE.compare(MapUtil.getStr(map, "version"), "v3.7");
+                if (compare < 0) {
+                    throw new RuntimeException("您的版本小于V3.7不兼容,无法导入团队信息！");
+                }
+                TeamSourceModel teamSourceModel = new TeamSourceModel();
+                teamSourceModel.setTeamName(Base64Decoder.decodeStr(MapUtil.getStr(map, "teamName")));
+                teamSourceModel.setUserId(MapUtil.getLong(map, "userId"));
+                teamSourceModel.setDescription(Base64Decoder.decodeStr(MapUtil.getStr(map, "description")));
+                teamSourceModel.setState(MapUtil.getInt(map, "state"));
+                teamSourceModel.setId(MapUtil.getLong(map, "id"));
+                AjaxResult ajaxResult = teamSourceService.addTeamSource(teamSourceModel);
+                if (!ajaxResult.getCode().equals(200)) {
+                    return ajaxResult;
+                }
+            }
+            return AjaxResult.success("共导入" + dataSourceJson.size() + "条数据!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return AjaxResult.error("导入失败!" + e.getMessage());
+        }
+    }
+
 
     /**
      * 删除所有数据源

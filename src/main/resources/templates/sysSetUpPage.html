@@ -213,6 +213,21 @@
                                         <i class="layui-icon layui-icon-refresh"> </i>重建数据源连接池
                                     </button>
                                 </div>
+
+                                <div class="layui-input-inline">
+                                    <button type="button" class="layui-btn" id="upload-teamData" lay-on="tips-right11"
+                                            lay-options="{accept: 'file'}">
+                                        <i class="layui-icon layui-icon-upload"></i>
+                                        导入团队信息1
+                                    </button>
+                                </div>
+                                <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-blue"
+                                            onclick="downloadFile('settingManager/downloadTeamJson');return false;">
+                                        <i class="layui-icon layui-icon-download-circle"> </i>导出团队信息
+                                    </button>
+                                </div>
+
                             </div>
 
                             <div class="layui-form-item">
@@ -221,7 +236,7 @@
                                             lay-on="tips-right10"
                                             lay-options="{accept: 'file'}">
                                         <i class="layui-icon layui-icon-upload"></i>
-                                        导入数据源信息
+                                        导入数据源信息2
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
@@ -235,7 +250,7 @@
                                     <button type="button" class="layui-btn" id="upload-sqlText" lay-on="tips-right11"
                                             lay-options="{accept: 'file'}">
                                         <i class="layui-icon layui-icon-upload"></i>
-                                        导入SQL文本信息
+                                        导入SQL文本信息3
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
@@ -332,6 +347,20 @@
         upload.render({
             elem: '#upload-sqlText',
             url: ctx + 'settingManager/uploadSqlTextJson',
+            exts: 'json',
+            dataType: 'json',
+            done: function (res) {
+                layer.alert(res.msg, {icon: res.code === 200 ? 1 : 2});
+            }, error: function (index, upload) {
+                layer.msg("上传失败,请重试!", {icon: 2});
+                console.log(index, upload);
+            }
+        });
+
+        //上传sql文本信息初始化
+        upload.render({
+            elem: '#upload-teamData',
+            url: ctx + 'settingManager/uploadTeamJson',
             exts: 'json',
             dataType: 'json',
             done: function (res) {

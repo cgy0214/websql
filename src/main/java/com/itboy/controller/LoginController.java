@@ -106,8 +106,8 @@ public class LoginController {
             CaptchaUtil.clear(request);
             return AjaxResult.error("验证码不正确!");
         }
-        if (DateUtil.date().getTime() - timestamp > 5000) {
-            return AjaxResult.error("请求超时,请刷新页面重试!");
+        if (DateUtil.date().getTime() - timestamp > Integer.parseInt(EnvBeanUtil.getString("login-captcha-timeout"))) {
+            return AjaxResult.error("请求超时,请刷新页面重新登录!");
         }
         String ip = IpUtil.getIpAddress(request);
         return loginService.login(userName.trim().toLowerCase(), password.trim().toLowerCase(), ip);
@@ -124,7 +124,7 @@ public class LoginController {
     @ResponseBody
     public AjaxResult updateUsers(@RequestBody SysUser sysUser) {
         if (StpUtil.hasRole("demo-admin")) {
-            return AjaxResult.error("抱歉,演示账号不允许修改个人信息!");
+            return AjaxResult.error("抱歉,演示角色不允许修改个人信息!");
         }
         return AjaxResult.success(loginService.updateUsers(sysUser));
     }
