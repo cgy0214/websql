@@ -67,4 +67,8 @@ public interface DbSourceService {
     List<DbSqlText> sqlTextListAll();
 
     void deleteDataSourceAll();
+
+    AjaxResult asyncExportExcel(ExecuteSql executeSql);
+
+    AjaxResult exportAsyncData(Long id);
 }

@@ -183,4 +183,34 @@ public class SqlManagerController {
         }
         return dbSourceService.showTableSql(database, table);
     }
+
+    /**
+     * 异步导出excel文件
+     *
+     * @param sql 查询对象
+     * @return
+     */
+    @RequestMapping("/createAsyncExport")
+    @ResponseBody
+    public AjaxResult asyncExportExcel(@RequestBody ExecuteSql sql) {
+        if (ObjectUtil.isEmpty(sql.getDataBaseName()) || ObjectUtil.isEmpty(sql.getSqlText())) {
+            return AjaxResult.error("请选择数据源或编写SQL!");
+        }
+        return dbSourceService.asyncExportExcel(sql);
+    }
+
+    /**
+     * 异步导出excel文件
+     *
+     * @param id 查询对象
+     * @return
+     */
+    @RequestMapping("/exportAsyncData")
+    @ResponseBody
+    public AjaxResult exportAsyncData(@RequestParam Long id) {
+        if (ObjectUtil.isEmpty(id)) {
+            return AjaxResult.error("必填参数为空!");
+        }
+        return dbSourceService.exportAsyncData(id);
+    }
 }

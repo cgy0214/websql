@@ -1,11 +1,13 @@
 package com.itboy.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.codec.Base64Encoder;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.text.StrFormatter;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.http.HttpStatus;
 import com.alibaba.fastjson.JSON;
 import com.itboy.config.DataSourceFactory;
 import com.itboy.config.JdbcUtils;
@@ -19,6 +21,8 @@ import com.itboy.util.CacheUtils;
 import com.itboy.util.PasswordUtil;
 import com.itboy.util.StpUtils;
 import com.itboy.util.TableFieldSqlUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -30,6 +34,8 @@ import javax.persistence.criteria.Predicate;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +46,8 @@ import java.util.stream.Collectors;
  **/
 @Service
 public class DbSourceServiceImpl implements DbSourceService {
+
+    private static final Logger log = LoggerFactory.getLogger(DbSourceServiceImpl.class);
 
     @Resource
     private DbSourceRepository dbSourceRepository;
@@ -58,6 +66,9 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Resource
     private TeamSourceService teamSourceService;
+
+    @Resource
+    private SysExportLogRepository sysExportLogRepository;
 
 
     @Override
@@ -487,5 +498,53 @@ public class DbSourceServiceImpl implements DbSourceService {
             } catch (Exception ignored) {
             }
         }
+    }
+
+    @Override
+    public AjaxResult asyncExportExcel(ExecuteSql executeSql) {
+        SysExportModel sysExportModel = new SysExportModel();
+        BeanUtil.copyProperties(executeSql, sysExportModel);
+        sysExportModel.setUserId(StpUtils.getUserExtName());
+        sysExportModel.setBeginDate(DateUtil.date());
+        sysExportModel.setState("生成中");
+        sysExportLogRepository.save(sysExportModel);
+        Future<String> result = ThreadUtil.execAsync(() -> createExcel(executeSql,sysExportModel));
+        try {
+            return AjaxResult.success((Object) result.get(5, TimeUnit.SECONDS));
+        } catch (TimeoutException ignored) {
+            log.info("Async Export Start {}...", sysExportModel.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return AjaxResult.success(sysExportModel.getId());
+    }
+
+    @Override
+    public AjaxResult exportAsyncData(Long id) {
+        SysExportModel exportModel = sysExportLogRepository.getReferenceById(id);
+        if (ObjectUtil.isNull(exportModel) || ObjectUtil.isEmpty(exportModel.getFiles())) {
+            return AjaxResult.error("数据文件生成中，请稍等!");
+        }
+        return AjaxResult.success((Object) exportModel.getFiles());
+    }
+
+    private String createExcel(ExecuteSql executeSql,SysExportModel sysExportModel) {
+        try{
+            AjaxResult ajaxResult = executeSqlNew(executeSql);
+            Integer code = ajaxResult.getCode();
+            if(!ObjectUtil.equal(HttpStatus.HTTP_OK,code)){
+
+            }
+        }catch (Exception e){
+            sysExportModel.setMessage(e.getMessage());
+            sysExportModel.setState("失败");
+        }finally {
+            sysExportModel.setMessage("");
+            sysExportModel.setFiles(null);
+            sysExportModel.setState("已完成");
+            sysExportModel.setEndDate(DateUtil.date());
+            sysExportLogRepository.save(sysExportModel);
+        }
+        return "";
     }
 }
