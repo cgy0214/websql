@@ -8,7 +8,10 @@ import cn.hutool.core.text.StrFormatter;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.http.HttpStatus;
+import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.itboy.config.DataSourceFactory;
 import com.itboy.config.JdbcUtils;
 import com.itboy.config.SqlDruidParser;
@@ -27,6 +30,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.Path;
@@ -508,12 +513,20 @@ public class DbSourceServiceImpl implements DbSourceService {
         sysExportModel.setBeginDate(DateUtil.date());
         sysExportModel.setState("生成中");
         sysExportLogRepository.save(sysExportModel);
-        Future<String> result = ThreadUtil.execAsync(() -> createExcel(executeSql,sysExportModel));
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        Future<String> result = ThreadUtil.execAsync(() -> {
+            RequestContextHolder.setRequestAttributes(requestAttributes);
+            String excel = createExcel(executeSql, sysExportModel);
+            RequestContextHolder.resetRequestAttributes();
+            return excel;
+        });
         try {
             return AjaxResult.success((Object) result.get(5, TimeUnit.SECONDS));
-        } catch (TimeoutException ignored) {
+        } catch (
+                TimeoutException ignored) {
             log.info("Async Export Start {}...", sysExportModel.getId());
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             e.printStackTrace();
         }
         return AjaxResult.success(sysExportModel.getId());
@@ -528,17 +541,52 @@ public class DbSourceServiceImpl implements DbSourceService {
         return AjaxResult.success((Object) exportModel.getFiles());
     }
 
-    private String createExcel(ExecuteSql executeSql,SysExportModel sysExportModel) {
-        try{
+    private String createExcel(ExecuteSql executeSql, SysExportModel sysExportModel) {
+        try {
             AjaxResult ajaxResult = executeSqlNew(executeSql);
             Integer code = ajaxResult.getCode();
-            if(!ObjectUtil.equal(HttpStatus.HTTP_OK,code)){
-
+            if (!ObjectUtil.equal(HttpStatus.HTTP_OK, code)) {
+                throw new RuntimeException("执行SQL获取数据时出现错误." + ajaxResult.getMsg());
             }
-        }catch (Exception e){
+            List<SqlExecuteResultVo> dataList = (List<SqlExecuteResultVo>) ajaxResult.getData();
+            List<Map<String, Object>> exportTaskSheet = new ArrayList<>();
+            int index = 1;
+            for (SqlExecuteResultVo sqlExecuteResultVo : dataList) {
+                if (sqlExecuteResultVo.getStatus() == 1) {
+                    JSONArray itemArray = (JSONArray) sqlExecuteResultVo.getData();
+                    List<List<String>> headList = new ArrayList<>();
+                    Set<String> headSet = itemArray.getJSONObject(0).keySet();
+                    for (String name : headSet) {
+                        headList.add(Collections.singletonList(name));
+                    }
+                    List<List<Object>> sheetDataList = new ArrayList<>(itemArray.size());
+                    for (Object object : itemArray) {
+                        List<Object> col = new ArrayList<>();
+                        JSONObject item = (JSONObject) object;
+                        item.forEach((k, v) -> col.add(v));
+                        sheetDataList.add(col);
+                    }
+                    Map<String, Object> task = new HashMap<>();
+                    task.put("headList", headList);
+                    task.put("sheetDataList", sheetDataList);
+                    task.put("name", "结果集" + index);
+                    index++;
+                    exportTaskSheet.add(task);
+                }
+            }
+            //TODO 需要多sheet处理, 先demo测试
+            for (Map<String, Object> param : exportTaskSheet) {
+                EasyExcel.write("test\\test.xlsx")
+                        .head((List<List<String>>) param.get("headList"))
+                        .sheet(param.get("name").toString())
+                        .doWrite((List<List<String>>) param.get("sheetDataList"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
             sysExportModel.setMessage(e.getMessage());
             sysExportModel.setState("失败");
-        }finally {
+        } finally {
             sysExportModel.setMessage("");
             sysExportModel.setFiles(null);
             sysExportModel.setState("已完成");
