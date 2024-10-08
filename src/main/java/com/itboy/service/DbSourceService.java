@@ -68,7 +68,7 @@ public interface DbSourceService {
 
     void deleteDataSourceAll();
 
-    AjaxResult asyncExportExcel(ExecuteSql executeSql);
+    Map<String, Object> createAsyncExport(ExecuteSql executeSql);
 
-    AjaxResult exportAsyncData(Long id);
+    SysExportModel exportAsyncData(Long id);
 }

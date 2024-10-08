@@ -101,6 +101,10 @@
                         lay-filter="saveSqlText">
                     <i class="layui-icon layui-icon-add-1">&nbsp;</i>保存F9
                 </button>
+                <button id="exportExcel" class="layui-btn layui-btn-primary layui-border-red" lay-submit
+                        lay-filter="exportExcel">
+                    <i class="layui-icon layui-icon-export">&nbsp;</i>全部导出
+                </button>
                 <button id="showSqlDiv" class="layui-btn layui-btn-primary layui-border-purple" lay-submit
                         lay-filter="showSqlDiv">
                     <i class="layui-icon layui-icon-up">&nbsp;</i>收起
@@ -576,6 +580,81 @@
             return false;
         }
 
+
+        /**
+         * 发起导出申请，查询结果的数据导出excel
+         */
+        form.on('submit(exportExcel)', function (data) {
+            if(elementTabCount.length===0){
+                layer.msg("请执行查询，呈现结果后再导出数据!", {icon: 2});
+                return false;
+            }
+            if (activeDataSource === "" || activeDataSource == null) {
+                layer.msg("您修改数据源后请重新查询~", {icon: 2});
+                return false;
+            }
+            let sqlContent = editor.getValue().trim();
+            if (sqlContent === "" || sqlContent == null) {
+                layer.msg("您修改SQL后请重新查询~", {icon: 2});
+                return false;
+            }
+            let pitchTxt = editor.getSelection();
+            if (pitchTxt.length !== 0) {
+                sqlContent = pitchTxt;
+            }
+            post(ctx + "sqlManager/createAsyncExport", {'dataBaseName': activeDataSource, 'sqlText': sqlContent}, (res) => {
+                if (!res) {
+                    layer.msg("导出失败.", {icon: 2});
+                    return false;
+                }
+                if (res.code !== 200) {
+                    layer.msg(res.msg, {icon: 2});
+                    return false;
+                }
+                var async = res.data.async;
+                var id = res.data.id;
+                if(!async){
+                    if (pageVisibility === 'hidden') {
+                        sendNotification("文件导出中,请查看浏览器下载记录~");
+                    }
+                    window.open("/sqlManager/downloadExcelFile?id="+id);
+                }else{
+                    layer.msg("生成文件中请不要关闭页面,结束会自动下载!", {icon: 1,time:3000}, () => {
+                        downloadExcel(id);
+                    });
+                }
+            });
+            return false;
+        });
+
+        /**
+         * 异步导出文件，轮询检查是否完成
+         * @param id
+         */
+        function downloadExcel(id){
+            var finalId = id;
+            post(ctx + "sqlManager/queryExportData?id="+id,null, (res) => {
+                if (!res) {
+                    layer.msg("导出失败.", {icon: 2});
+                    return false;
+                }
+                if (res.code === 500 && res.msg==="导出中") {
+                    console.info("别着急,还在生产excel..."+finalId);
+                    setTimeout(() => downloadExcel(finalId), 2000);
+                    return false;
+                }
+                if(res.code !==200){
+                    layer.msg(res.msg, {icon: 2});
+                    return false;
+                }
+                var id = res.data.id;
+                if (pageVisibility === 'hidden') {
+                    sendNotification("文件导出中,请查看浏览器下载记录~");
+                }
+                window.open("/sqlManager/downloadExcelFile?id="+id);
+            });
+        }
+
         /**
          * 分页btn 增加返回顶部
          */
@@ -618,7 +697,7 @@
                             layer.alert(util.escape(JSON.stringify({data})));
                             return false;
                         }
-                        //TODO 待处理拼接，暂时无法应对多条sql执行
+                        // 待处理拼接，暂时无法应对多条sql执行
                         if (menuData.id === "insert") {
                             layer.alert("insert into " + res.tableNameList + " values.....");
                             return false;

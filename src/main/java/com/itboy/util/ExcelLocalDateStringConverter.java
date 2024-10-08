@@ -1,5 +1,7 @@
 package com.itboy.util;
 
+
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.excel.converters.Converter;
 import com.alibaba.excel.enums.CellDataTypeEnum;
 import com.alibaba.excel.metadata.GlobalConfiguration;
@@ -8,9 +10,14 @@ import com.alibaba.excel.metadata.property.ExcelContentProperty;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.Date;
 
-public class ExcelLocalDateStringConverter implements Converter<LocalDate> {
+/**
+ * @ClassName ExcelLocalDateStringConverter
+ * @Description excel 日期格式转换
+ * @Author 超 boy_0214@sina.com
+ * @Date 2024/10/08  12:34
+ **/
+public class ExcelLocalDateStringConverter implements Converter<Timestamp> {
 
     @Override
     public Class<?> supportJavaTypeKey() {
@@ -22,11 +29,13 @@ public class ExcelLocalDateStringConverter implements Converter<LocalDate> {
         return CellDataTypeEnum.STRING;
     }
 
+
     @Override
-    public WriteCellData<?> convertToExcelData(LocalDate value, ExcelContentProperty contentProperty, GlobalConfiguration globalConfiguration) throws Exception {
-
-
-        return new WriteCellData<>(value.toString());
+    public WriteCellData<LocalDate> convertToExcelData(Timestamp value, ExcelContentProperty contentProperty, GlobalConfiguration globalConfiguration) throws Exception {
+        if (value == null) {
+            return null;
+        }
+        return new WriteCellData(DateUtil.format(value, "yyyy-MM-dd HH:mm:ss"));
     }
 
 

@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.codec.Base64Encoder;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.StrFormatter;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -36,11 +37,10 @@ import org.springframework.web.context.request.RequestContextHolder;
 import javax.annotation.Resource;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
+import java.io.File;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -246,6 +246,12 @@ public class DbSourceServiceImpl implements DbSourceService {
             List<SqlParserVo> parserVoList = SqlParserHandler.getParserVo(sql.getDataBaseName(), sql.getSqlText());
             if (parserVoList.isEmpty()) {
                 return AjaxResult.error("解析SQL失败,返回为空请重试!");
+            }
+            if (sql.isExport()) {
+                long count = parserVoList.stream().map(SqlParserVo::getMethodType).filter(s -> !s.equals("SELECT")).count();
+                if (count > 0) {
+                    return AjaxResult.error("导出数据时,不支持非查询语句执行!");
+                }
             }
             List<SqlExecuteResultVo> resultVos = new ArrayList<>(parserVoList.size());
             for (SqlParserVo sqlParserVo : parserVoList) {
@@ -506,43 +512,49 @@ public class DbSourceServiceImpl implements DbSourceService {
     }
 
     @Override
-    public AjaxResult asyncExportExcel(ExecuteSql executeSql) {
+    public Map<String, Object> createAsyncExport(ExecuteSql executeSql) {
         SysExportModel sysExportModel = new SysExportModel();
         BeanUtil.copyProperties(executeSql, sysExportModel);
         sysExportModel.setUserId(StpUtils.getUserExtName());
         sysExportModel.setBeginDate(DateUtil.date());
-        sysExportModel.setState("生成中");
+        sysExportModel.setState("导出中");
         sysExportLogRepository.save(sysExportModel);
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-        Future<String> result = ThreadUtil.execAsync(() -> {
-            RequestContextHolder.setRequestAttributes(requestAttributes);
-            String excel = createExcel(executeSql, sysExportModel);
-            RequestContextHolder.resetRequestAttributes();
-            return excel;
-        });
-        try {
-            return AjaxResult.success((Object) result.get(5, TimeUnit.SECONDS));
-        } catch (
-                TimeoutException ignored) {
-            log.info("Async Export Start {}...", sysExportModel.getId());
-        } catch (
-                Exception e) {
-            e.printStackTrace();
+        Boolean async = EnvBeanUtil.getBoolean("export.config.async");
+        Map<String, Object> resultMap = new HashMap<>(2);
+        resultMap.put("async", async);
+        resultMap.put("id", sysExportModel.getId());
+        resultMap.put("date", sysExportModel.getBeginDate());
+        if (async) {
+            ThreadUtil.execAsync(() -> {
+                ThreadUtil.sleep(10000);
+                RequestContextHolder.setRequestAttributes(requestAttributes);
+                String excel = createExcel(executeSql, sysExportModel, async);
+                RequestContextHolder.resetRequestAttributes();
+                return excel;
+            });
+            return resultMap;
         }
-        return AjaxResult.success(sysExportModel.getId());
+        String path = createExcel(executeSql, sysExportModel, async);
+        resultMap.put("path", path);
+        return resultMap;
     }
 
     @Override
-    public AjaxResult exportAsyncData(Long id) {
-        SysExportModel exportModel = sysExportLogRepository.getReferenceById(id);
-        if (ObjectUtil.isNull(exportModel) || ObjectUtil.isEmpty(exportModel.getFiles())) {
-            return AjaxResult.error("数据文件生成中，请稍等!");
-        }
-        return AjaxResult.success((Object) exportModel.getFiles());
+    public SysExportModel exportAsyncData(Long id) {
+        return sysExportLogRepository.selectById(id);
     }
 
-    private String createExcel(ExecuteSql executeSql, SysExportModel sysExportModel) {
+    /**
+     * 创建多sheet文件并存放本地目录
+     *
+     * @param executeSql
+     * @param sysExportModel
+     * @return
+     */
+    private String createExcel(ExecuteSql executeSql, SysExportModel sysExportModel, Boolean async) {
         try {
+            executeSql.setExport(true);
             AjaxResult ajaxResult = executeSqlNew(executeSql);
             Integer code = ajaxResult.getCode();
             if (!ObjectUtil.equal(HttpStatus.HTTP_OK, code)) {
@@ -551,28 +563,31 @@ public class DbSourceServiceImpl implements DbSourceService {
             List<SqlExecuteResultVo> dataList = (List<SqlExecuteResultVo>) ajaxResult.getData();
             List<Map<String, Object>> exportTaskSheet = new ArrayList<>();
             for (SqlExecuteResultVo sqlExecuteResultVo : dataList) {
-                if (sqlExecuteResultVo.getStatus() == 1) {
+                if (sqlExecuteResultVo.getStatus() == 1 && sqlExecuteResultVo.getExecuteType().equals("SELECT")) {
                     JSONArray itemArray = (JSONArray) sqlExecuteResultVo.getData();
-                    List<List<String>> headList = new ArrayList<>();
                     Set<String> headSet = itemArray.getJSONObject(0).keySet();
-                    for (String name : headSet) {
-                        headList.add(Collections.singletonList(name));
-                    }
-                    List<List<Object>> sheetDataList = new ArrayList<>(itemArray.size());
-                    for (Object object : itemArray) {
-                        List<Object> col = new ArrayList<>();
-                        JSONObject item = (JSONObject) object;
-                        item.forEach((k, v) -> col.add(v));
-                        sheetDataList.add(col);
-                    }
+                    List<List<String>> headList = headSet.stream()
+                            .map(Collections::singletonList)
+                            .collect(Collectors.toList());
+                    List<List<Object>> sheetDataList = itemArray.stream()
+                            .map(item -> {
+                                List<Object> col = new ArrayList<>();
+                                ((JSONObject) item).forEach((k, v) -> col.add(v));
+                                return col;
+                            })
+                            .collect(Collectors.toList());
                     Map<String, Object> task = new HashMap<>();
                     task.put("headList", headList);
                     task.put("sheetDataList", sheetDataList);
                     exportTaskSheet.add(task);
                 }
             }
-            //TODO 多sheet处理, demo测试
-            String fileName = "\\excels\\sheet" + System.currentTimeMillis() + ".xlsx";
+            String filePath = EnvBeanUtil.getString("export.config.path");
+            if (ObjectUtil.isEmpty(filePath)) {
+                throw new RuntimeException("未配置文件存放路径，请检查export.config.path配置");
+            }
+            filePath = FileUtil.mkdir(System.getProperty("user.dir") + File.separator + filePath).getAbsolutePath() + File.separator;
+            String fileName = filePath + "导出结果" + System.currentTimeMillis() + ".xlsx";
             try (ExcelWriter excelWriter = EasyExcel.write(fileName).registerConverter(new ExcelLocalDateStringConverter()).registerWriteHandler(new LongestMatchColumnWidthStyleStrategy()).build()) {
                 for (int i = 0; i < exportTaskSheet.size(); i++) {
                     Map<String, Object> sheetDataMap = exportTaskSheet.get(i);
@@ -584,6 +599,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             sysExportModel.setFiles(fileName);
             sysExportModel.setMessage("共" + exportTaskSheet.size() + "个sheet页");
             sysExportModel.setState("完成");
+            return fileName;
         } catch (Exception e) {
             e.printStackTrace();
             sysExportModel.setMessage(e.getMessage());
@@ -593,6 +609,9 @@ public class DbSourceServiceImpl implements DbSourceService {
             sysExportModel.setEndDate(DateUtil.date());
             sysExportLogRepository.save(sysExportModel);
         }
-        return "";
+        if (!async) {
+            throw new RuntimeException(sysExportModel.getMessage());
+        }
+        return "error";
     }
 }
