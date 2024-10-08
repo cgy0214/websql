@@ -527,7 +527,6 @@ public class DbSourceServiceImpl implements DbSourceService {
         resultMap.put("date", sysExportModel.getBeginDate());
         if (async) {
             ThreadUtil.execAsync(() -> {
-                ThreadUtil.sleep(10000);
                 RequestContextHolder.setRequestAttributes(requestAttributes);
                 String excel = createExcel(executeSql, sysExportModel, async);
                 RequestContextHolder.resetRequestAttributes();
@@ -558,7 +557,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             AjaxResult ajaxResult = executeSqlNew(executeSql);
             Integer code = ajaxResult.getCode();
             if (!ObjectUtil.equal(HttpStatus.HTTP_OK, code)) {
-                throw new RuntimeException("执行SQL获取数据时出现错误." + ajaxResult.getMsg());
+                throw new RuntimeException(ajaxResult.getMsg());
             }
             List<SqlExecuteResultVo> dataList = (List<SqlExecuteResultVo>) ajaxResult.getData();
             List<Map<String, Object>> exportTaskSheet = new ArrayList<>();

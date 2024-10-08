@@ -585,10 +585,10 @@
          * 发起导出申请，查询结果的数据导出excel
          */
         form.on('submit(exportExcel)', function (data) {
-            if(elementTabCount.length===0){
-                layer.msg("请执行查询，呈现结果后再导出数据!", {icon: 2});
-                return false;
-            }
+            //if(elementTabCount.length===0){
+                //layer.msg("请执行查询，呈现结果后再导出数据!", {icon: 2});
+                //return false;
+            //}
             if (activeDataSource === "" || activeDataSource == null) {
                 layer.msg("您修改数据源后请重新查询~", {icon: 2});
                 return false;
@@ -608,7 +608,7 @@
                     return false;
                 }
                 if (res.code !== 200) {
-                    layer.msg(res.msg, {icon: 2});
+                    layer.msg(res.msg, {icon: 2,time:5000});
                     return false;
                 }
                 var async = res.data.async;
@@ -640,7 +640,7 @@
                 }
                 if (res.code === 500 && res.msg==="导出中") {
                     console.info("别着急,还在生产excel..."+finalId);
-                    setTimeout(() => downloadExcel(finalId), 2000);
+                    setTimeout(() => downloadExcel(finalId), 3000);
                     return false;
                 }
                 if(res.code !==200){

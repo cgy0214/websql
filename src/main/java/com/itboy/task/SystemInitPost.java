@@ -31,6 +31,9 @@ public class SystemInitPost {
     @Autowired
     private TimingService timingService;
 
+    @Autowired
+    private ExcelClearFactory excelClearFactory;
+
 
     /**
      * 初始化作业任务，需要依赖数据源加载完成后执行。
@@ -69,6 +72,14 @@ public class SystemInitPost {
     @PostConstruct
     void examineVersionFactory() {
         examineVersionFactory.run();
+    }
+
+    /**
+     * 加载需要清理的历史文件
+     */
+    @PostConstruct
+    void excelClearFactory() {
+        excelClearFactory.run();
     }
 
 }
