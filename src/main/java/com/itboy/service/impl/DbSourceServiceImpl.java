@@ -9,6 +9,9 @@ import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.http.HttpStatus;
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.write.metadata.WriteSheet;
+import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -20,10 +23,7 @@ import com.itboy.dao.*;
 import com.itboy.model.*;
 import com.itboy.service.DbSourceService;
 import com.itboy.service.TeamSourceService;
-import com.itboy.util.CacheUtils;
-import com.itboy.util.PasswordUtil;
-import com.itboy.util.StpUtils;
-import com.itboy.util.TableFieldSqlUtils;
+import com.itboy.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -550,7 +550,6 @@ public class DbSourceServiceImpl implements DbSourceService {
             }
             List<SqlExecuteResultVo> dataList = (List<SqlExecuteResultVo>) ajaxResult.getData();
             List<Map<String, Object>> exportTaskSheet = new ArrayList<>();
-            int index = 1;
             for (SqlExecuteResultVo sqlExecuteResultVo : dataList) {
                 if (sqlExecuteResultVo.getStatus() == 1) {
                     JSONArray itemArray = (JSONArray) sqlExecuteResultVo.getData();
@@ -569,27 +568,28 @@ public class DbSourceServiceImpl implements DbSourceService {
                     Map<String, Object> task = new HashMap<>();
                     task.put("headList", headList);
                     task.put("sheetDataList", sheetDataList);
-                    task.put("name", "结果集" + index);
-                    index++;
                     exportTaskSheet.add(task);
                 }
             }
-            //TODO 需要多sheet处理, 先demo测试
-            for (Map<String, Object> param : exportTaskSheet) {
-                EasyExcel.write("test\\test.xlsx")
-                        .head((List<List<String>>) param.get("headList"))
-                        .sheet(param.get("name").toString())
-                        .doWrite((List<List<String>>) param.get("sheetDataList"));
+            //TODO 多sheet处理, demo测试
+            String fileName = "\\excels\\sheet" + System.currentTimeMillis() + ".xlsx";
+            try (ExcelWriter excelWriter = EasyExcel.write(fileName).registerConverter(new ExcelLocalDateStringConverter()).registerWriteHandler(new LongestMatchColumnWidthStyleStrategy()).build()) {
+                for (int i = 0; i < exportTaskSheet.size(); i++) {
+                    Map<String, Object> sheetDataMap = exportTaskSheet.get(i);
+                    WriteSheet writeSheet = EasyExcel.writerSheet(i, "结果集" + (i + 1)).build();
+                    writeSheet.setHead((List<List<String>>) sheetDataMap.get("headList"));
+                    excelWriter.write((List<List<String>>) sheetDataMap.get("sheetDataList"), writeSheet);
+                }
             }
-
+            sysExportModel.setFiles(fileName);
+            sysExportModel.setMessage("共" + exportTaskSheet.size() + "个sheet页");
+            sysExportModel.setState("完成");
         } catch (Exception e) {
             e.printStackTrace();
             sysExportModel.setMessage(e.getMessage());
             sysExportModel.setState("失败");
-        } finally {
-            sysExportModel.setMessage("");
             sysExportModel.setFiles(null);
-            sysExportModel.setState("已完成");
+        } finally {
             sysExportModel.setEndDate(DateUtil.date());
             sysExportLogRepository.save(sysExportModel);
         }
