@@ -6,6 +6,7 @@ import cn.hutool.cron.task.Task;
 import com.itboy.dao.SysExportLogRepository;
 import com.itboy.model.SysExportModel;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -26,7 +27,13 @@ public class ExcelClearFactory implements Task {
     private SysExportLogRepository sysExportLogRepository;
 
 
+    @Value("${export.config.clear}")
+    private Boolean enabled;
+
     public void run() {
+        if (!enabled) {
+            return;
+        }
         execute();
         ScheduleUtils.addTask(20000L, "0 0 1 * * ?", this);
     }
@@ -36,7 +43,7 @@ public class ExcelClearFactory implements Task {
         try {
             List<SysExportModel> list = sysExportLogRepository.findAll();
             for (SysExportModel model : list) {
-                if(ObjectUtil.isNotEmpty(model.getFiles())){
+                if (ObjectUtil.isNotEmpty(model.getFiles())) {
                     FileUtil.del(model.getFiles());
                     sysExportLogRepository.delete(model);
                 }

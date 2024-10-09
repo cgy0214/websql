@@ -71,4 +71,6 @@ public interface DbSourceService {
     Map<String, Object> createAsyncExport(ExecuteSql executeSql);
 
     SysExportModel exportAsyncData(Long id);
+
+    Result<SysExportModel> exportFilesLogList(SysExportModel model);
 }

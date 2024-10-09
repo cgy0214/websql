@@ -12,7 +12,6 @@ import cn.hutool.http.HttpStatus;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
-import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -587,7 +586,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             }
             filePath = FileUtil.mkdir(System.getProperty("user.dir") + File.separator + filePath).getAbsolutePath() + File.separator;
             String fileName = filePath + "导出结果" + System.currentTimeMillis() + ".xlsx";
-            try (ExcelWriter excelWriter = EasyExcel.write(fileName).registerConverter(new ExcelLocalDateStringConverter()).registerWriteHandler(new LongestMatchColumnWidthStyleStrategy()).build()) {
+            try (ExcelWriter excelWriter = EasyExcel.write(fileName).registerConverter(new ExcelLocalDateStringConverter()).build()) {
                 for (int i = 0; i < exportTaskSheet.size(); i++) {
                     Map<String, Object> sheetDataMap = exportTaskSheet.get(i);
                     WriteSheet writeSheet = EasyExcel.writerSheet(i, "结果集" + (i + 1)).build();
@@ -612,5 +611,22 @@ public class DbSourceServiceImpl implements DbSourceService {
             throw new RuntimeException(sysExportModel.getMessage());
         }
         return "error";
+    }
+
+    @Override
+    public Result<SysExportModel> exportFilesLogList(SysExportModel model) {
+        Result<SysExportModel> result = new Result<>();
+        Specification<SysExportModel> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<Predicate>(3);
+            if (ObjectUtil.isNotEmpty(model.getState())) {
+                predicates.add(cb.like(root.get("state"), "%" + model.getState() + "%"));
+            }
+            query.orderBy(cb.desc(root.get("id")));
+            return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+        };
+        Page<SysExportModel> all = sysExportLogRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
+        result.setList(all.getContent());
+        result.setCount((int) all.getTotalElements());
+        return result;
     }
 }

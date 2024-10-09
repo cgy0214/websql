@@ -5,6 +5,7 @@ import com.alibaba.druid.DbType;
 import com.alibaba.druid.sql.PagerUtils;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLStatement;
+import com.alibaba.druid.sql.ast.statement.SQLSelectItem;
 import com.alibaba.druid.sql.ast.statement.SQLSelectQueryBlock;
 import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
 import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -103,11 +105,22 @@ public class SqlParserHandler {
      * @return
      */
     private static String pageLimitSql(SQLStatement sqlStatement) {
+        Pattern pattern = Pattern.compile("\\b(COUNT|SUM|AVG|MIN|MAX|GROUP)\\b", Pattern.CASE_INSENSITIVE);
         String sql = SQLUtils.toSQLString(sqlStatement, sqlStatement.getDbType());
         if (sqlStatement instanceof SQLSelectStatement) {
             SQLSelectStatement sqlSelectStatement = (SQLSelectStatement) sqlStatement;
             if (sqlSelectStatement.getSelect().getQuery() instanceof SQLSelectQueryBlock) {
                 SQLSelectQueryBlock sqlSelectQueryBlock = (SQLSelectQueryBlock) sqlSelectStatement.getSelect().getQuery();
+                // 聚合函数及分组不增加默认分页
+                for (SQLSelectItem sqlSelectItem : sqlSelectQueryBlock.getSelectList()) {
+                    String method = sqlSelectItem.getExpr().toString();
+                    if(pattern.matcher(method).find()){
+                        return sql;
+                    }
+                }
+                if(ObjectUtil.isNotNull(sqlSelectQueryBlock.getGroupBy())){
+                    return sql;
+                }
                 if (ObjectUtil.isNull(sqlSelectQueryBlock.getLimit()) && !sql.toUpperCase().contains("ROWNUM")) {
                     try {
                         Integer limitMax = 1000;

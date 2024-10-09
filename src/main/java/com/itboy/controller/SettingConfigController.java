@@ -19,7 +19,6 @@ import com.itboy.util.PasswordUtil;
 import com.itboy.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -64,8 +63,6 @@ public class SettingConfigController {
     @Autowired
     private DbSourceService dbSourceService;
 
-    @Autowired
-    private ConfigurableEnvironment environment;
 
     @RequestMapping("/userRolePage")
     public String userRolePage() {
@@ -87,6 +84,11 @@ public class SettingConfigController {
     @RequestMapping("/teamManagerPage")
     public String teamManagerPage() {
         return "teamListPage";
+    }
+
+    @RequestMapping("/exportLogPage")
+    public String timingAddPage() {
+        return "exportLogPage";
     }
 
     @RequestMapping("/showTeamResourcePage/{id}")
@@ -579,5 +581,17 @@ public class SettingConfigController {
         dbSourceService.deleteDataSourceAll();
         return AjaxResult.success();
     }
+
+    /***
+     * 加载导出日志列表
+     * @param model
+     * @return
+     */
+    @RequestMapping("/exportFilesLogList")
+    @ResponseBody
+    public AjaxResult exportFilesLogList(SysExportModel model) {
+        return AjaxResult.success(dbSourceService.exportFilesLogList(model));
+    }
+
 
 }

@@ -116,6 +116,12 @@
           "href": "settingManager/teamManagerPage"
         },
         {
+              "title": "导出管理",
+              "icon": "layui-icon layui-icon-export",
+              "target": "_self",
+              "href": "settingManager/exportLogPage"
+        },
+        {
           "title": "参数设置",
           "icon": "layui-icon layui-icon-set-fill",
           "target": "_self",

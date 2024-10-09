@@ -268,10 +268,10 @@ public class SqlManagerController {
             return AjaxResult.error("导出失败，请重试!" + model.getMessage());
         }
         if (ObjectUtil.isEmpty(model.getFiles())) {
-            return AjaxResult.error("没有找到文件存放地址，请重新生成!");
+            return AjaxResult.error("没有找到文件存放路径地址，请重新生成!");
         }
         if (!FileUtil.isFile(model.getFiles())) {
-            return AjaxResult.error("磁盘中不存在此文件，请重新生成!");
+            return AjaxResult.error("磁盘中已不存在，可能过期自动删除或文件丢失;请重新生成!");
         }
         return AjaxResult.success(model);
     }
