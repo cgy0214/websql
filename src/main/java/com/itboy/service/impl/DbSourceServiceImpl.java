@@ -585,7 +585,7 @@ public class DbSourceServiceImpl implements DbSourceService {
                 throw new RuntimeException("未配置文件存放路径，请检查export.config.path配置");
             }
             filePath = FileUtil.mkdir(System.getProperty("user.dir") + File.separator + filePath).getAbsolutePath() + File.separator;
-            String fileName = filePath + "导出结果" + System.currentTimeMillis() + ".xlsx";
+            String fileName = filePath + "exportData" + System.currentTimeMillis() + ".xlsx";
             try (ExcelWriter excelWriter = EasyExcel.write(fileName).registerConverter(new ExcelLocalDateStringConverter()).build()) {
                 for (int i = 0; i < exportTaskSheet.size(); i++) {
                     Map<String, Object> sheetDataMap = exportTaskSheet.get(i);
