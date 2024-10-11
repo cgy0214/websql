@@ -9,10 +9,11 @@
     </parent>
     <groupId>com.itboy.websql</groupId>
     <artifactId>websql</artifactId>
-    <version>3.7-Release</version>
+    <version>3.8.0</version>
     <name>webSql</name>
     <packaging>jar</packaging>
     <description>webSql project for Spring Boot</description>
+    <url>https://gitee.com/boy_0214/websql</url>
 
     <properties>
         <spring-boot.version>2.7.14</spring-boot.version>
@@ -34,6 +35,8 @@
         <jsch.version>0.1.55</jsch.version>
         <postgresql.version>42.7.3</postgresql.version>
         <odps.version>3.5.6</odps.version>
+        <easyexcel.version>4.0.3</easyexcel.version>
+        <commons-io.version>2.15.0</commons-io.version>
     </properties>
 
     <dependencies>
@@ -182,6 +185,19 @@
             <groupId>com.aliyun.odps</groupId>
             <artifactId>odps-jdbc</artifactId>
             <version>${odps.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>${easyexcel.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
         </dependency>
 
     </dependencies>

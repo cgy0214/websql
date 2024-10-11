@@ -25,4 +25,6 @@ public class ExecuteSql {
     @Transient
     private String sqlText;
 
+    private boolean isExport;
+
 }

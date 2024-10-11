@@ -67,4 +67,10 @@ public interface DbSourceService {
     List<DbSqlText> sqlTextListAll();
 
     void deleteDataSourceAll();
+
+    Map<String, Object> createAsyncExport(ExecuteSql executeSql);
+
+    SysExportModel exportAsyncData(Long id);
+
+    Result<SysExportModel> exportFilesLogList(SysExportModel model);
 }
