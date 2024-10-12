@@ -248,7 +248,7 @@
          */
         function getSelectTable(cm) {
             let table = cm.getSelection();
-            if (table.length === 0 || activeDataSource === null) {
+            if (table.length === 0 || activeDataSource === null || activeDataSource==='') {
                 throw '请选中表名且选中数据源后，在使用快捷键~';
             }
             return table;
@@ -258,6 +258,9 @@
          * 提示元数据
          */
         function hintMeta(cm) {
+            if (activeDataSource === null || activeDataSource==='') {
+                return false;
+            }
             post(ctx + "sqlManager/findMetaTable?database=" + activeDataSource + "&table=" + getSelectTable(cm), null, (res) => {
                 if (res.code != 200 || res.data === null) {
                     console.warn("无法提示元数据信息!" + res.msg);
@@ -299,6 +302,9 @@
          * @returns {boolean}
          */
         function showTableSql(cm) {
+            if (activeDataSource === null || activeDataSource==='') {
+                return false;
+            }
             post(ctx + "sqlManager/showTableSql?database=" + activeDataSource + "&table=" + getSelectTable(cm), null, (res) => {
                 if (res.code != 200 || res.data === null) {
                     console.warn("无法展示建表语句信息!" + res.msg);
@@ -334,6 +340,9 @@
          * 设置编辑器提示表名及字段功能
          */
         function editorHintSettings() {
+            if (activeDataSource === null || activeDataSource==='') {
+                return false;
+            }
             post(ctx + "sqlManager/findTableField?database=" + activeDataSource, null, (res) => {
                 if (res.code != 200 || res.data === null) {
                     console.warn("获取表名及字段失败,无法提供编辑器提示表名功能!" + res.msg);
