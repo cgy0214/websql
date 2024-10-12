@@ -100,7 +100,7 @@ public class TimingController {
             TimingVo vo = timingService.timingList(models).getList().get(0);
             switch (type) {
                 case 1:
-                    ScheduleUtils.removeTask(id);
+                    ScheduleUtils.removeTimingTask(id);
                     vo.setState("停用");
                     timingService.updateTiming(vo);
                     break;
@@ -116,7 +116,7 @@ public class TimingController {
                     break;
                 case 4:
                     timingService.delTiming(id);
-                    ScheduleUtils.removeTask(id);
+                    ScheduleUtils.removeTimingTask(id);
                     break;
                 case 5:
                     createJob(vo.getExecuteTime(), vo.getId(), vo.getTitle());
@@ -132,7 +132,7 @@ public class TimingController {
     }
 
     private void createJob(String cron, Long id, String JobName) throws Exception {
-        ScheduleUtils.removeTask(id);
+        ScheduleUtils.removeTimingTask(id);
         ScheduleUtils.addTimingTask(cron, id, JobName);
     }
 

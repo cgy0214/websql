@@ -9,7 +9,7 @@
     </parent>
     <groupId>com.itboy.websql</groupId>
     <artifactId>websql</artifactId>
-    <version>3.8.0</version>
+    <version>3.9.0</version>
     <name>webSql</name>
     <packaging>jar</packaging>
     <description>webSql project for Spring Boot</description>

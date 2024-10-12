@@ -74,6 +74,9 @@ public class TimingServiceImpl implements TimingService {
             if (ObjectUtil.isNotEmpty(model.getState())) {
                 predicates.add(cb.like(root.get("state"), "%" + model.getState() + "%"));
             }
+            if (ObjectUtil.isNotEmpty(model.getId())) {
+                predicates.add(cb.and(root.get("id").in(model.getId())));
+            }
             predicates.add(cb.and(root.get("teamId").in(teamId)));
             query.orderBy(cb.desc(root.get("id")));
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));

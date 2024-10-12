@@ -35,7 +35,7 @@ public class ExcelClearFactory implements Task {
             return;
         }
         execute();
-        ScheduleUtils.addTask(20000L, "0 0 1 * * ?", this);
+        ScheduleUtils.addTask(20000L, "0 0 1 * * ?", this,"SYSTEM");
     }
 
     @Override

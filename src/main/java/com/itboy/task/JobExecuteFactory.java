@@ -49,7 +49,7 @@ public class JobExecuteFactory implements Task {
         TimingService timingService = SpringContextHolder.getBean(TimingService.class);
         TimingVo vo = timingService.queryTimingJobById(id);
         if (ObjectUtil.isNull(vo)) {
-            ScheduleUtils.removeTask(id);
+            ScheduleUtils.removeTask(id,"timing",false);
             return;
         }
         vo.setState("作业中");

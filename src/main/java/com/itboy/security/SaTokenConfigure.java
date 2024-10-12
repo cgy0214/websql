@@ -73,7 +73,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
             SaRouter.match("/settingManager/**", r -> StpUtil.checkRoleOr("super-admin"));
             SaRouter.match("/sshManager/**", r -> StpUtil.checkRoleOr("super-admin"));
             SaRouter.match("/openApiManager/**", r -> StpUtils.checkOpenAuth());
-
+            SaRouter.match("/detectionManager/**", r -> StpUtil.checkRoleOr("timing-admin", "super-admin"));
         })).addPathPatterns("/**");
     }
 }

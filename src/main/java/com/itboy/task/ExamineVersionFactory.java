@@ -36,7 +36,7 @@ public class ExamineVersionFactory implements Task {
         if (!enabled) {
             return;
         }
-        ScheduleUtils.addTask(10000L, "0 0 10 * * ?", this);
+        ScheduleUtils.addTask(10000L, "0 0 10 * * ?", this,"SYSTEM");
     }
 
     @Override
