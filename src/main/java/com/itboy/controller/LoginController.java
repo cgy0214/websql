@@ -58,16 +58,9 @@ public class LoginController {
     }
 
     @RequestMapping("main")
-    public String main() {
+    public String mainIndex() {
         return "main";
     }
-
-
-    @RequestMapping("/getHelpPage")
-    public String getHelpPage() {
-        return "helpPage";
-    }
-
 
     @RequestMapping("/getUsersPage")
     public ModelAndView usersPage() {
