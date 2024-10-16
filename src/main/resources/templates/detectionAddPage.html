@@ -58,7 +58,7 @@
                 </div>
                 <label class="layui-form-label">CRON:</label>
                 <div class="layui-input-inline" >
-                    <input type="text" id="cron" name="cron" class="layui-input"
+                    <input type="text" id="cron" name="cron" class="layui-input" value="0/30 * * * * ?"
                            lay-affix="clear"
                            placeholder="定时表达式"/>
                 </div>
@@ -68,12 +68,12 @@
                 <label class="layui-form-label">列名:</label>
                 <div class="layui-input-inline">
                     <input type="text" id="columnName" name="columnName" class="layui-input" lay-affix="clear"
-                           placeholder="SQL结果返回列名"/>
+                           placeholder="SQL结果中列名"/>
                 </div>
                 <label class="layui-form-label">告警表达式:</label>
                 <div class="layui-input-inline">
                     <input type="text" name="expression" id="expression" class="layui-input"
-                           placeholder="(result*10)>=100"
+                           placeholder="result-2>0"
                            lay-affix="clear"/>
                 </div>
                 <label class="layui-form-label">告警级别:</label>

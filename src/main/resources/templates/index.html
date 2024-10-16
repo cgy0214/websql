@@ -198,7 +198,6 @@
                 localStorage.setItem(activeTeam, activeData[0].code);
             },
             onselect: function (data) {
-                debugger;
                 let active = localStorage.getItem(activeTeam);
                 if (active === data || data === '' || data === undefined) {
                     $("#teams").val(active);

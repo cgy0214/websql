@@ -37,6 +37,7 @@
         <odps.version>3.5.6</odps.version>
         <easyexcel.version>4.0.3</easyexcel.version>
         <commons-io.version>2.15.0</commons-io.version>
+        <aviator.version>5.4.3</aviator.version>
     </properties>
 
     <dependencies>
@@ -198,6 +199,12 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons-io.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.googlecode.aviator</groupId>
+            <artifactId>aviator</artifactId>
+            <version>${aviator.version}</version>
         </dependency>
 
     </dependencies>

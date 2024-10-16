@@ -3,10 +3,13 @@ package com.itboy.task;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.cron.CronUtil;
 import com.itboy.config.DbSourceFactory;
+import com.itboy.dao.DetectionRepository;
+import com.itboy.model.SysDetectionModel;
 import com.itboy.model.TimingVo;
 import com.itboy.service.TimingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -33,6 +36,9 @@ public class SystemInitPost {
 
     @Autowired
     private ExcelClearFactory excelClearFactory;
+
+    @Autowired
+    private DetectionRepository detectionRepository;
 
 
     /**
@@ -64,6 +70,7 @@ public class SystemInitPost {
     void initDataSource() {
         dbSourceFactory.initSystem();
         initTask();
+        initDetectionTask();
     }
 
     /**
@@ -80,6 +87,21 @@ public class SystemInitPost {
     @PostConstruct
     void excelClearFactory() {
         excelClearFactory.run();
+    }
+
+    /**
+     * 加载监测任务初始化调度
+     */
+    void initDetectionTask() {
+        SysDetectionModel param = new SysDetectionModel();
+        param.setState("开始监控");
+        List<SysDetectionModel> initList = detectionRepository.findAll(Example.of(param));
+        log.info("Successful initialization  {}  detection Task.", initList.size());
+        ThreadUtil.execAsync(() -> {
+            for (SysDetectionModel vo : initList) {
+                ScheduleUtils.addDetectionTask(vo.getCron(), vo.getId(), vo.getName());
+            }
+        });
     }
 
 }

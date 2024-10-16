@@ -11,33 +11,37 @@
     <div class="layui-panel">
         <div style="margin: 15px;">
             <div class="layui-form-item">
-                <label class="layui-form-label">名称:</label>
+                <label class="layui-form-label">监测任务:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="name" id="name" placeholder="请输入名称" class="layui-input"
-                           lay-affix="clear">
+                    <select name="taskId" id="taskId" lay-filter="taskId" lay-search=""
+                            lay-affix="clear"></select>
                 </div>
-                <label class="layui-form-label">作业数据源:</label>
-                <div class="layui-input-inline">
-                    <input type="text" name="dataBaseName" id="dataBaseName" placeholder="请输入作业数据源"
-                           class="layui-input" lay-affix="clear">
+
+                <label class="layui-form-label">日期范围:</label>
+                <div class="layui-input-inline" style="width: 300px;">
+                    <input type="text" class="layui-input" id="date" name="date" placeholder=" - "
+                           style="width: 300px;">
                 </div>
-                <label class="layui-form-label">状态:</label>
-                <div class="layui-input-inline">
-                    <select name="state" lay-filter="state">
-                        <option value=""></option>
-                        <option value="开始监控">开始监控</option>
-                        <option value="停止监控">停止监控</option>
-                    </select>
-                </div>
-                <div class="layui-input-normal">
+                <div class="layui-input-inline" style="width: 300px;">
                     <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit
                             lay-filter="table-search">
                         <i class="layui-icon layui-icon-search"> </i>查 询
+                    </button>
+                    <button class="layui-btn layui-btn-primary layui-border-green search-btn"
+                            onclick="window.location=ctx+'detectionManager/listPage'">
+                        <i class="layui-icon layui-icon-prev"> </i>返 回
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="layui-panel" style="margin-top: 15px;">
+        <div class="layui-form nowrap">
+            <div id="main" style="width: 100%;height:300px;"></div>
+        </div>
+    </div>
+
     <div class="layui-panel" style="margin-top: 15px;">
         <div class="layui-form nowrap">
             <table class="layui-hide" id="dataTable" lay-filter="dataTable"></table>
@@ -46,47 +50,155 @@
 </form>
 </body>
 <script th:src="@{/static/layui.js}"></script>
+<script th:src="@{/static/lay-config.js}"></script>
 <script th:src="@{/static/base64.min.js}"></script>
+<script th:src="@{/static/echarts.min.js}"></script>
 <script th:replace="~{base::ctx}"/>
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
-        <a class="layui-btn layui-btn-xs" lay-event="view">SQL</a>
-        <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="updateCron">CRON</a>
-        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="alarmConfig">告警</a>
-        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="updateState">{{= d.state=='停止监控'? '开始':'停止'}}</a>
+        <a class="layui-btn layui-btn-xs" lay-event="view">SQL内容</a>
+        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="alarmConfig">告警记录</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
-<script>
-    layui.use(function () {
+<script th:inline="javascript">
+    layui.use(['jquery', 'layer', 'form', 'table', 'laytpl', 'laySelect', 'laydate'], function () {
         const layer = layui.layer;
         const form = layui.form;
         const $ = layui.jquery;
         const table = layui.table;
         const laytpl = layui.laytpl;
-        const util = layui.util;
+        const select = layui.laySelect;
+        const laydate = layui.laydate;
+        let activeId = [[${id}]] == null ? -1 : [[${id}]];
+
+        /**
+         * 数据去向
+         */
+        select.render({
+            elem: "#taskId",
+            url: ctx + 'detectionManager/findDataSelect?activeId=' + activeId,
+            select: 10000,
+            title: '请选择要查询的任务',
+            format: function (data) {
+                return parseSelectData(data);
+            },
+            success: function (data, activeData) {
+                activeId = activeData.length === 0 ? null : activeData[0].code;
+            },
+            onselect: function (data) {
+                activeId = data;
+            }
+        });
+
+
+
+        laydate.render({
+            elem: "#date",
+            type: "datetime",
+            range: true,
+            shortcuts: [
+                {
+                    text: "30分钟",
+                    value: function(){
+                        var date = new Date()
+                        var min = date.getMinutes()
+                        date.setMinutes(min - 30)
+                        var y = date.getFullYear()
+                        var m = (date.getMonth() + 1) < 10 ? ("0" + (date.getMonth() + 1)) : (date.getMonth() + 1)
+                        var d = date.getDate() < 10 ? ("0" + date.getDate()) : date.getDate()
+                        var h = date.getHours() < 10 ? ('0' + date.getHours()) : date.getHours()
+                        var f = date.getMinutes() < 10 ? ('0' + date.getMinutes()) : date.getMinutes()
+                        var s = date.getSeconds() < 10 ? ('0' + date.getSeconds()) : date.getSeconds()
+                        return [
+                            new Date(y, m , d, h, f, s),
+                            Date.now()
+                        ];
+                    }
+                },
+                {
+                    text: "1小时",
+                    value: function(){
+                        const now = new Date();
+                        const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
+                        return [
+                            oneHourAgo,
+                            Date.now()
+                        ];
+                    }
+                },
+                {
+                    text: "2小时",
+                    value: function(){
+                        const now = new Date();
+                        const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000*2));
+                        return [
+                            oneHourAgo,
+                            Date.now()
+                        ];
+                    }
+                },
+                {
+                    text: "至今",
+                    value: function(){
+                        var date = new Date();
+                        var year = date.getFullYear();
+                        var month = date.getMonth();
+                        var day = date.getDate();
+                        return [
+                            new Date(year, month, day, 0, 0, 0),
+                            Date.now()
+                        ];
+                    }
+                },
+                {
+                    text: "今天",
+                    value: function(){
+                        var date = new Date();
+                        var year = date.getFullYear();
+                        var month = date.getMonth();
+                        var day = date.getDate();
+                        return [
+                            new Date(year, month, day, 0, 0, 0),
+                            new Date(year, month, day, 23, 59, 59)
+                        ];
+                    }
+                },
+                {
+                    text: "上月",
+                    value: function () {
+                        var date = new Date();
+                        var year = date.getFullYear();
+                        var month = date.getMonth()-1;
+                        return [
+                            new Date(year, month, 1),
+                            new Date(year, month + 1, 0, 23, 59, 59)
+                        ];
+                    }
+                },
+            ]
+        });
 
         table.render({
             elem: '#dataTable',
-            url: ctx + 'detectionManager/list',
-            toolbar: true,
+            url: ctx + 'detectionManager/logList?taskId=' + activeId,
             defaultToolbar: ['filter', 'exports', 'print'],
             page: true,
             height: '525',
+            toolbar: "<div>监测任务记录</div>",
             cols: [
                 [
                     {field: 'id', title: 'id', sort: true, fixed: true},
-                    {field: 'name', title: '名称', sort: true, fixed: true,templet: function(d){
-                            return '<a href="/detectionManager/reportPage?id='+ d.id +'" class="layui-table-link">'+ d.name +'</a>'
-                        }},
-                    {field: 'dataBaseName', title: '作业数据源', sort: true, fixed: true},
-                    {field: 'expression', title: '计算表达式', sort: true, fixed: true},
-                    {field: 'cron', title: 'CRON表达式', sort: true, fixed: true, width: 200},
-                    {field: 'alarmLevel', title: '告警级别', sort: true, fixed: true, width: 200},
-                    {field: 'state', title: '状态', sort: true, fixed: true},
-                    {field: 'createUser', title: '创建人', sort: true, fixed: true},
-                    {field: 'createTime', title: '创建时间', sort: true, fixed: true},
-                    {fixed: 'right', title: '操作', width: 270, toolbar: '#toolbarTable'}
+                    {field: 'taskId', title: '任务ID', sort: true, fixed: true},
+                    {field: 'name', title: '名称', sort: true, fixed: true},
+                    {field: 'dataBaseName', title: '数据源', sort: true, fixed: true},
+                    {field: 'data', title: '结果值', sort: true, fixed: true},
+                    {field: 'execTime', title: '耗时', sort: true, fixed: true, width: 100},
+                    {field: 'stateName', title: '是否告警', sort: true, fixed: true, width: 100},
+                    {field: 'alarmLevel', title: '告警级别', sort: true, fixed: true, width: 100},
+                    {field: 'errorMessage', title: '描述', sort: true, fixed: true},
+                    {field: 'createTime', title: '创建时间', sort: true, fixed: true, width: 200},
+                    {fixed: 'right', title: '操作', width: 200, toolbar: '#toolbarTable'}
                 ]
             ],
             parseData: res => parseData(res)
@@ -100,35 +212,6 @@
                     const content = laytpl('<div style="margin: 5px;"><pre class="layui-code">{{= d.content}}</pre></div>')
                         .render({content: str});
                     openContent("查看作业SQL内容", content);
-                    break;
-                case 'updateCron':
-                    layer.prompt({
-                        formType: 2,
-                        value: data.cron,
-                        anim: 'slideLeft',
-                        title: '请输入Cron表达式',
-                        area: ['300px', '200px']
-                    }, function (value, index) {
-                        layer.confirm("确认修改CRON？", function () {
-                            post(ctx + "detectionManager/executeOnce/3/" + data.id + "?cron=" + value, null, (res) => {
-                                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                    $(".search-btn").click();
-                                    layer.closeAll();
-                                });
-                            })
-                        });
-                    });
-                    break;
-                case 'updateState':
-                    var path = data.state === '开始监控' ? '1':'2';
-                    var message = data.state === '开始监控' ? '确认要停止监控吗?':'确认要开始监控吗?';
-                    layer.confirm(message, function () {
-                        post(ctx + "detectionManager/executeOnce/"+path+"/" + data.id, null, (res) => {
-                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
-                            });
-                        })
-                    })
                     break;
                 case 'delete':
                     layer.confirm("您确认要删除此任务吗？", function () {
@@ -144,12 +227,86 @@
 
         form.on('submit(table-search)', function (data) {
             const field = data.field;
+            var dateRange = field.date.split(" - ");
+            field.beginDate = dateRange[0];
+            field.endDate = dateRange[1];
+            field.page = 1;
             table.reloadData('dataTable', {
                 scrollPos: true,
+                url: ctx + 'detectionManager/logList',
                 where: field
             });
+            loadChartData(dateRange);
             return false;
         });
+
+
+        //折线图
+        let myChart = echarts.init(document.getElementById('main'));
+        function chartReport() {
+            var option = {
+                title: {
+                    text: '监测结果趋势'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: []
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: []
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: []
+            };
+            myChart.setOption(option);
+        }
+
+        function loadChartData(dateRange) {
+            myChart.showLoading();
+            post(ctx + "detectionManager/logCharts", {"taskId": parseInt(activeId),"beginDate":dateRange.length>0 ? dateRange[0]:null,"endDate":dateRange.length>1 ? dateRange[1]:null}, (res) => {
+                myChart.hideLoading();
+                if (res.code === 200) {
+                    myChart.setOption({
+                        xAxis: {
+                            data: res.data.dateList,
+                            type: 'category',
+                            stack: 'x',
+                            areaStyle: {
+                            },
+                        },
+                        legend: {
+                            data: []
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: res.data.dataList
+                    });
+                }
+            })
+        }
+        chartReport();
+        loadChartData([]);
+        setInterval(function () {
+            loadChartData([]);
+        }, 10000);
     });
 </script>
 </html>

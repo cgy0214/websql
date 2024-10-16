@@ -3,6 +3,7 @@ package com.itboy.model;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -11,6 +12,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name = "SYS_DETECTION_INFO")
+@EntityListeners(AuditingEntityListener.class)
 public class SysDetectionModel extends Pages{
 
     @Id
@@ -38,6 +40,7 @@ public class SysDetectionModel extends Pages{
     /**
      * 执行sql
      */
+    @Column(columnDefinition = "TEXT")
     private String sqlContent;
 
     /**
@@ -51,7 +54,7 @@ public class SysDetectionModel extends Pages{
     private String expression;
 
     /**
-     * 告警级别，用于推送消息
+     * 告警级别
      */
     private String alarmLevel;
 

@@ -1,7 +1,11 @@
 package com.itboy.service;
 
 import com.itboy.model.Result;
+import com.itboy.model.SysDetectionLogsModel;
 import com.itboy.model.SysDetectionModel;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName : DetectionService
@@ -18,4 +22,12 @@ public interface DetectionService {
     void deleteById(Long id);
 
     void updateById(SysDetectionModel vo);
+
+    SysDetectionModel selectById(Long id);
+
+    List<Map<String, String>>  selectAllByActiveId(String activeId);
+
+    Result<SysDetectionLogsModel> logList(SysDetectionLogsModel model);
+
+    Map<String, Object> logCharts(SysDetectionLogsModel model);
 }

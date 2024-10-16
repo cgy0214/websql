@@ -3,18 +3,18 @@ package com.itboy.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.itboy.model.AjaxResult;
+import com.itboy.model.SysDetectionLogsModel;
 import com.itboy.model.SysDetectionModel;
 import com.itboy.service.DetectionService;
 import com.itboy.task.ScheduleUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @ClassName DetectionManagerController
@@ -110,7 +110,7 @@ public class DetectionManagerController {
         try {
             SysDetectionModel models = new SysDetectionModel();
             models.setId(id);
-            SysDetectionModel vo = detectionService.list(models).getList().get(0);
+            SysDetectionModel vo = detectionService.selectById(id);
             ScheduleUtils.removeDetectionTask(id);
             switch (type) {
                 case 1:
@@ -143,5 +143,45 @@ public class DetectionManagerController {
             return AjaxResult.error(e.getMessage());
         }
     }
+
+    /***
+     * 加载下拉任务
+     * @param activeId 默认选中的id
+     * @return
+     */
+    @RequestMapping("/findDataSelect")
+    @ResponseBody
+    public Map findDataSourceList(@RequestParam(required = false) String activeId) {
+        Map result = new HashMap(2);
+        result.put("code", 0);
+        result.put("data", detectionService.selectAllByActiveId(activeId));
+        return result;
+    }
+
+    /***
+     * 加载执行计划日志
+     * @param model
+     * @return
+     */
+    @RequestMapping("/logList")
+    @ResponseBody
+    public AjaxResult logList(SysDetectionLogsModel model) {
+        //如果从默认页面进入则不查询指定taskId
+        if (ObjectUtil.equal(-1L, model.getTaskId())) {
+            model.setTaskId(null);
+        }
+        return AjaxResult.success(detectionService.logList(model));
+    }
+
+    @RequestMapping("/logCharts")
+    @ResponseBody
+    public AjaxResult logCharts(@RequestBody SysDetectionLogsModel model) {
+        //如果从默认页面进入则不查询指定taskId
+        if (ObjectUtil.equal(-1L, model.getTaskId())) {
+            model.setTaskId(null);
+        }
+        return AjaxResult.success(detectionService.logCharts(model));
+    }
+
 
 }

@@ -7,7 +7,7 @@
 	<a href="https://www.oracle.com/cn/java/technologies/downloads/"><img src="https://img.shields.io/badge/JDK-1.8+-orange)"></a>
     <a href="https://maven.apache.org"><img src="https://img.shields.io/badge/maven-3.5+-e4ec27.svg"></a>
     <a href="https://gitee.com/boy_0214/websql/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL3.0-blue.svg"></a>
-    <a href="https://websql.cgycms.cn"><img src="https://img.shields.io/badge/demo-%E6%BC%94%E7%A4%BA%E7%8E%AF%E5%A2%83-8A2BE2.svg"></a>
+    <a href="https://websql.cgygeo.com"><img src="https://img.shields.io/badge/demo-%E6%BC%94%E7%A4%BA%E7%8E%AF%E5%A2%83-8A2BE2.svg"></a>
     <a href="https://gitee.com/boy_0214/websql/wikis/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><img src="https://img.shields.io/badge/wiki-%E5%B8%AE%E5%8A%A9%E6%96%87%E6%A1%A3-16b777.svg"></a>
 </p>
 
@@ -24,7 +24,7 @@
 ## webSql 介绍
 
 **webSql** 支持动态配置`多数据源`,`权限控制`,在线`执行sql`，常用`sql文本实时获取`,`导出、打印`结果集、可控的`日志记录`，团队`数据隔离`，`危险`SQL限制运行，生产环境`数据`同步,`openapi`
-ETL等功能;众多功能集一身的`SQL在线执行工具`。
+ETL抽取,定时`监测数据趋势`告警功能;众多功能集一身的`SQL在线执行工具`。
 
 
 
@@ -60,7 +60,7 @@ ETL等功能;众多功能集一身的`SQL在线执行工具`。
 
 ## WebSql 功能模块一览
 
-Websql 主要分为五大功能模块：数据源管理、SQL管理、ETL管理、日志管理、系统管理。
+WebSql 主要功能模块
 
 - **数据源管理** —— 数据源动态配置多种数据库连接进行入池
 - **SQL管理** —— SQL窗口执行脚本,它强大无比;SQL列表保存常用SQL文本
@@ -68,9 +68,11 @@ Websql 主要分为五大功能模块：数据源管理、SQL管理、ETL管理�
 - **日志管理** —— 执行脚本记录,登录系统会产生详细日志可供查询
 - **用户管理** —— 可新增不同用户，赋予不同操作权限登录系统使用
 - **团队管理** —— 不同团队之间，数据完全隔离，更细致的权限控制
+- **监测管理** —— 不同团队自定义SQL，定时执行数据监测，达到阈值自定义告警通知
 - **参数设置** —— 参数设置中可以操作更多细致化控制
 - **openapi** —— 支持http调用系统接口形式执行SQL动作 <a href='https://gitee.com/boy_0214/websql/wikis/openapi'>查看示例</a>
 - **开箱即用** —— 提供jar、docker镜像，内置H2数据库，一条命令即可启动，真正的开箱即用
+
 
 ### 参与开发
 
@@ -112,7 +114,7 @@ Websql 主要分为五大功能模块：数据源管理、SQL管理、ETL管理�
 ## 演示环境
 
 
-[演示环境](http://websql.cgycms.cn)
+[演示环境](https://websql.cgygeo.com)
 
 账号密码：**demo** / **demo123**
 
