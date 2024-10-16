@@ -27,10 +27,10 @@
                             lay-filter="table-search">
                         <i class="layui-icon layui-icon-search"> </i>查 询
                     </button>
-                    <button class="layui-btn layui-btn-primary layui-border-green search-btn"
+                    <!--<button class="layui-btn layui-btn-primary layui-border-green search-btn"
                             onclick="window.location=ctx+'detectionManager/listPage'">
                         <i class="layui-icon layui-icon-prev"> </i>返 回
-                    </button>
+                    </button>-->
                 </div>
             </div>
         </div>
@@ -57,7 +57,6 @@
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
         <a class="layui-btn layui-btn-xs" lay-event="view">SQL内容</a>
-        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="alarmConfig">告警记录</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
@@ -92,7 +91,6 @@
         });
 
 
-
         laydate.render({
             elem: "#date",
             type: "datetime",
@@ -100,7 +98,7 @@
             shortcuts: [
                 {
                     text: "30分钟",
-                    value: function(){
+                    value: function () {
                         var date = new Date()
                         var min = date.getMinutes()
                         date.setMinutes(min - 30)
@@ -111,14 +109,14 @@
                         var f = date.getMinutes() < 10 ? ('0' + date.getMinutes()) : date.getMinutes()
                         var s = date.getSeconds() < 10 ? ('0' + date.getSeconds()) : date.getSeconds()
                         return [
-                            new Date(y, m , d, h, f, s),
+                            new Date(y, m, d, h, f, s),
                             Date.now()
                         ];
                     }
                 },
                 {
                     text: "1小时",
-                    value: function(){
+                    value: function () {
                         const now = new Date();
                         const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
                         return [
@@ -129,9 +127,9 @@
                 },
                 {
                     text: "2小时",
-                    value: function(){
+                    value: function () {
                         const now = new Date();
-                        const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000*2));
+                        const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000 * 2));
                         return [
                             oneHourAgo,
                             Date.now()
@@ -140,7 +138,7 @@
                 },
                 {
                     text: "至今",
-                    value: function(){
+                    value: function () {
                         var date = new Date();
                         var year = date.getFullYear();
                         var month = date.getMonth();
@@ -153,7 +151,7 @@
                 },
                 {
                     text: "今天",
-                    value: function(){
+                    value: function () {
                         var date = new Date();
                         var year = date.getFullYear();
                         var month = date.getMonth();
@@ -169,7 +167,7 @@
                     value: function () {
                         var date = new Date();
                         var year = date.getFullYear();
-                        var month = date.getMonth()-1;
+                        var month = date.getMonth() - 1;
                         return [
                             new Date(year, month, 1),
                             new Date(year, month + 1, 0, 23, 59, 59)
@@ -194,8 +192,8 @@
                     {field: 'dataBaseName', title: '数据源', sort: true, fixed: true},
                     {field: 'data', title: '结果值', sort: true, fixed: true},
                     {field: 'execTime', title: '耗时', sort: true, fixed: true, width: 100},
-                    {field: 'stateName', title: '是否告警', sort: true, fixed: true, width: 100},
                     {field: 'alarmLevel', title: '告警级别', sort: true, fixed: true, width: 100},
+                    {field: 'stateName', title: '是否告警', sort: true, fixed: true, width: 100},
                     {field: 'errorMessage', title: '描述', sort: true, fixed: true},
                     {field: 'createTime', title: '创建时间', sort: true, fixed: true, width: 200},
                     {fixed: 'right', title: '操作', width: 200, toolbar: '#toolbarTable'}
@@ -215,7 +213,7 @@
                     break;
                 case 'delete':
                     layer.confirm("您确认要删除此任务吗？", function () {
-                        post(ctx + "detectionManager/executeOnce/4/" + data.id, null, (res) => {
+                        post(ctx + "detectionManager/deleteLog?id=" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });
@@ -243,6 +241,7 @@
 
         //折线图
         let myChart = echarts.init(document.getElementById('main'));
+
         function chartReport() {
             var option = {
                 title: {
@@ -276,11 +275,16 @@
                 series: []
             };
             myChart.setOption(option);
+            loadChartData([]);
         }
 
         function loadChartData(dateRange) {
             myChart.showLoading();
-            post(ctx + "detectionManager/logCharts", {"taskId": parseInt(activeId),"beginDate":dateRange.length>0 ? dateRange[0]:null,"endDate":dateRange.length>1 ? dateRange[1]:null}, (res) => {
+            post(ctx + "detectionManager/logCharts", {
+                "taskId": parseInt(activeId),
+                "beginDate": dateRange.length > 0 ? dateRange[0] : null,
+                "endDate": dateRange.length > 1 ? dateRange[1] : null
+            }, (res) => {
                 myChart.hideLoading();
                 if (res.code === 200) {
                     myChart.setOption({
@@ -288,8 +292,7 @@
                             data: res.data.dateList,
                             type: 'category',
                             stack: 'x',
-                            areaStyle: {
-                            },
+                            areaStyle: {},
                         },
                         legend: {
                             data: []
@@ -302,8 +305,8 @@
                 }
             })
         }
+
         chartReport();
-        loadChartData([]);
         setInterval(function () {
             loadChartData([]);
         }, 10000);

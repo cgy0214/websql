@@ -74,4 +74,6 @@ public class SysDetectionModel extends Pages{
     private Date createTime;
 
     private String createUser;
+
+    private Long messageId;
 }

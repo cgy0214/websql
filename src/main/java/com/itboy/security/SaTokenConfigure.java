@@ -63,9 +63,9 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                     r.stop();
                 }
             });
-
             SaRouter.match("/dataSourceManager/**")
-                    .notMatch("/dataSourceManager/findDataSourceList")
+                    .notMatch("/dataSourceManager/findDataSourceList") //数据源API
+                    .notMatch("/settingManager/findMessageTemplateList") //告警模板API
                     .check(r -> StpUtil.checkRoleOr("database-admin", "super-admin"));
             SaRouter.match("/logManager/**", r -> StpUtil.checkRoleOr("log-admin", "super-admin"));
             SaRouter.match("/sqlManager/**", r -> StpUtil.checkRoleOr("sql-admin", "super-admin"));

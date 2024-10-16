@@ -12,6 +12,7 @@ import com.itboy.config.DbSourceFactory;
 import com.itboy.model.*;
 import com.itboy.service.DbSourceService;
 import com.itboy.service.LoginService;
+import com.itboy.service.MessageTemplateService;
 import com.itboy.service.TeamSourceService;
 import com.itboy.task.ExamineVersionFactory;
 import com.itboy.util.EnvBeanUtil;
@@ -63,6 +64,9 @@ public class SettingConfigController {
     @Autowired
     private DbSourceService dbSourceService;
 
+    @Autowired
+    private MessageTemplateService messageTemplateService;
+
 
     @RequestMapping("/userRolePage")
     public String userRolePage() {
@@ -90,6 +94,12 @@ public class SettingConfigController {
     public String timingAddPage() {
         return "exportLogPage";
     }
+
+    @RequestMapping("/addMessageTemplatePage")
+    public String addMessageTemplatePage() {
+        return "addMessageTemplatePage";
+    }
+
 
     @RequestMapping("/showTeamResourcePage/{id}")
     public ModelAndView showTeamResourcePage(@PathVariable Long id) {
@@ -593,5 +603,88 @@ public class SettingConfigController {
         return AjaxResult.success(dbSourceService.exportFilesLogList(model));
     }
 
+    /***
+     * 查询报警配置
+     * @param model
+     * @return
+     */
+    @RequestMapping("/messageTemplateList")
+    @ResponseBody
+    public AjaxResult messageTemplateList(SysMessageTemplateModel model) {
+        return AjaxResult.success(messageTemplateService.list(model));
+    }
+
+    /**
+     * 新增报警配置
+     * @param sysMessageTemplateModel
+     * @return
+     */
+    @RequestMapping("/addMessageTemplate")
+    @ResponseBody
+    public AjaxResult addMessageTemplate(@RequestBody SysMessageTemplateModel sysMessageTemplateModel) {
+        if (ObjectUtil.isEmpty(sysMessageTemplateModel.getName())) {
+            return AjaxResult.error("名称不能为空!");
+        }
+        if (ObjectUtil.isEmpty(sysMessageTemplateModel.getUrl())) {
+            return AjaxResult.error("URL不能为空!");
+        }
+        if (ObjectUtil.isEmpty(sysMessageTemplateModel.getContent())) {
+            return AjaxResult.error("消息内容不能为空!");
+        }
+        if (ObjectUtil.isEmpty(sysMessageTemplateModel.getType())) {
+            return AjaxResult.error("类型不能为空!");
+        }
+        return messageTemplateService.addMessageTemplate(sysMessageTemplateModel);
+    }
+
+    /**
+     * 删除告警配置
+     * @param id
+     * @return
+     */
+    @RequestMapping("/deleteMessageTemplate")
+    @ResponseBody
+    public AjaxResult deleteMessageTemplate(@RequestParam Long id) {
+        if (ObjectUtil.isEmpty(id)) {
+            return AjaxResult.error("参数不能为空!");
+        }
+        return messageTemplateService.deleteMessageTemplate(id);
+    }
+
+    /**
+     * 测试发送
+     * @param sysMessageTemplateModel
+     * @return
+     */
+    @RequestMapping("/testMessageTemplate")
+    @ResponseBody
+    public AjaxResult testMessageTemplate(@RequestBody SysMessageTemplateModel sysMessageTemplateModel) {
+        if (ObjectUtil.isEmpty(sysMessageTemplateModel.getName())) {
+            return AjaxResult.error("名称不能为空!");
+        }
+        if (ObjectUtil.isEmpty(sysMessageTemplateModel.getUrl())) {
+            return AjaxResult.error("URL不能为空!");
+        }
+        if (ObjectUtil.isEmpty(sysMessageTemplateModel.getContent())) {
+            return AjaxResult.error("消息内容不能为空!");
+        }
+        if (ObjectUtil.isEmpty(sysMessageTemplateModel.getType())) {
+            return AjaxResult.error("类型不能为空!");
+        }
+        return messageTemplateService.testMessageTemplate(sysMessageTemplateModel);
+    }
+
+    /***
+     * 加载告警模板数据源
+     * @return
+     */
+    @RequestMapping("/findMessageTemplateList")
+    @ResponseBody
+    public Map findMessageTemplateList() {
+        Map result = new HashMap(2);
+        result.put("code", 0);
+        result.put("data", messageTemplateService.findMessageTemplateList());
+        return result;
+    }
 
 }

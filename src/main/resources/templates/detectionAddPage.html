@@ -51,16 +51,26 @@
                     <input type="text" id="name" name="name" class="layui-input" lay-affix="clear"
                            placeholder="检测任务名称"/>
                 </div>
+
                 <label class="layui-form-label">数据源:</label>
                 <div class="layui-input-inline">
                     <select name="dataBaseName" id="dataBaseName" lay-filter="dataBaseName" lay-search=""
                             lay-affix="clear"></select>
                 </div>
+
                 <label class="layui-form-label">CRON:</label>
                 <div class="layui-input-inline" >
                     <input type="text" id="cron" name="cron" class="layui-input" value="0/30 * * * * ?"
                            lay-affix="clear"
                            placeholder="定时表达式"/>
+                </div>
+
+                <label class="layui-form-label">状态:</label>
+                <div class="layui-input-inline">
+                    <select name="state" lay-verify="required" lay-search="">
+                        <option value="开始监控">开始监控</option>
+                        <option value="停止监控">停止监控</option>
+                    </select>
                 </div>
             </div>
 
@@ -70,12 +80,14 @@
                     <input type="text" id="columnName" name="columnName" class="layui-input" lay-affix="clear"
                            placeholder="SQL结果中列名"/>
                 </div>
+
                 <label class="layui-form-label">告警表达式:</label>
                 <div class="layui-input-inline">
                     <input type="text" name="expression" id="expression" class="layui-input"
                            placeholder="result-2>0"
                            lay-affix="clear"/>
                 </div>
+
                 <label class="layui-form-label">告警级别:</label>
                 <div class="layui-input-inline">
                     <select name="alarmLevel" lay-verify="required" lay-search="">
@@ -84,12 +96,10 @@
                     </select>
                 </div>
 
-                <label class="layui-form-label">状态:</label>
+                <label class="layui-form-label">告警模板:</label>
                 <div class="layui-input-inline">
-                    <select name="state" lay-verify="required" lay-search="">
-                        <option value="开始监控">开始监控</option>
-                        <option value="停止监控">停止监控</option>
-                    </select>
+                    <select name="messageTemplate" id="messageTemplate" lay-filter="messageTemplate" lay-search=""
+                            lay-affix="clear"></select>
                 </div>
             </div>
 
@@ -169,7 +179,7 @@
                 return parseSelectData(data);
             },
             success: function (data, activeData) {
-                activeDataSource = activeData == null ? null : activeData[0].code;
+                activeDataSource = activeData.length === 0 ? null : activeData[0].code;
                 editorHintSettings();
             },
             onselect: function (data) {
@@ -177,6 +187,25 @@
                 editorHintSettings();
             }
         });
+
+        //告警模板列表
+        let activeMessageTemplate;
+        select.render({
+            elem: "#messageTemplate",
+            url: ctx + 'settingManager/findMessageTemplateList',
+            select: 10000,
+            title: '请选择告警模板',
+            format: function (data) {
+                return parseSelectData(data);
+            },
+            success: function (data, activeData) {
+                activeMessageTemplate = activeData.length === 0 ? null : activeData[0].code;
+            },
+            onselect: function (data) {
+                activeMessageTemplate = data;
+            }
+        });
+
 
         /**
          * 设置编辑器提示表名及字段功能
@@ -211,7 +240,7 @@
             }
             data.field.sqlContent = Base64.encode(sqlContent);
             data.field.dataBaseName = activeDataSource;
-            console.info(data.field);
+            data.field.messageId = activeMessageTemplate;
             post(ctx + "detectionManager/add", data.field, (res) => {
                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, (res) => {
                     location.reload();

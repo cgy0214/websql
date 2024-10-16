@@ -184,4 +184,9 @@ public class DetectionServiceImpl implements DetectionService {
         resultMap.put("dataList", dataList);
         return resultMap;
     }
+
+    @Override
+    public void deleteLog(Long id) {
+        detectionLogsRepository.deleteById(id);
+    }
 }

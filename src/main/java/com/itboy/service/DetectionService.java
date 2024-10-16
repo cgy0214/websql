@@ -25,9 +25,11 @@ public interface DetectionService {
 
     SysDetectionModel selectById(Long id);
 
-    List<Map<String, String>>  selectAllByActiveId(String activeId);
+    List<Map<String, String>> selectAllByActiveId(String activeId);
 
     Result<SysDetectionLogsModel> logList(SysDetectionLogsModel model);
 
     Map<String, Object> logCharts(SysDetectionLogsModel model);
+
+    void deleteLog(Long id);
 }

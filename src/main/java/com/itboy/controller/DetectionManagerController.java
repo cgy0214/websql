@@ -104,6 +104,14 @@ public class DetectionManagerController {
         }
     }
 
+    /**
+     * 操作单条数据状态
+     *
+     * @param type 类型
+     * @param id   主键
+     * @param cron 定时时间
+     * @return
+     */
     @RequestMapping("/executeOnce/{type}/{id}")
     @ResponseBody
     public AjaxResult executeOnce(@PathVariable("type") int type, @PathVariable("id") Long id, String cron) {
@@ -173,6 +181,12 @@ public class DetectionManagerController {
         return AjaxResult.success(detectionService.logList(model));
     }
 
+    /**
+     * 日志报表
+     *
+     * @param model
+     * @return
+     */
     @RequestMapping("/logCharts")
     @ResponseBody
     public AjaxResult logCharts(@RequestBody SysDetectionLogsModel model) {
@@ -181,6 +195,21 @@ public class DetectionManagerController {
             model.setTaskId(null);
         }
         return AjaxResult.success(detectionService.logCharts(model));
+    }
+
+    /**
+     * 删除日志记录
+     * @param id
+     * @return
+     */
+    @RequestMapping("/deleteLog")
+    @ResponseBody
+    public AjaxResult deleteLog(@RequestParam Long id) {
+        if (ObjectUtil.isNull(id)) {
+            return AjaxResult.error("必填参数为空!");
+        }
+        detectionService.deleteLog(id);
+        return AjaxResult.success();
     }
 
 

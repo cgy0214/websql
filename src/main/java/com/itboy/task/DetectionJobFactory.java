@@ -16,12 +16,14 @@ import com.itboy.model.SqlParserVo;
 import com.itboy.model.SysDetectionLogsModel;
 import com.itboy.model.SysDetectionModel;
 import com.itboy.service.DetectionService;
+import com.itboy.service.MessageTemplateService;
 import com.itboy.util.JsonToLowerUtils;
 import com.itboy.util.SpringContextHolder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +40,7 @@ public class DetectionJobFactory implements Task {
     private final Long id;
 
     private final String jobName;
+
 
     public DetectionJobFactory(Long id, String jobName) {
         this.id = id;
@@ -81,18 +84,27 @@ public class DetectionJobFactory implements Task {
                 BigDecimal number = data.getBigDecimal(vo.getColumnName().toLowerCase());
                 detectionLogsModel.setData(number);
             }
-            if (ObjectUtil.isNotNull(vo.getExpression())) {
+            detectionLogsModel.setErrorMessage(moreResult.get("msg").toString());
+            //计算告警表达式并推送消息通知
+            if (ObjectUtil.isNotNull(vo.getExpression()) && ObjectUtil.isNotNull(vo.getMessageId())) {
                 Dict dict = Dict.create().set(vo.getColumnName().toLowerCase(), detectionLogsModel.getData());
                 Object eval = ExpressionUtil.eval(vo.getExpression(), dict);
                 if (ObjectUtil.equal(eval, true)) {
                     detectionLogsModel.setStateName("推送通知");
-                    log.info("{}-监测任务触发表达式result:'{}'进行告警...", jobName,eval);
-                    //todo 发送消息告警
-                }else {
+                    MessageTemplateService messageService = SpringContextHolder.getBean(MessageTemplateService.class);
+                    Map<String, Object> param = new HashMap<>(3);
+                    param.put("标题", vo.getName());
+                    param.put("时间", DateUtil.now());
+                    param.put("等级", vo.getAlarmLevel());
+                    param.put("状态", "失败");
+                    param.put("数据值", detectionLogsModel.getData());
+                    String result = messageService.sendMessage(vo.getMessageId(), param) ? "成功" : "失败";
+                    log.info("{}-监测任务触发表达式结果：{}进行告警返回结果:{}...", jobName, eval, result);
+                    detectionLogsModel.setErrorMessage("发送告警信息" + result);
+                } else {
                     detectionLogsModel.setStateName("无需告警");
                 }
             }
-            detectionLogsModel.setErrorMessage(moreResult.get("msg").toString());
         } catch (Exception e) {
             e.printStackTrace();
             log.error("{}-监测任务执行失败.msg:{}", jobName, e.getMessage());

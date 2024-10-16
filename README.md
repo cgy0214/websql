@@ -120,14 +120,17 @@ WebSql 主要功能模块
 
 配置低,经常GG。
 
+
 ## 交流群
 QQ交流群：498265967 [点击加入](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=HHuK-ks_qF9KdaWI8UuIPzp22Qg3jSJ7&authKey=fBFgaomxUn3%2BfMgrRzHq9ZMyBZZ0eSAaU2JBO1oXe94RbnkUhlSI2SKjHjVK8Mij&noverify=0&group_code=498265967)
 
 <img src="https://foruda.gitee.com/images/1698638140621421548/945994da_1509614.jpeg" width="230px" title="微信群" />
 
 <br>
-加入群聊的好处：
 
 - 群主虽然是个菜鸟但是乐于助人。
 - 第一时间收到框架更新通知。
 - 第一时间收到框架 bug 通知。
+
+## Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=viarotel-org/escrcpy,https:/,gitee.com/boy_0214&type=Date)](https://star-history.com/#viarotel-org/escrcpy&https:/&gitee.com/boy_0214&Date)
