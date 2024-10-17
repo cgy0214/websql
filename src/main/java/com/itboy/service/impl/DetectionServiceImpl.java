@@ -65,7 +65,9 @@ public class DetectionServiceImpl implements DetectionService {
         };
         Page<SysDetectionModel> all = detectionRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
         for (SysDetectionModel sysDetectionModel : all.getContent()) {
-            sysDetectionModel.setMessageName(messageTemplateService.queryMessageTemplateById(sysDetectionModel.getMessageId()).getName());
+            if(ObjectUtil.isNotNull(sysDetectionModel.getMessageId())){
+                sysDetectionModel.setMessageName(messageTemplateService.queryMessageTemplateById(sysDetectionModel.getMessageId()).getName());
+            }
         }
         result.setList(all.getContent());
         result.setCount((int) all.getTotalElements());
