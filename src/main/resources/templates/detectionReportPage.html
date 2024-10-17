@@ -97,19 +97,23 @@
             range: true,
             shortcuts: [
                 {
+                    text: "3分钟",
+                    value: function () {
+                        const now = new Date();
+                        const oneHourAgo = new Date(now.getTime() - (60 * 1000 * 3));
+                        return [
+                            oneHourAgo,
+                            Date.now()
+                        ];
+                    }
+                },
+                {
                     text: "30分钟",
                     value: function () {
-                        var date = new Date()
-                        var min = date.getMinutes()
-                        date.setMinutes(min - 30)
-                        var y = date.getFullYear()
-                        var m = (date.getMonth() + 1) < 10 ? ("0" + (date.getMonth() + 1)) : (date.getMonth() + 1)
-                        var d = date.getDate() < 10 ? ("0" + date.getDate()) : date.getDate()
-                        var h = date.getHours() < 10 ? ('0' + date.getHours()) : date.getHours()
-                        var f = date.getMinutes() < 10 ? ('0' + date.getMinutes()) : date.getMinutes()
-                        var s = date.getSeconds() < 10 ? ('0' + date.getSeconds()) : date.getSeconds()
+                        const now = new Date();
+                        const oneHourAgo = new Date(now.getTime() - (60 * 1000 * 30));
                         return [
-                            new Date(y, m, d, h, f, s),
+                            oneHourAgo,
                             Date.now()
                         ];
                     }
@@ -137,7 +141,7 @@
                     }
                 },
                 {
-                    text: "至今",
+                    text: "今天",
                     value: function () {
                         var date = new Date();
                         var year = date.getFullYear();
@@ -145,17 +149,17 @@
                         var day = date.getDate();
                         return [
                             new Date(year, month, day, 0, 0, 0),
-                            Date.now()
+                            new Date(year, month, day, 23, 59, 59)
                         ];
                     }
                 },
                 {
-                    text: "今天",
+                    text: "昨天",
                     value: function () {
                         var date = new Date();
                         var year = date.getFullYear();
                         var month = date.getMonth();
-                        var day = date.getDate();
+                        var day = date.getDate()-1;
                         return [
                             new Date(year, month, day, 0, 0, 0),
                             new Date(year, month, day, 23, 59, 59)
@@ -223,9 +227,11 @@
             }
         });
 
+        // 选中的日期
+        let dateRange = [];
         form.on('submit(table-search)', function (data) {
             const field = data.field;
-            var dateRange = field.date.split(" - ");
+            dateRange = field.date.split(" - ");
             field.beginDate = dateRange[0];
             field.endDate = dateRange[1];
             field.page = 1;
@@ -234,7 +240,7 @@
                 url: ctx + 'detectionManager/logList',
                 where: field
             });
-            loadChartData(dateRange);
+            loadChartData();
             return false;
         });
 
@@ -275,10 +281,10 @@
                 series: []
             };
             myChart.setOption(option);
-            loadChartData([]);
+            loadChartData();
         }
 
-        function loadChartData(dateRange) {
+        function loadChartData() {
             myChart.showLoading();
             post(ctx + "detectionManager/logCharts", {
                 "taskId": parseInt(activeId),
@@ -308,7 +314,7 @@
 
         chartReport();
         setInterval(function () {
-            loadChartData([]);
+            loadChartData();
         }, 10000);
     });
 </script>

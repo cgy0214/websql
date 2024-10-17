@@ -194,4 +194,9 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
         }
         return resultList;
     }
+
+    @Override
+    public SysMessageTemplateModel queryMessageTemplateById(Long id) {
+        return repository.findById(id).orElse(new SysMessageTemplateModel());
+    }
 }

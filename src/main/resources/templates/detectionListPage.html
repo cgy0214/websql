@@ -52,8 +52,8 @@
     <div class="layui-clear-space">
         <a class="layui-btn layui-btn-xs" lay-event="view">SQL</a>
         <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="updateCron">CRON</a>
-        <a class="layui-btn layui-bg-yellow layui-btn-xs" lay-event="alarmConfig">告警配置</a>
-        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="updateState">{{= d.state=='停止监控'? '开始':'停止'}}</a>
+        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="updateState">{{= d.state=='停止监控'?
+            '开始':'停止'}}</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
@@ -76,17 +76,19 @@
             cols: [
                 [
                     {field: 'id', title: 'id', sort: true, fixed: true},
-                    {field: 'name', title: '名称', sort: true, fixed: true,templet: function(d){
-                            return '<a href="/detectionManager/reportPage?id='+ d.id +'" class="layui-table-link">'+ d.name +'</a>'
-                        }},
+                    {
+                        field: 'name', title: '名称', sort: true, fixed: true, templet: function (d) {
+                            return '<a href="/detectionManager/reportPage?id=' + d.id + '" class="layui-table-link">' + d.name + '</a>'
+                        }
+                    },
                     {field: 'dataBaseName', title: '作业数据源', sort: true, fixed: true},
                     {field: 'expression', title: '告警表达式', sort: true, fixed: true},
                     {field: 'cron', title: 'CRON表达式', sort: true, fixed: true, width: 200},
                     {field: 'alarmLevel', title: '告警级别', sort: true, fixed: true},
-                    {field: 'messageId', title: '告警模板', sort: true, fixed: true},
+                    {field: 'messageName', title: '告警模板', sort: true, fixed: true},
                     {field: 'state', title: '状态', sort: true, fixed: true},
                     {field: 'createUser', title: '创建人', sort: true, fixed: true},
-                    {field: 'createTime', title: '创建时间',width: 200, sort: true, fixed: true},
+                    {field: 'createTime', title: '创建时间', width: 200, sort: true, fixed: true},
                     {fixed: 'right', title: '操作', width: 270, toolbar: '#toolbarTable'}
                 ]
             ],
@@ -121,10 +123,10 @@
                     });
                     break;
                 case 'updateState':
-                    var path = data.state === '开始监控' ? '1':'2';
-                    var message = data.state === '开始监控' ? '确认要停止监控吗?':'确认要开始监控吗?';
+                    var path = data.state === '开始监控' ? '1' : '2';
+                    var message = data.state === '开始监控' ? '确认要停止监控吗?' : '确认要开始监控吗?';
                     layer.confirm(message, function () {
-                        post(ctx + "detectionManager/executeOnce/"+path+"/" + data.id, null, (res) => {
+                        post(ctx + "detectionManager/executeOnce/" + path + "/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });

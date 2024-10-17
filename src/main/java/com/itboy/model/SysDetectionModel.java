@@ -76,4 +76,10 @@ public class SysDetectionModel extends Pages{
     private String createUser;
 
     private Long messageId;
+
+    /**
+     * 告警模板名称
+     */
+    @Transient
+    private String messageName;
 }

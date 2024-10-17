@@ -23,4 +23,6 @@ public interface MessageTemplateService {
 
     List<Map<String, String>> findMessageTemplateList();
 
+    SysMessageTemplateModel queryMessageTemplateById(Long id);
+
 }

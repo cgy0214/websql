@@ -11,6 +11,7 @@ import com.itboy.model.SqlParserVo;
 import com.itboy.model.SysDetectionLogsModel;
 import com.itboy.model.SysDetectionModel;
 import com.itboy.service.DetectionService;
+import com.itboy.service.MessageTemplateService;
 import com.itboy.util.StpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,9 @@ public class DetectionServiceImpl implements DetectionService {
     @Autowired
     private DetectionLogsRepository detectionLogsRepository;
 
+    @Autowired
+    private MessageTemplateService messageTemplateService;
+
     @Override
     public Result<SysDetectionModel> list(SysDetectionModel model) {
         Result<SysDetectionModel> result = new Result<>();
@@ -60,6 +64,9 @@ public class DetectionServiceImpl implements DetectionService {
             return cb.and(predicates.toArray(new Predicate[predicates.size()]));
         };
         Page<SysDetectionModel> all = detectionRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
+        for (SysDetectionModel sysDetectionModel : all.getContent()) {
+            sysDetectionModel.setMessageName(messageTemplateService.queryMessageTemplateById(sysDetectionModel.getMessageId()).getName());
+        }
         result.setList(all.getContent());
         result.setCount((int) all.getTotalElements());
         return result;
