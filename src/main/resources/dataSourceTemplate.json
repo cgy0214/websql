@@ -68,5 +68,19 @@
     "url": "jdbc:odps:http://xx.maxcompute.aliyun.com/api?project=项目空间名称&useProjectTimeZone=true;",
     "dbCheckUrl": "select 1",
     "typeName": "内置"
+  },
+  {
+      "name": "doris",
+      "driverClass": "com.mysql.cj.jdbc.Driver",
+      "url": "jdbc:mysql://127.0.0.1:9030/数据库名称?useUnicode=true&characterEncoding=UTF-8&useSSL=true&serverTimezone=Asia/Shanghai",
+      "dbCheckUrl": "select 1",
+      "typeName": "内置"
+  },
+  {
+        "name": "TiDB",
+        "driverClass": "com.mysql.cj.jdbc.Driver",
+        "url": "jdbc:mysql://127.0.0.1:4000/数据库名称",
+        "dbCheckUrl": "select 1",
+        "typeName": "内置"
   }
 ]

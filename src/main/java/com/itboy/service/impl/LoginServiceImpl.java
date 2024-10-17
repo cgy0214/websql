@@ -421,7 +421,7 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public AjaxResult deleteDriverConfig(Long id) {
-        SysDriverConfig sysDriverConfig = sysDriverConfigRepository.getOne(id);
+        SysDriverConfig sysDriverConfig = sysDriverConfigRepository.selectById(id);
         if (ObjectUtil.isNull(sysDriverConfig)) {
             return AjaxResult.error("没有找到此驱动配置信息，请刷新页面再试!");
         }
