@@ -471,7 +471,12 @@ public class DbSourceServiceImpl implements DbSourceService {
         if (ObjectUtil.notEqual("1", dataResult.get("code"))) {
             return AjaxResult.error(dataResult.get("msg").toString());
         }
-        resultMap.put("createTableSql", dataResult.get("Create Table").toString());
+        if(ObjectUtil.isNotNull(dataResult.get("Create Table"))){
+            resultMap.put("createTableSql",dataResult.get("Create Table").toString());
+        }
+        if(ObjectUtil.isNotNull(dataResult.get("statement"))){
+            resultMap.put("createTableSql",dataResult.get("statement").toString());
+        }
 
         //insert 模板
         String inertSql = TableFieldSqlUtils.getInertSql(databaseKey);

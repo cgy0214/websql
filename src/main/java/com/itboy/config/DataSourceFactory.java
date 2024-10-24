@@ -52,8 +52,9 @@ public class DataSourceFactory {
                 if (dbTypeRaw.equals(DbType.dm)
                         || dbTypeRaw.equals(DbType.kingbase)
                         || dbTypeRaw.equals(DbType.oscar)
-                        || dbTypeRaw.equals(DbType.odps)) {
-                    ds.setFilters("stat");
+                        || dbTypeRaw.equals(DbType.odps)
+                        || dbTypeRaw.equals(DbType.clickhouse)) {
+                    //ds.setFilters("stat");
                 } else {
                     ds.setFilters("stat,wall");
                 }

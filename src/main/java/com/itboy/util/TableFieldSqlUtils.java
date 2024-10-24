@@ -33,6 +33,7 @@ public class TableFieldSqlUtils {
 
             .put("oscar", " SELECT TABLE_NAME AS TABLE_NAME,COLUMN_NAME AS TABLE_FIELD from all_tab_columns where owner not in('SYS','SYSDBA','CTISYS') ")
 
+            .put("clickhouse"," SELECT t.name AS TABLE_NAME,c.name AS TABLE_FIELD FROM system.tables t JOIN system.columns c ON t.database = c.database AND t.name = c.table WHERE t.database = (select database()) ")
             .build();
 
 

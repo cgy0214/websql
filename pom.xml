@@ -24,7 +24,7 @@
         <oracle.version>19.3.0.0</oracle.version>
         <sqllite.version>3.42.0.0</sqllite.version>
         <sqlserver.version>4.0</sqlserver.version>
-        <druid.version>1.2.16</druid.version>
+        <druid.version>1.2.23</druid.version>
         <hutool.version>5.8.26</hutool.version>
         <saToken.version>1.37.0</saToken.version>
         <easyCaptcha.version>1.6.2</easyCaptcha.version>
@@ -38,6 +38,7 @@
         <easyexcel.version>4.0.3</easyexcel.version>
         <commons-io.version>2.15.0</commons-io.version>
         <aviator.version>5.4.3</aviator.version>
+        <clickhouse.version>0.3.2</clickhouse.version>
     </properties>
 
     <dependencies>
@@ -205,6 +206,12 @@
             <groupId>com.googlecode.aviator</groupId>
             <artifactId>aviator</artifactId>
             <version>${aviator.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.yandex.clickhouse</groupId>
+            <artifactId>clickhouse-jdbc</artifactId>
+            <version>${clickhouse.version}</version>
         </dependency>
 
     </dependencies>

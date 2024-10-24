@@ -86,12 +86,15 @@ public class SqlParserHandler {
             logger.error("解析语法错误，没有找到对应的执行类型!");
             return null;
         }
-        if (statement.getClass().getName().contains("Insert")) {
+        String name = statement.getClass().getName();
+        if (name.contains("Insert")) {
             return INSERT;
-        } else if (statement.getClass().getName().contains("Update")) {
+        } else if (name.contains("Update")) {
             return UPDATE;
-        } else if (statement.getClass().getName().contains("Delete")) {
+        } else if (name.contains("Delete")) {
             return DELETE;
+        } else if (name.contains("Create")) {
+            return UPDATE;
         } else {
             return SELECT;
         }
@@ -114,11 +117,11 @@ public class SqlParserHandler {
                 // 聚合函数及分组不增加默认分页
                 for (SQLSelectItem sqlSelectItem : sqlSelectQueryBlock.getSelectList()) {
                     String method = sqlSelectItem.getExpr().toString();
-                    if(pattern.matcher(method).find()){
+                    if (pattern.matcher(method).find()) {
                         return sql;
                     }
                 }
-                if(ObjectUtil.isNotNull(sqlSelectQueryBlock.getGroupBy())){
+                if (ObjectUtil.isNotNull(sqlSelectQueryBlock.getGroupBy())) {
                     return sql;
                 }
                 if (ObjectUtil.isNull(sqlSelectQueryBlock.getLimit()) && !sql.toUpperCase().contains("ROWNUM")) {

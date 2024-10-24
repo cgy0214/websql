@@ -83,4 +83,11 @@
         "dbCheckUrl": "select 1",
         "typeName": "内置"
   }
+  {
+          "name": "clickHouse",
+          "driverClass": "ru.yandex.clickhouse.ClickHouseDriver",
+          "url": "jdbc:clickhouse://127.0.0.1:8123/数据库名称",
+          "dbCheckUrl": "select 1",
+          "typeName": "内置"
+    }
 ]
