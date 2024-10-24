@@ -79,6 +79,9 @@ layui.define(['element', 'form', 'jquery'], function (exports) {
                 $(eid).prepend("<option value=''>" + param.title + "</option>");
                 var option = new Array();
                 if (param.format) {//格式化
+                    if(data == null){
+                        return false;
+                    }
                     for (var i = 0; i < data.length; i++) {
                         var tdata = param.format(data[i]);
                         option.push({

@@ -41,11 +41,6 @@ public class DetectionManagerController {
         return "detectionAddPage";
     }
 
-    @RequestMapping("/configPage")
-    public String configPage() {
-        return "detectionConfigPage";
-    }
-
     @RequestMapping("/reportPage")
     public ModelAndView reportPage(Long id) {
         ModelAndView modelAndView = new ModelAndView("detectionReportPage");
@@ -209,6 +204,13 @@ public class DetectionManagerController {
             return AjaxResult.error("必填参数为空!");
         }
         detectionService.deleteLog(id);
+        return AjaxResult.success();
+    }
+
+    @RequestMapping("/deleteLogAll")
+    @ResponseBody
+    public AjaxResult deleteLogAll() {
+        detectionService.deleteLogAll();
         return AjaxResult.success();
     }
 

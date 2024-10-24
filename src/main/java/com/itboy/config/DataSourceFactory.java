@@ -177,8 +177,11 @@ public class DataSourceFactory {
 
 
     public static String getDbType(String sourceKey) {
-        String rawJdbcUrl = DATA_SOURCE_MAP.get(sourceKey).getRawJdbcUrl();
-        return getDbTypeByJdbcUrl(rawJdbcUrl, "").name();
+        DruidDataSource druidDataSource = DATA_SOURCE_MAP.get(sourceKey);
+        if (ObjectUtil.isNotNull(druidDataSource)) {
+            return getDbTypeByJdbcUrl(druidDataSource.getRawJdbcUrl(), "").name();
+        }
+        return null;
     }
 
     public static DbType getDbTypeByJdbcUrl(String jdbcUrl, String className) {

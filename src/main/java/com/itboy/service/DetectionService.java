@@ -32,4 +32,6 @@ public interface DetectionService {
     Map<String, Object> logCharts(SysDetectionLogsModel model);
 
     void deleteLog(Long id);
+
+    void deleteLogAll();
 }

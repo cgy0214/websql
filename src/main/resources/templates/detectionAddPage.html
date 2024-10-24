@@ -174,7 +174,7 @@
             elem: "#dataBaseName",
             url: ctx + 'dataSourceManager/findDataSourceList',
             select: 10000,
-            title: '请选择数据去向数据源',
+            title: '请选择数据源',
             format: function (data) {
                 return parseSelectData(data);
             },
@@ -211,6 +211,9 @@
          * 设置编辑器提示表名及字段功能
          */
         function editorHintSettings() {
+            if (activeDataSource === "" || activeDataSource == null) {
+                return false;
+            }
             post(ctx + "sqlManager/findTableField?database=" + activeDataSource, null, (res) => {
                 if (res.code !== 200 || res.data === null) {
                     console.error("获取表名及字段失败,无法提供编辑器提示功能!" + res.msg);
@@ -233,7 +236,7 @@
                 return false;
             }
             if (activeDataSource === "" || activeDataSource == null) {
-                layer.msg("请选择数据来源~", {icon: 2});
+                layer.msg("请选择数据源~", {icon: 2});
                 $("#msgDiv").show();
                 $("#msgSpan").text("ERROR:请选择数据来源~");
                 return false;

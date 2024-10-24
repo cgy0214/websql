@@ -65,7 +65,7 @@ public class DetectionServiceImpl implements DetectionService {
         };
         Page<SysDetectionModel> all = detectionRepository.findAll(spec, PageRequest.of(model.getPage() - 1, model.getLimit()));
         for (SysDetectionModel sysDetectionModel : all.getContent()) {
-            if(ObjectUtil.isNotNull(sysDetectionModel.getMessageId())){
+            if (ObjectUtil.isNotNull(sysDetectionModel.getMessageId())) {
                 sysDetectionModel.setMessageName(messageTemplateService.queryMessageTemplateById(sysDetectionModel.getMessageId()).getName());
             }
         }
@@ -197,5 +197,10 @@ public class DetectionServiceImpl implements DetectionService {
     @Override
     public void deleteLog(Long id) {
         detectionLogsRepository.deleteById(id);
+    }
+
+    @Override
+    public void deleteLogAll() {
+        detectionLogsRepository.deleteAll();
     }
 }

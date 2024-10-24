@@ -36,29 +36,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                     .notMatch("/unlockLoginUser")
                     .check(r -> StpUtil.checkLogin());
 
-            List<String> list = Arrays.asList("/dataSourceManager/page",
-                    "/dataSourceManager/dataSourceList",
-                    "/sqlManager/sqlPage",
-                    "/dataSourceManager/findDataSourceList",
-                    "/sqlManager/querySqlTextSelect",
-                    "/sqlManager/findTableField",
-                    "/sqlManager/executeSqlNew",
-                    "/sqlManager/sqlTextPage",
-                    "/sqlManager/querySqlTextList",
-                    "/sqlManager/saveSqlText",
-                    "/timingManager/listPage",
-                    "/timingManager/addPage",
-                    "/timingManager/addTimingData",
-                    "/timingManager/historyPage",
-                    "/timingManager/jobLogList",
-                    "/timingManager/timingList",
-                    "/logManager/logPage",
-                    "/logManager/getLogList",
-                    "/logManager/userLogPage",
-                    "/logManager/getUserLogList",
-                    "/settingManager/driverConfigPage",
-                    "/settingManager/driverConfigList");
-            SaRouter.match(list).check(r -> {
+            SaRouter.match(demoAllowUrl()).check(r -> {
                 if (StpUtil.hasRole("demo-admin")) {
                     r.stop();
                 }
@@ -75,5 +53,41 @@ public class SaTokenConfigure implements WebMvcConfigurer {
             SaRouter.match("/openApiManager/**", r -> StpUtils.checkOpenAuth());
             SaRouter.match("/detectionManager/**", r -> StpUtil.checkRoleOr("timing-admin", "super-admin"));
         })).addPathPatterns("/**");
+    }
+
+    /**
+     *  演示角色可以访问的功能url
+     * @return
+     */
+    private List<String> demoAllowUrl() {
+        return Arrays.asList("/dataSourceManager/page",
+                "/dataSourceManager/dataSourceList",
+                "/sqlManager/sqlPage",
+                "/dataSourceManager/findDataSourceList",
+                "/sqlManager/querySqlTextSelect",
+                "/sqlManager/findTableField",
+                "/sqlManager/executeSqlNew",
+                "/sqlManager/sqlTextPage",
+                "/sqlManager/querySqlTextList",
+                "/sqlManager/saveSqlText",
+                "/timingManager/listPage",
+                "/timingManager/addPage",
+                "/timingManager/addTimingData",
+                "/timingManager/historyPage",
+                "/timingManager/jobLogList",
+                "/timingManager/timingList",
+                "/logManager/logPage",
+                "/logManager/getLogList",
+                "/logManager/userLogPage",
+                "/logManager/getUserLogList",
+                "/settingManager/driverConfigPage",
+                "/settingManager/driverConfigList",
+                "/detectionManager/listPage",
+                "/detectionManager/addPage",
+                "/detectionManager/reportPage",
+                "/detectionManager/list",
+                "/detectionManager/findDataSelect",
+                "/detectionManager/logList",
+                "/detectionManager/logCharts");
     }
 }
