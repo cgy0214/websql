@@ -79,7 +79,7 @@
         layui.use(function () {
             const $ = layui.jquery;
             const layer = layui.layer;
-            var loadIndex;
+            let loadIndex;
             $.ajax({
                 type: "post",
                 url: url,
@@ -88,7 +88,7 @@
                 dataType: "json",
                 contentType: "application/json",
                 beforeSend: function () {
-                    loadIndex = layer.load(2);
+                    loadIndex = layer.load(0);
                 },
                 complete: function () {
                     layer.close(loadIndex);
