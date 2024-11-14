@@ -758,7 +758,7 @@
 
     /**左侧菜单栏（缩放） */
     .layuimini-mini .layuimini-menu-left {
-        width: 80px !important;
+        width: 60px !important;
     }
 
     .layuimini-mini .layui-side.layui-bg-black, .layuimini-mini .layuimini-menu-left > ul, .layuimini-mini .layuimini-menu-left > ul li i {
