@@ -5,42 +5,12 @@
     <title>WebSql管理系统</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/static/css/login.css}" media="all"/>
 </head>
-<style>
-    body {
-        background-color: #eae1e157;
-    }
-
-    .login-container {
-        width: 320px;
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        margin: -150px 0 0 -150px;
-        z-index: 99;
-        border: 2px solid white;
-        padding: 20px;
-        background-color: white;
-        box-shadow: 0px 2px 10px;
-        animation: color-breath 2s infinite;
-    }
-
-    @keyframes color-breath {
-        0% {
-            border: 2px solid #16baaa;
-        }
-        50% {
-            border: 2px solid #55c06c;
-        }
-        100% {
-            border: 2px solid #27b4e0;
-        }
-    }
-</style>
 <body>
 <form class="layui-form">
     <div class="login-container">
-        <div class="layui-form-item" style="text-align: center;font-size: 20px;">WEBSQL</div>
+        <div class="layui-form-item title">WEBSQL</div>
         <div class="layui-form-item">
             <div class="layui-input-wrap">
                 <div class="layui-input-prefix">
@@ -78,9 +48,9 @@
             </div>
         </div>
         <div class="layui-form-item">
-            <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="login">登录</button>
+            <button class="log-button" lay-submit lay-filter="login">登录</button>
         </div>
-        <div class="layui-form-item copyright" style="text-align:center">
+        <div class="layui-form-item copyright" style="text-align:center;color:#918b8b;">
         </div>
     </div>
 </form>
