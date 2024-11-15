@@ -416,11 +416,11 @@ public class DbSourceServiceImpl implements DbSourceService {
         if (ObjectUtil.notEqual("1", dataResult.get("code"))) {
             return AjaxResult.error(dataResult.get("msg").toString());
         }
-        if(ObjectUtil.isNotNull(dataResult.get("Create Table"))){
-            resultMap.put("createTableSql",dataResult.get("Create Table").toString());
+        if (ObjectUtil.isNotNull(dataResult.get("Create Table"))) {
+            resultMap.put("createTableSql", dataResult.get("Create Table").toString());
         }
-        if(ObjectUtil.isNotNull(dataResult.get("statement"))){
-            resultMap.put("createTableSql",dataResult.get("statement").toString());
+        if (ObjectUtil.isNotNull(dataResult.get("statement"))) {
+            resultMap.put("createTableSql", dataResult.get("statement").toString());
         }
 
         //insert 模板
@@ -578,5 +578,66 @@ public class DbSourceServiceImpl implements DbSourceService {
         result.setList(all.getContent());
         result.setCount((int) all.getTotalElements());
         return result;
+    }
+
+    @Override
+    public List<MetaTreeTable> metaTreeTableList() {
+        List<MetaTreeTable> resultList = new ArrayList<>();
+        List<Map<String, String>> databaseList = this.dbsourceSqlList(null);
+        if (databaseList == null || databaseList.isEmpty()) {
+            return resultList;
+        }
+        for (Map<String, String> item : databaseList) {
+            MetaTreeTable metaTreeTable = createDataSourceNode(item);
+            resultList.add(metaTreeTable);
+        }
+        for (MetaTreeTable database : resultList) {
+            AjaxResult table = findTableField(database.getTitle());
+            Map<String, Object> tableMap = (Map<String, Object>) table.getData();
+            List<MetaTreeTable> tableList = new ArrayList<>();
+            tableMap.forEach((k, v) -> {
+                AjaxResult tableField = this.findMetaTable(database.getTitle(), k);
+                DataSourceMeta tableFieldData = (DataSourceMeta) tableField.getData();
+                DataSourceMeta item = new DataSourceMeta();
+                BeanUtil.copyProperties(tableFieldData, item);
+                tableList.add(createTableNode(item));
+            });
+            database.setChildren(tableList);
+        }
+        return resultList;
+    }
+
+    private MetaTreeTable createDataSourceNode(Map<String, String> item) {
+        MetaTreeTable metaTreeTable = new MetaTreeTable();
+        metaTreeTable.setId(item.get("id"));
+        metaTreeTable.setTitle(item.get("value"));
+        metaTreeTable.setField("database");
+        return metaTreeTable;
+    }
+
+    private MetaTreeTable createTableNode(DataSourceMeta meta) {
+        MetaTreeTable table = new MetaTreeTable();
+        table.setField("table");
+        table.setId(meta.getTableName());
+        String title = Objects.equals(meta.getTableComment(), "") || meta.getTableComment() == null ? meta.getTableName() : String.join(":", meta.getTableName(), meta.getTableComment());
+        table.setTitle(title);
+        List<MetaTreeTable> fieldList = new ArrayList<>();
+        for (DataSourceTableMeta dataSourceTableMeta : meta.getTablesMetaList()) {
+            MetaTreeTable item = createFieldNode(dataSourceTableMeta);
+            fieldList.add(item);
+        }
+        table.setTableMeta(meta);
+        table.setChildren(fieldList);
+        return table;
+    }
+
+    private MetaTreeTable createFieldNode(DataSourceTableMeta fieldMeta) {
+        MetaTreeTable field = new MetaTreeTable();
+        field.setField("field");
+        String title = Objects.equals(fieldMeta.getComment(), "") || fieldMeta.getComment() == null ? fieldMeta.getColumnName() : String.join(":", fieldMeta.getColumnName(), fieldMeta.getComment());
+        field.setTitle(title);
+        field.setId(fieldMeta.getColumnName());
+        field.setDisabled(true);
+        return field;
     }
 }

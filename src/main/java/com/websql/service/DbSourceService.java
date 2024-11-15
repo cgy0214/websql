@@ -65,4 +65,7 @@ public interface DbSourceService {
     SysExportModel exportAsyncData(Long id);
 
     Result<SysExportModel> exportFilesLogList(SysExportModel model);
+
+    List<MetaTreeTable> metaTreeTableList();
+
 }

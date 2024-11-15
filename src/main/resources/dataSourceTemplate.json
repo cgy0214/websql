@@ -9,7 +9,7 @@
   {
     "name": "mysql",
     "driverClass": "com.mysql.cj.jdbc.Driver",
-    "url": "jdbc:mysql://127.0.0.1:3306/数据库名称?useUnicode=true&characterEncoding=UTF-8&useSSL=true&serverTimezone=Asia/Shanghai",
+    "url": "jdbc:mysql://127.0.0.1:3306/数据库名称?useUnicode=true&characterEncoding=UTF-8&useSSL=true&serverTimezone=Asia/Shanghai&useInformationSchema=true",
     "dbCheckUrl": "select 1 ",
     "typeName": "内置"
   },

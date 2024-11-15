@@ -51,19 +51,10 @@ public class DataSourceManagerController {
         return "dataSourcePage";
     }
 
-
-    @RequestMapping("dbSource/sqlController/tablePage")
-    @ResponseBody
-    public String tablePage() {
-        //可自行实现
-        return "请通过SQL编写查询表";
-    }
-
     @RequestMapping("/addSourcePage")
     public String addSourcePage() {
         return "addSourcePage";
     }
-
 
     @RequestMapping("/dataSourceList")
     @ResponseBody

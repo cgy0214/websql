@@ -50,6 +50,11 @@ public class SqlManagerController {
     }
 
 
+    @RequestMapping("/metaTablePage")
+    public String tablePage() {
+        return "metaTablePage";
+    }
+
     /**
      * 查询sql文本下拉框
      *
@@ -130,6 +135,7 @@ public class SqlManagerController {
 
     /**
      * sql执行
+     *
      * @param sql
      * @return
      */
@@ -284,5 +290,19 @@ public class SqlManagerController {
             throw new RuntimeException(e);
         }
     }
+
+
+    /**
+     * 元数据树呈现
+     *
+     * @return
+     */
+    @RequestMapping("/metaTreeTableList")
+    @ResponseBody
+    public AjaxResult metaTreeTableList() {
+        return AjaxResult.success(dbSourceService.metaTreeTableList());
+    }
+
+
 }
 

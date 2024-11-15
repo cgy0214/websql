@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>元数据管理</title>
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
+    <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+</head>
+<body>
+<form class="layui-form" style="margin-top: 10px;">
+    <div class="layui-panel">
+        <div class="layui-row">
+            <div class="layui-col-xs3">
+                <input value="" placeholder="搜索"/>
+                <button type="button" class="layui-btn layui-btn-sm" lay-on="reload">刷新</button>
+                <div id="div-tree" style="height:650px;overflow-y:auto;"></div>
+            </div>
+            <div class="layui-col-xs9">
+                <table class="layui-hide" id="dataTable" lay-filter="dataTable"></table>
+            </div>
+        </div>
+    </div>
+</form>
+</body>
+<script th:src="@{/static/layui.js}"></script>
+<script th:src="@{/static/base64.min.js}"></script>
+<script th:replace="~{base::ctx}"/>
+<script type="text/html" id="toolbarTable">
+    <div class="layui-clear-space">
+        <a class="layui-btn  layui-btn-xs" lay-event="view">查看</a>
+        <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
+    </div>
+</script>
+<script>
+    layui.use(function () {
+        const layer = layui.layer;
+        const form = layui.form;
+        const $ = layui.jquery;
+        const table = layui.table;
+        const laytpl = layui.laytpl;
+        const util = layui.util;
+        const tree = layui.tree;
+
+        //树呈现
+        tree.render({
+            elem: '#div-tree',
+            data:  [],
+            showCheckbox: false,
+            onlyIconControl: true,
+            id: 'tree-id-1',
+            isJump: false,
+            click: function (obj) {
+                var data = obj.data;  //获取当前点击的节点数据
+                layer.msg('状态：' + obj.state + '<br>节点数据：' + JSON.stringify(data));
+            }
+        });
+
+        /**
+         * 加载树形元数据
+         * @returns {*[]}
+         */
+        function loadTreeData() {
+            post(ctx + "sqlManager/metaTreeTableList", null, (res) => {
+                if (res.code === 200) {
+                    tree.reload('tree-id-1', {
+                        data: res.data
+                    });
+                }
+            })
+        }
+
+        // 刷新树
+        util.event('lay-on', {
+            reload: loadTreeData()
+        });
+        loadTreeData();
+
+
+        table.render({
+            elem: '#dataTable',
+            url: ctx + 'sqlManager/querySqlTextList',
+            toolbar: true,
+            defaultToolbar: ['filter', 'exports', 'print'],
+            page: true,
+            height: '655',
+            cols: [
+                [
+                    {field: 'id', title: 'id', sort: true, fixed: true},
+                    {field: 'title', title: '名称', sort: true, fixed: true},
+                    {field: 'sqlCreateUser', title: '创建人', sort: true, fixed: true},
+                    {field: 'sqlCreateDate', title: '保存时间', sort: true, fixed: true},
+                    {fixed: 'right', title: '操作', width: 134, minWidth: 125, toolbar: '#toolbarTable'}
+                ]
+            ],
+            parseData: res => parseData(res)
+        });
+
+        table.on('tool(dataTable)', function (obj) {
+            var data = obj.data;
+            switch (obj.event) {
+                case 'view':
+                    let str = Base64.decode(data.sqlText) || "";
+                    const content = laytpl('<div style="margin: 5px;"><pre class="layui-code">{{= d.content}}</pre></div>')
+                        .render({content: str});
+                    openContent("查看SQL内容", content);
+                    break;
+                case 'delete':
+                    layer.confirm('您确定要删除吗?', {icon: 3}, function () {
+                        post(ctx + "sqlManager/deleteSqlText/" + data.id, null, (res) => {
+                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                                $(".search-btn").click();
+                            });
+                        })
+                    }, function () {
+                    });
+                    break;
+            }
+        });
+
+        form.on('submit(table-search)', function (data) {
+            const field = data.field;
+            table.reloadData('dataTable', {
+                scrollPos: true,
+                where: field
+            });
+            return false;
+        });
+    });
+</script>
+</html>
