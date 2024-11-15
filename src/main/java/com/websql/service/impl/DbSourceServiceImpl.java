@@ -595,13 +595,29 @@ public class DbSourceServiceImpl implements DbSourceService {
             AjaxResult table = findTableField(database.getTitle());
             Map<String, Object> tableMap = (Map<String, Object>) table.getData();
             List<MetaTreeTable> tableList = new ArrayList<>();
+            int tableCount = tableMap.size();
             tableMap.forEach((k, v) -> {
                 AjaxResult tableField = this.findMetaTable(database.getTitle(), k);
                 DataSourceMeta tableFieldData = (DataSourceMeta) tableField.getData();
-                DataSourceMeta item = new DataSourceMeta();
-                BeanUtil.copyProperties(tableFieldData, item);
-                tableList.add(createTableNode(item));
+                if (ObjectUtil.isNotNull(tableFieldData)) {
+                    DataSourceMeta item = new DataSourceMeta();
+                    BeanUtil.copyProperties(tableFieldData, item);
+                    tableList.add(createTableNode(item, tableCount));
+                }
             });
+            if (ObjectUtil.isNotNull(tableList) && !tableList.isEmpty()) {
+                MetaTreeTable metaTreeTable = tableList.get(0);
+                DataSourceMeta tableMeta = metaTreeTable.getTableMeta();
+                DataSourceMeta item = new DataSourceMeta();
+                BeanUtil.copyProperties(tableMeta, item);
+                item.setTablesKeysMetaList(null);
+                item.setTablesIndexMetaList(null);
+                item.setTablesMetaList(null);
+                item.setTableComment(null);
+                item.setTableName(null);
+                database.setTableCount(metaTreeTable.getTableCount());
+                database.setTableMeta(item);
+            }
             database.setChildren(tableList);
         }
         return resultList;
@@ -615,17 +631,19 @@ public class DbSourceServiceImpl implements DbSourceService {
         return metaTreeTable;
     }
 
-    private MetaTreeTable createTableNode(DataSourceMeta meta) {
-        MetaTreeTable table = new MetaTreeTable();
-        table.setField("table");
-        table.setId(meta.getTableName());
-        String title = Objects.equals(meta.getTableComment(), "") || meta.getTableComment() == null ? meta.getTableName() : String.join(":", meta.getTableName(), meta.getTableComment());
-        table.setTitle(title);
+    private MetaTreeTable createTableNode(DataSourceMeta meta, int tableCount) {
         List<MetaTreeTable> fieldList = new ArrayList<>();
         for (DataSourceTableMeta dataSourceTableMeta : meta.getTablesMetaList()) {
             MetaTreeTable item = createFieldNode(dataSourceTableMeta);
             fieldList.add(item);
         }
+        MetaTreeTable table = new MetaTreeTable();
+        table.setField("table");
+        table.setTableCount(tableCount);
+        table.setFieldCount(fieldList.size());
+        table.setId(meta.getTableName());
+        String title = Objects.equals(meta.getTableComment(), "") || meta.getTableComment() == null ? meta.getTableName() : String.join(":", meta.getTableName(), meta.getTableComment());
+        table.setTitle(title);
         table.setTableMeta(meta);
         table.setChildren(fieldList);
         return table;

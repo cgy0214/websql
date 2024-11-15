@@ -17,6 +17,10 @@ public class MetaTreeTable {
 
     private DataSourceMeta tableMeta;
 
+    private int tableCount;
+
+    private int fieldCount;
+
     private List<MetaTreeTable> children;
 
 }
