@@ -281,7 +281,7 @@ public class DbSourceServiceImpl implements DbSourceService {
                 item.put("select", "false");
                 dataSourceList.add(item);
             }
-            CacheUtils.put("data_source_model", dataSourceList);
+            CacheUtils.put("data_source_model", dataSourceList,30000);
         }
         //按照团队过滤
         Long teamId = StpUtils.getCurrentActiveTeam().getId();
@@ -346,7 +346,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             }
             List<Map> list = (List<Map>) map.get("data");
             resultMap = list.stream().collect(Collectors.groupingBy(s -> s.get("TABLE_NAME").toString(), Collectors.mapping(s -> s.get("TABLE_FIELD").toString(), Collectors.toList())));
-            CacheUtils.put(key, resultMap);
+            CacheUtils.put(key, resultMap,30000);
         }
         return AjaxResult.success(resultMap);
     }

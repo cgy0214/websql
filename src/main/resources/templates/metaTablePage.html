@@ -6,11 +6,11 @@
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
     <style>
-    .small-input {
-        width: 350px;
-        height: 30px;
-    }
-</style>
+        .small-input {
+            width: 350px;
+            height: 30px;
+        }
+    </style>
 </head>
 <body>
 <form class="layui-form">
@@ -34,7 +34,7 @@
                         <div id="view1">无数据...</div>
                     </div>
                 </div>
-                <div class="layui-card">
+                <div class="layui-card" id="showView2" style="display:none;">
                     <div class="layui-card-header">数据表信息</div>
                     <div class="layui-card-body">
                         <div id="view2">无数据...</div>
@@ -214,11 +214,16 @@
                 laytpl(DataBaseView).render(data.tableMeta, function (str) {
                     view1.innerHTML = str;
                 });
-                const tableView = document.getElementById('tableView').innerHTML;
-                const view2 = document.getElementById('view2');
-                laytpl(tableView).render(data.tableMeta, function (str) {
-                    view2.innerHTML = str;
-                });
+                if (data.field === "database") {
+                    $("#showView2").hide();
+                } else {
+                    const tableView = document.getElementById('tableView').innerHTML;
+                    const view2 = document.getElementById('view2');
+                    laytpl(tableView).render(data.tableMeta, function (str) {
+                        view2.innerHTML = str;
+                    });
+                    $("#showView2").show();
+                }
             }
         });
 
