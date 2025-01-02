@@ -116,6 +116,7 @@
 </div>
 <script th:src="@{/static/layui.js}"></script>
 <script th:src="@{/static/lay-config.js}"></script>
+<script th:src="@{/static/base64.min.js}"></script>
 <script th:replace="~{base::ctx}"></script>
 <script>
     layui.use(['jquery', 'layer', 'miniAdmin', 'laySelect', 'form', 'util'], function () {
@@ -243,7 +244,12 @@
                     input.focus();
                     var elemUnlock = layero.find('#ID-layer-unlock');
                     elemUnlock.on('click', function () {
-                        post(ctx + "unlock?pass=" + $.trim(input[0].value), null, (res) => {
+                        const param = {
+                            "password": input[0].value,
+                            "timestamp": new Date().getTime()
+                        };
+                        let json = Base64.encode(JSON.stringify(param));
+                        post(ctx + "unlock", json, (res) => {
                             if (res.code === 200) {
                                 localStorage.removeItem(lockKey);
                                 layer.close(index);

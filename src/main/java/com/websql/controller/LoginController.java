@@ -146,11 +146,22 @@ public class LoginController {
      */
     @RequestMapping("unlock")
     @ResponseBody
-    public AjaxResult unlock(@RequestParam String pass) {
-        if (ObjectUtil.isEmpty(pass)) {
-            return AjaxResult.error("密码为空!");
+    public AjaxResult unlock(@RequestBody String param) {
+        try {
+            Map map = JSON.parseObject(Base64Decoder.decodeStr(param), Map.class);
+            Long timestamp = MapUtil.getLong(map, "timestamp");
+            String password = MapUtil.getStr(map, "password");
+            if (DateUtil.date().getTime() - timestamp > Integer.parseInt(EnvBeanUtil.getString("login-captcha-timeout"))) {
+                return AjaxResult.error("请求超时,请刷新页面重新解锁!");
+            }
+            if (ObjectUtil.isEmpty(password)) {
+                return AjaxResult.error("解锁失败,密码为空!");
+            }
+            return loginService.unlock(password);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return loginService.unlock(pass);
+        return AjaxResult.error("解锁失败!");
     }
 
 
