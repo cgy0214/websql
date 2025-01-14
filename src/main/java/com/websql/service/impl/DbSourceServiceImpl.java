@@ -593,6 +593,9 @@ public class DbSourceServiceImpl implements DbSourceService {
         }
         for (MetaTreeTable database : resultList) {
             AjaxResult table = findTableField(database.getTitle());
+            if(ObjectUtil.notEqual(table.getCode(),200)){
+                continue;
+            }
             Map<String, Object> tableMap = (Map<String, Object>) table.getData();
             List<MetaTreeTable> tableList = new ArrayList<>();
             int tableCount = tableMap.size();

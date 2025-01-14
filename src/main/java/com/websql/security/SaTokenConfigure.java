@@ -25,6 +25,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
         registry.addInterceptor(new SaInterceptor(handler -> {
 
             SaRouter.match("/**")
+                    .notMatch("/")
                     .notMatch("/login/**")
                     .notMatch("/code/**")
                     .notMatch("/common/**")
