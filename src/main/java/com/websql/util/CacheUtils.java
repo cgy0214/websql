@@ -55,4 +55,7 @@ public class CacheUtils {
         localCache.remove(key);
     }
 
+    public static void removeAll() {
+        localCache.clear();
+    }
 }

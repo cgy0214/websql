@@ -9,12 +9,14 @@
     .layui-form-pane .layui-form-label {
         width: 120px;
     }
+    .btnClass .layui-input-inline {
+        width: 165px !important;
+    }
 </style>
 <body>
 
 <div style="margin:5px;">
     <form class="layui-form layui-form-pane" action="" lay-filter="val-filter">
-
         <div class="layui-bg-gray" style="padding: 16px;">
             <div class="layui-row layui-col-space15">
                 <div class="layui-col-md4">
@@ -172,70 +174,76 @@
                     <div class="layui-card">
                         <div class="layui-card-header" style="background-color: #16baaa">维护操作</div>
                         <div class="layui-card-body">
-                            <div class="layui-form-item">
+                            <div class="layui-form-item btnClass">
                                 <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                    <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
                                             onclick="btnPost('清除SQL执行日志','logManager/deleteLog/1');return false;">
                                         <i class="layui-icon layui-icon-clear"> </i>清空SQL执行记录
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                    <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
                                             onclick="btnPost('清除用户登陆日志','logManager/deleteLog/2');return false;">
                                         <i class="layui-icon layui-icon-clear"> </i>清空登陆系统记录
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                    <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
                                             onclick="btnPost('清除作业日志','timingManager/jobLogDelete');return false;">
                                         <i class="layui-icon layui-icon-clear"> </i>清空作业执行记录
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                    <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
                                             onclick="btnPost('清除SQL常用记录','sqlManager/sqlTextDeleteAll');return false;">
                                         <i class="layui-icon layui-icon-clear"> </i>清空SQL常用列表
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                    <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
                                             onclick="btnPost('清空数据源列表','settingManager/deleteDataSourceAll');return false;">
                                         <i class="layui-icon layui-icon-clear"> </i>清空数据源列表
                                     </button>
                                 </div>
+                                <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
+                                            onclick="btnPost('清空系统缓存','settingManager/clearCache');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>清空系统缓存
+                                    </button>
+                                </div>
                             </div>
 
-                            <div class="layui-form-item">
+                            <div class="layui-form-item btnClass">
                                 <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-blue"
+                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
                                             onclick="downloadFile('settingManager/downloadTeamJson');return false;">
                                         <i class="layui-icon layui-icon-download-circle"> </i>导出团队信息
                                     </button>
                                 </div>
 
                                 <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-blue"
+                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
                                             onclick="downloadFile('settingManager/downloadDataSourceJson');return false;">
                                         <i class="layui-icon layui-icon-download-circle"> </i>导出数据源信息
                                     </button>
                                 </div>
 
                                 <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-blue"
+                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
                                             onclick="downloadFile('settingManager/downloadSqlTextJson');return false;">
                                         <i class="layui-icon layui-icon-download-circle"> </i>导出SQL文本信息
                                     </button>
                                 </div>
 
                                 <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-blue"
+                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
                                             onclick="btnPost('重建数据源连接池','settingManager/reloadDataSourceAll');return false;">
                                         <i class="layui-icon layui-icon-refresh"> </i>重建数据源连接池
                                     </button>
                                 </div>
 
                                 <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-red"
+                                    <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
                                             onclick="btnPost('清空监测日志记录','detectionManager/deleteLogAll');return false;">
                                         <i class="layui-icon layui-icon-clear"> </i>清空监测日志记录
                                     </button>
@@ -243,9 +251,9 @@
 
                             </div>
 
-                            <div class="layui-form-item">
+                            <div class="layui-form-item btnClass">
                                 <div class="layui-input-inline">
-                                    <button type="button" class="layui-btn" id="upload-teamData" lay-on="tips-right11"
+                                    <button type="button" class="layui-btn layui-btn-radius layui-btn-sm" id="upload-teamData" lay-on="tips-right11"
                                             lay-options="{accept: 'file'}">
                                         <i class="layui-icon layui-icon-upload"></i>
                                         导入团队信息1
@@ -253,7 +261,7 @@
                                 </div>
 
                                 <div class="layui-input-inline">
-                                    <button type="button" class="layui-btn upload-datasource" id="upload-datasource"
+                                    <button type="button" class="layui-btn layui-btn-radius layui-btn-sm upload-datasource" id="upload-datasource"
                                             lay-on="tips-right10"
                                             lay-options="{accept: 'file'}">
                                         <i class="layui-icon layui-icon-upload"></i>
@@ -262,7 +270,7 @@
                                 </div>
 
                                 <div class="layui-input-inline">
-                                    <button type="button" class="layui-btn" id="upload-sqlText" lay-on="tips-right11"
+                                    <button type="button" class="layui-btn layui-btn-radius layui-btn-sm" id="upload-sqlText" lay-on="tips-right11"
                                             lay-options="{accept: 'file'}">
                                         <i class="layui-icon layui-icon-upload"></i>
                                         导入SQL文本信息3

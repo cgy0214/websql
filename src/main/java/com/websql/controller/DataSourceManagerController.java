@@ -122,7 +122,6 @@ public class DataSourceManagerController {
             if (ObjectUtil.isEmpty(model.getDbUrl())) {
                 return AjaxResult.error("连接地址不能为空！");
             }
-            log.info("Successful Add  DbSources ");
             dbSourceService.addDbSource(model, null);
             return AjaxResult.success();
         } catch (Exception e) {

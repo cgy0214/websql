@@ -15,6 +15,7 @@ import com.websql.service.LoginService;
 import com.websql.service.MessageTemplateService;
 import com.websql.service.TeamSourceService;
 import com.websql.task.ExamineVersionFactory;
+import com.websql.util.CacheUtils;
 import com.websql.util.EnvBeanUtil;
 import com.websql.util.PasswordUtil;
 import com.websql.util.StpUtils;
@@ -616,6 +617,7 @@ public class SettingConfigController {
 
     /**
      * 新增报警配置
+     *
      * @param sysMessageTemplateModel
      * @return
      */
@@ -639,6 +641,7 @@ public class SettingConfigController {
 
     /**
      * 删除告警配置
+     *
      * @param id
      * @return
      */
@@ -653,6 +656,7 @@ public class SettingConfigController {
 
     /**
      * 测试发送
+     *
      * @param sysMessageTemplateModel
      * @return
      */
@@ -685,6 +689,15 @@ public class SettingConfigController {
         result.put("code", 0);
         result.put("data", messageTemplateService.findMessageTemplateList());
         return result;
+    }
+
+
+    @RequestMapping("/clearCache")
+    @ResponseBody
+    public AjaxResult clearCache() {
+        CacheUtils.removeAll();
+        CacheUtils.putNoDue("sys_setup", dbSourceService.initSysSetup());
+        return AjaxResult.success();
     }
 
 }

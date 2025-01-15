@@ -138,7 +138,7 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Override
     public SysSetup initSysSetup() {
         List<SysSetup> sysList = sysSetUpRepository.findAll();
-        if (sysList.size() > 0) {
+        if (!sysList.isEmpty()) {
             return sysList.get(0);
         } else {
             return SysSetup.getInstance();
