@@ -5,6 +5,9 @@
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
     <style>
+        .password-fields {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -33,17 +36,34 @@
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label" pane>新密码</label>
-            <div class="layui-input-inline" style="width: 500px;">
-                <input type="password" name="password" required lay-affix="eye"
-                       placeholder="如需修改密码请输入新密码"
-                       autocomplete="off" class="layui-input">
+            <div class="layui-input-block">
+                <button type="button" id="changePasswordBtn" class="layui-btn layui-btn-primary">
+                    <i class="layui-icon layui-icon-edit"> </i>修改密码?
+                </button>
+            </div>
+        </div>
+        <div class="password-fields">
+            <div class="layui-form-item">
+                <label class="layui-form-label" pane>新密码</label>
+                <div class="layui-input-inline" style="width: 500px;">
+                    <input type="password" id="password" name="password" required lay-affix="eye"
+                           placeholder="请输入新密码"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label" pane>确认密码</label>
+                <div class="layui-input-inline" style="width: 500px;">
+                    <input type="password" id="confirmPassword" name="confirmPassword" required lay-affix="eye"
+                           placeholder="请再次输入新密码"
+                           autocomplete="off" class="layui-input">
+                </div>
             </div>
         </div>
         <div class="layui-form-item">
             <div class="layui-input-block">
                 <button class="layui-btn" lay-filter="save" lay-submit>
-                    <i class="layui-icon layui-icon-edit"> </i>修改
+                    <i class="layui-icon layui-icon-edit"> </i>保存
                 </button>
             </div>
         </div>
@@ -55,8 +75,22 @@
     layui.use(function () {
         const layer = layui.layer;
         const form = layui.form;
+        const $ = layui.$;
+
+        $('#changePasswordBtn').on('click', function () {
+            $('.password-fields').toggle(); // 切换密码输入框的显示状态
+        });
+
         form.on('submit(save)', function (data) {
             const field = data.field;
+            if ($('.password-fields').is(':visible')) {
+                const password = field.password;
+                const confirmPassword = field.confirmPassword;
+                if (password !== confirmPassword) {
+                    layer.msg("两次输入的密码不一致，请重新输入！", {icon: 2});
+                    return false;
+                }
+            }
             post(ctx + "userController/updateUsers", field, (res) => {
                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                     top.location.href = ctx + "logout";
