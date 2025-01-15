@@ -61,7 +61,7 @@
         }
 
         pre.CodeMirror-placeholder {
-            color: #a19c9c;
+            color: #4f664f;
             font-size: 1rem;
         }
 
@@ -114,7 +114,7 @@
     </form>
 </div>
 
-<div class="sqlText">
+<div class="sqlText" id="ID-dropdown-contextmenu">
     <textarea id='sqlText' style="width: 100%;height: 500px;align-content: center;"></textarea>
 </div>
 
@@ -198,8 +198,8 @@
                 }
             },
             hintOptions: {completeSingle: false},
-            placeholder: '输入您的要执行的SQL内容... \n\n\n' +
-                '快捷键：\n' +
+            placeholder: '请输入您要执行的SQL... \n\n\n' +
+                '结果列表 Or SQL区域内鼠标右键试试~ \n' +
                 '鼠标选中【表名】+Alt+X  查看元数据 \n' +
                 '鼠标选中【表名】+Alt+Z  查看建表语句 \n' +
                 'Alt+C      格式化内容 \n' +
@@ -248,7 +248,7 @@
          */
         function getSelectTable(cm) {
             let table = cm.getSelection();
-            if (table.length === 0 || activeDataSource === null || activeDataSource==='') {
+            if (table.length === 0 || activeDataSource === null || activeDataSource === '') {
                 throw '请选中表名且选中数据源后，在使用快捷键~';
             }
             return table;
@@ -258,7 +258,7 @@
          * 提示元数据
          */
         function hintMeta(cm) {
-            if (activeDataSource === null || activeDataSource==='') {
+            if (activeDataSource === null || activeDataSource === '') {
                 return false;
             }
             post(ctx + "sqlManager/findMetaTable?database=" + activeDataSource + "&table=" + getSelectTable(cm), null, (res) => {
@@ -302,7 +302,7 @@
          * @returns {boolean}
          */
         function showTableSql(cm) {
-            if (activeDataSource === null || activeDataSource==='') {
+            if (activeDataSource === null || activeDataSource === '') {
                 return false;
             }
             post(ctx + "sqlManager/showTableSql?database=" + activeDataSource + "&table=" + getSelectTable(cm), null, (res) => {
@@ -340,7 +340,7 @@
          * 设置编辑器提示表名及字段功能
          */
         function editorHintSettings() {
-            if (activeDataSource === null || activeDataSource==='') {
+            if (activeDataSource === null || activeDataSource === '') {
                 return false;
             }
             post(ctx + "sqlManager/findTableField?database=" + activeDataSource, null, (res) => {
@@ -595,8 +595,8 @@
          */
         form.on('submit(exportExcel)', function (data) {
             //if(elementTabCount.length===0){
-                //layer.msg("请执行查询，呈现结果后再导出数据!", {icon: 2});
-                //return false;
+            //layer.msg("请执行查询，呈现结果后再导出数据!", {icon: 2});
+            //return false;
             //}
             if (activeDataSource === "" || activeDataSource == null) {
                 layer.msg("您修改数据源后请重新查询~", {icon: 2});
@@ -611,24 +611,27 @@
             if (pitchTxt.length !== 0) {
                 sqlContent = pitchTxt;
             }
-            post(ctx + "sqlManager/createAsyncExport", {'dataBaseName': activeDataSource, 'sqlText': sqlContent}, (res) => {
+            post(ctx + "sqlManager/createAsyncExport", {
+                'dataBaseName': activeDataSource,
+                'sqlText': sqlContent
+            }, (res) => {
                 if (!res) {
                     layer.msg("导出失败.", {icon: 2});
                     return false;
                 }
                 if (res.code !== 200) {
-                    layer.msg(res.msg, {icon: 2,time:5000});
+                    layer.msg(res.msg, {icon: 2, time: 5000});
                     return false;
                 }
                 var async = res.data.async;
                 var id = res.data.id;
-                if(!async){
+                if (!async) {
                     if (pageVisibility === 'hidden') {
                         sendNotification("文件导出中,请查看浏览器下载记录~");
                     }
-                    window.open(ctx + "sqlManager/downloadExcelFile?id="+id);
-                }else{
-                    layer.msg("生成文件中请不要关闭页面,结束会自动下载!", {icon: 1,time:3000}, () => {
+                    window.open(ctx + "sqlManager/downloadExcelFile?id=" + id);
+                } else {
+                    layer.msg("生成文件中请不要关闭页面,结束会自动下载!", {icon: 1, time: 3000}, () => {
                         downloadExcel(id);
                     });
                 }
@@ -640,19 +643,19 @@
          * 异步导出文件，轮询检查是否完成
          * @param id
          */
-        function downloadExcel(id){
+        function downloadExcel(id) {
             var finalId = id;
-            post(ctx + "sqlManager/queryExportData?id="+id,null, (res) => {
+            post(ctx + "sqlManager/queryExportData?id=" + id, null, (res) => {
                 if (!res) {
                     layer.msg("导出失败.", {icon: 2});
                     return false;
                 }
-                if (res.code === 500 && res.msg==="导出中") {
-                    console.info("别着急,还在生产excel..."+finalId);
+                if (res.code === 500 && res.msg === "导出中") {
+                    console.info("别着急,还在生产excel..." + finalId);
                     setTimeout(() => downloadExcel(finalId), 3000);
                     return false;
                 }
-                if(res.code !==200){
+                if (res.code !== 200) {
                     layer.msg(res.msg, {icon: 2});
                     return false;
                 }
@@ -660,7 +663,7 @@
                 if (pageVisibility === 'hidden') {
                     sendNotification("文件导出中,请查看浏览器下载记录~");
                 }
-                window.open(ctx + "sqlManager/downloadExcelFile?id="+id);
+                window.open(ctx + "sqlManager/downloadExcelFile?id=" + id);
             });
         }
 
@@ -767,8 +770,95 @@
         document.addEventListener('visibilitychange', function () {
             pageVisibility = document.visibilityState
         })
+
+        // 右键菜单
+        dropdown.render({
+            elem: '#ID-dropdown-contextmenu',
+            trigger: 'contextmenu',
+            isAllowSpread: false,
+            //style: 'width: 200px',
+            accordion: true,
+            data: [
+                {
+                    title: '执行',
+                    id: 'execute'
+                },
+                {
+                    title: '格式化',
+                    id: 'format'
+                },
+                {
+                    title: '保存',
+                    id: 'save'
+                },
+                {
+                    title: '导出',
+                    id: 'export'
+                }, {
+                    title: '刷新',
+                    id: 'reload'
+                }, {type: '-'}, {
+                    title: '更多',
+                    id: '#3',
+                    child: [{
+                        title: '元数据',
+                        id: 'meta'
+                    }, {
+                        title: '建表语句',
+                        id: 'createSql'
+                    }, {
+                        title: '新窗口',
+                        id: 'open'
+                    }]
+                },
+            ],
+            click: function (obj, othis) {
+                if (obj.id === 'execute') {
+                    $("#execute").trigger('click');
+                }
+                if (obj.id === 'open') {
+                    $("#newSqlOpen").trigger('click');
+                }
+                if (obj.id === 'save') {
+                    $("#saveSqlText").trigger('click');
+                }
+                if (obj.id === 'export') {
+                    $("#exportExcel").trigger('click');
+                }
+                if (obj.id === 'reload') {
+                    location.reload();
+                }
+                //格式化
+                if (obj.id === 'format') {
+                    const altCKeyHandler = editor.getOption("extraKeys")["Alt-C"];
+                    if (altCKeyHandler) {
+                        altCKeyHandler(editor);
+                    }
+                }
+                if (obj.id === 'format') {
+                    const altCKeyHandler = editor.getOption("extraKeys")["Alt-C"];
+                    if (altCKeyHandler) {
+                        altCKeyHandler(editor);
+                    }
+                }
+                if (obj.id === 'meta') {
+                    const altCKeyHandler = editor.getOption("extraKeys")["Alt-X"];
+                    if (altCKeyHandler) {
+                        altCKeyHandler(editor);
+                    }
+                }
+                if (obj.id === 'createSql') {
+                    const altCKeyHandler = editor.getOption("extraKeys")["Alt-Z"];
+                    if (altCKeyHandler) {
+                        altCKeyHandler(editor);
+                    }
+                }
+            }
+        });
+
+        //进入页面后,让编辑器获得焦点
+        editor.focus();
     })
-    ;
 
 </script>
 </body>
