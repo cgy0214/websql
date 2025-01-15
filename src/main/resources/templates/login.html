@@ -71,7 +71,7 @@
         }
         form.on('submit(login)', function (data) {
             if (!loginEnabled) {
-                layer.msg("系统已关闭登录入口,请联系管理员!");
+                layer.msg("系统已关闭登录入口,请联系管理员!",{icon: 2});
                 return false;
             }
             data.field.timestamp = new Date().getTime();
@@ -82,6 +82,12 @@
                 });
             })
             return false;
+        });
+
+        $("input").on("keydown", function (event) {
+            if (event.keyCode === 13) {
+                $("button[lay-filter='login']").click();
+            }
         });
     });
 

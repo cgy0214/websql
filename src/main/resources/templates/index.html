@@ -145,7 +145,7 @@
         getSiteConfig();
         //退出
         $('.login-out').on("click", function () {
-            layer.msg('退出登录成功', function () {
+            layer.msg('退出成功！', function () {
                 window.location = ctx + 'logout';
             });
         });
@@ -261,9 +261,7 @@
                         });
                     });
                     input.on('keyup', function (e) {
-                        var elem = this;
-                        var keyCode = e.keyCode;
-                        if (keyCode === 13) {
+                        if (e.keyCode === 13) {
                             elemUnlock.trigger('click');
                         }
                     });
