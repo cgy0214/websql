@@ -44,5 +44,7 @@ public class DataSourceModel extends Pages {
     private int maxWait;
     @Column
     private String dbCheckUrl;
+    @Transient
+    private String connectionName;
 
 }

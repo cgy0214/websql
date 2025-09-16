@@ -81,7 +81,7 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public Result<DataSourceModel> selectDbSourceList(DataSourceModel result) {
-        Result<DataSourceModel> result1 = new Result<DataSourceModel>();
+        Result<DataSourceModel> resultPage = new Result<DataSourceModel>();
         PageRequest pageRequest = PageRequest.of(result.getPage() - 1, result.getLimit());
         List<TeamResourceModel> resourceModels = teamSourceService.queryTeamResourceByTeamId(Collections.singletonList(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId()), "DATASOURCE");
         Specification<DataSourceModel> spec = (root, query, cb) -> {
@@ -99,9 +99,15 @@ public class DbSourceServiceImpl implements DbSourceService {
             return p;
         };
         Page<DataSourceModel> all = dbSourceRepository.findAll(spec, pageRequest);
-        result1.setList(all.getContent());
-        result1.setCount((int) all.getTotalElements());
-        return result1;
+        resultPage.setList(all.getContent());
+        resultPage.setCount((int) all.getTotalElements());
+        if (!resultPage.getList().isEmpty()) {
+            for (DataSourceModel dataSourceModel : resultPage.getList()) {
+                String dataBaseName = DataSourceFactory.getDataBaseProductName(dataSourceModel.getDbName());
+                dataSourceModel.setConnectionName(dataBaseName == null ? "未连接到数据源" : dataBaseName);
+            }
+        }
+        return resultPage;
     }
 
     @Override
@@ -281,7 +287,7 @@ public class DbSourceServiceImpl implements DbSourceService {
                 item.put("select", "false");
                 dataSourceList.add(item);
             }
-            CacheUtils.put("data_source_model", dataSourceList,30000);
+            CacheUtils.put("data_source_model", dataSourceList, 30000);
         }
         //按照团队过滤
         Long teamId = StpUtils.getCurrentActiveTeam().getId();
@@ -346,7 +352,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             }
             List<Map> list = (List<Map>) map.get("data");
             resultMap = list.stream().collect(Collectors.groupingBy(s -> s.get("TABLE_NAME").toString(), Collectors.mapping(s -> s.get("TABLE_FIELD").toString(), Collectors.toList())));
-            CacheUtils.put(key, resultMap,30000);
+            CacheUtils.put(key, resultMap, 30000);
         }
         return AjaxResult.success(resultMap);
     }
@@ -593,7 +599,7 @@ public class DbSourceServiceImpl implements DbSourceService {
         }
         for (MetaTreeTable database : resultList) {
             AjaxResult table = findTableField(database.getTitle());
-            if(ObjectUtil.notEqual(table.getCode(),200)){
+            if (ObjectUtil.notEqual(table.getCode(), 200)) {
                 continue;
             }
             Map<String, Object> tableMap = (Map<String, Object>) table.getData();

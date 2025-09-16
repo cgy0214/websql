@@ -48,6 +48,9 @@ public class ColumnTypeCastUtil {
             Blob blob = resultSet.getBlob(index);
             return new String(blob.getBytes(1, (int) blob.length()));
         }
+        if("jsonb".equals(columnType)){
+            return resultSet.getString(index);
+        }
         return colsValue;
     }
 

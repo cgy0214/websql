@@ -74,15 +74,15 @@
             height: '525',
             cols: [
                 [
-                    {field: 'id', title: 'id', sort: true, fixed: true},
+                    {field: 'id', title: '序号', sort: true, fixed: true},
                     {field: 'dbName', title: '连接名称', sort: true, fixed: true},
                     {field: 'driverClass', title: '驱动类型', sort: true, fixed: true},
                     {field: 'dbCheckUrl', title: '验证语句', sort: true, fixed: true},
-                    {field: 'initialSize', title: '初始连接数', sort: true, fixed: true},
-                    {field: 'maxActive', title: '最大连接数', sort: true, fixed: true},
-                    {field: 'maxIdle', title: '最大空闲数', sort: true, fixed: true},
-                    {field: 'maxWait', title: '最大等待时间', sort: true, fixed: true},
-                    {field: 'dbState', title: '状态', sort: true, fixed: true},
+                    {field: 'initialSize', title: '初始连接', sort: true, fixed: true,width: 120},
+                    {field: 'maxActive', title: '最大连接', sort: true, fixed: true,width: 120},
+                    {field: 'maxIdle', title: '空闲连接', sort: true, fixed: true,width: 120},
+                    {field: 'maxWait', title: '等待时间', sort: true, fixed: true,width: 120},
+                    {field: 'connectionName', title: '数据库类型', sort: true, fixed: true},
                     {fixed: 'right', title: '操作', width: 190, toolbar: '#toolbarTable'}
                 ]
             ],
