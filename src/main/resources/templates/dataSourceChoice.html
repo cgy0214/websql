@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>选择数据源类型</title>
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
+    <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <style>
+        .db-type-card {
+            cursor: pointer;
+            border: 1px solid #f2f2f2;
+            border-radius: 5px;
+            transition: all .3s;
+        }
+        .db-type-card:hover {
+            border: 1px solid #16baaa;
+            box-shadow: 0 0 10px rgba(0,0,0,.1);
+        }
+        .db-type-card .layui-card-body {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .db-type-card img {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+        }
+        .db-info {
+            flex: 1;
+        }
+        .db-info .db-name {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .db-info .db-desc {
+            color: #999;
+            font-size: 12px;
+        }
+        .arrow {
+            font-size: 20px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-header">选择要创建的数据源类型:</div>
+        <div class="layui-card-body">
+            <div class="layui-row layui-col-space15" id="dbTypeList">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/static/layui.js}"></script>
+<script th:replace="~{base::ctx}"></script>
+<script>
+    const defaultImage = "data:image/png;base64,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";
+    layui.use(['jquery', 'layer'], function () {
+        const $ = layui.jquery;
+        const layer = layui.layer;
+        post(ctx + 'dataSourceManager/findDriverConfigList', null, function (res) {
+            if (res.code === 200) {
+                res.data.push({"id":-1,"image":defaultImage,"name":"Custom","typeName":"自定义","capacity":"无"});
+                let dbTypeListHtml = '';
+                res.data.forEach(function (db) {
+                    dbTypeListHtml += `
+                        <div class="layui-col-md4">
+                            <div class="layui-card db-type-card" data-id="${db.id}">
+                                <div class="layui-card-body">
+                                    <img src="${db.image || defaultImage}" onerror="" width="96" height="96" alt="database"/>
+                                    <div class="db-info">
+                                        <div class="db-name">${db.name}</div>
+                                        <div class="db-desc">${db.typeName || ''} | ${db.capacity || 'No description available.'}</div>
+                                    </div>
+                                    <i class="layui-icon layui-icon-right arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                $('#dbTypeList').html(dbTypeListHtml);
+            } else {
+                layer.msg('加载数据库类型失败', {icon: 2});
+            }
+        });
+
+        $(document).on('click', '.db-type-card', function () {
+            const dbTypeId = $(this).data('id');
+            window.location.href = ctx + 'dataSourceManager/addSourcePage?id=' + dbTypeId;
+        });
+    });
+</script>
+</body>
+</html>

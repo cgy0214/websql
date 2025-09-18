@@ -57,7 +57,5 @@ public interface LoginService {
 
     List<Map<String, String>> queryUsersAllBySelect();
 
-
-
-
+    List<SysDriverConfig> findDriverConfigList(String id);
 }

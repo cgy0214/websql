@@ -8,34 +8,94 @@
     <link rel="stylesheet" th:href="@{/static/code/show-hint.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/highlight.min.css}" media="all">
     <style>
-        .sqlText {
-            border: 1px solid;
-            border-radius: 12px;
-            box-shadow: 2px 2px 5px #bbb;
-            font-size: 20px;
-            margin: 5px;
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --background-color: #f8f9fa;
+            --card-background-color: #ffffff;
+            --border-color: #dee2e6;
+            --text-color: #212529;
+            --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
         }
 
+        body {
+            background-color: var(--background-color);
+            font-family: var(--font-family), serif;
+            color: var(--text-color);
+            margin: 0;
+            padding: 10px;
+        }
+
+        /* 块级卡片 */
+        .card {
+            background-color: var(--card-background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            padding: 1px;
+            margin: 2px;
+        }
+
+        /* 悬浮导航栏 */
+        .nav-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 99%;
+            padding: 5px;
+            /**background-color: var(--background-color);**/
+            box-shadow: 0 3px 5px rgba(0, 0, 0, .1);
+            z-index: 999;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .layui-btn {
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .layui-select-sm {
+            height: 30px;
+            line-height: 20px;
+            font-size: 14px;
+            padding: 0 8px;
+        }
+
+        .layui-form-select .layui-input {
+            height: 30px;
+        }
+
+        /* 让整行变成 flex，按钮垂直居中 按钮组 */
+        .button-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .button-row .layui-btn {
+            margin-right: 8px;
+        }
+
+        /* 滑块垂直居中 */
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            margin-left: 8px;
+        }
+
+        /* 编辑器 */
         .CodeMirror {
-            border-radius: 12px;
+            border-radius: 2px;
+            height: 230px;
+            border: 0 solid #ddd;
         }
 
-        .sqlTab {
-            border: 1px solid;
-            border-radius: 12px;
-            box-shadow: 2px 2px 5px #bbb;
-            font-size: 20px;
-            margin: 5px;
-            position: relative;
+        /* 跑马灯 */
+        .layui-anim-upbit{
+            animation-duration: .5s;
         }
-
-        .menus {
-            border: 1px solid;
-            border-radius: 12px;
-            box-shadow: 2px 2px 5px #bbb;
-            margin: 5px;
+        #rollBox .roll-item{
+            color: #958d8d;
         }
-
         .layui-form-item {
             margin-bottom: 5px;
             margin-top: 5px;
@@ -49,16 +109,6 @@
             margin: 0;
         }
 
-        .nav-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: #fff;
-            box-shadow: 0 3px 5px rgba(0, 0, 0, .1);
-            z-index: 999;
-            transition: all 0.2s ease-in-out;
-        }
 
         pre.CodeMirror-placeholder {
             color: #4f664f;
@@ -77,57 +127,64 @@
     </style>
 </head>
 <body>
-
-<div class="menus" style="margin:5px;">
-    <form class="layui-form">
-        <div class="layui-form-item">
-            <label class="layui-form-label">数据源:</label>
-            <div class="layui-input-inline">
+<div id="menu-id">
+    <form class="layui-form card">
+        <div class="layui-form-item button-row">
+            <div class="layui-input-inline layui-select-sm">
                 <select name="dbtype" id="dbtype" lay-filter="dbtype" lay-search="" lay-affix="clear"></select>
             </div>
-            <div class="layui-input-inline">
+
+            <div class="layui-input-inline layui-select-sm">
                 <select name="sqlTexts" id="sqlTexts" lay-filter="sqlTexts" lay-search="" lay-affix="clear"></select>
             </div>
-            <div class="">
-                <button class="layui-btn layui-btn-primary layui-border-green " id="execute" lay-submit
-                        lay-filter="execute">
-                    <i class="layui-icon layui-icon-play">&nbsp;</i>执行F8
-                </button>
-                <button id="newSqlOpen" onclick="window.open(ctx+'sqlManager/sqlPage');return false"
-                        class="layui-btn layui-btn-primary layui-border-blue">
-                    <i class="layui-icon layui-icon-layer">&nbsp;</i>大窗口F7
-                </button>
-                <button id="saveSqlText" class="layui-btn layui-btn-primary layui-border-orange" lay-submit
-                        lay-filter="saveSqlText">
-                    <i class="layui-icon layui-icon-add-1">&nbsp;</i>保存F9
-                </button>
-                <button id="exportExcel" class="layui-btn layui-btn-primary layui-border-red" lay-submit
-                        lay-filter="exportExcel">
-                    <i class="layui-icon layui-icon-export">&nbsp;</i>全部导出
-                </button>
-                <button id="showSqlDiv" class="layui-btn layui-btn-primary layui-border-purple" lay-submit
-                        lay-filter="showSqlDiv">
-                    <i class="layui-icon layui-icon-up">&nbsp;</i>收起
-                </button>
+            <button class="layui-btn layui-btn-primary layui-btn-sm layui-border-green"
+                    id="execute" lay-submit lay-filter="execute">
+                <i class="layui-icon layui-icon-play"></i> 执行F8
+            </button>
+
+            <button id="newSqlOpen" onclick="window.open(ctx+'sqlManager/sqlPage');return false"
+                    class="layui-btn layui-btn-primary layui-btn-sm layui-border-blue">
+                <i class="layui-icon layui-icon-layer"></i> 大窗口F7
+            </button>
+
+            <button id="saveSqlText" class="layui-btn layui-btn-primary layui-btn-sm layui-border-orange"
+                    lay-submit lay-filter="saveSqlText">
+                <i class="layui-icon layui-icon-add-1"></i> 保存F9
+            </button>
+
+            <button id="exportExcel" class="layui-btn layui-btn-primary layui-btn-sm layui-border-red"
+                    lay-submit lay-filter="exportExcel">
+                <i class="layui-icon layui-icon-export"></i> 全部导出
+            </button>
+
+            <button id="showSqlDiv" class="layui-btn layui-btn-primary layui-btn-sm layui-border-purple"
+                    lay-submit lay-filter="showSqlDiv">
+                <i class="layui-icon layui-icon-up"></i> 收起
+            </button>
+            <div class="layui-form-mid slider-wrapper">
+                <div id="id-slider" style="width: 100px;"></div>
+            </div>
+            <div id="rollBox"
+                 style="height:40px;line-height:40px;text-align:center;overflow:hidden;">
             </div>
         </div>
     </form>
 </div>
 
-<div class="sqlText" id="ID-dropdown-contextmenu">
-    <textarea id='sqlText' style="width: 100%;height: 500px;align-content: center;"></textarea>
+<div class="card sqlText" id="ID-dropdown-contextmenu">
+    <textarea id='sqlText' style="width: 99%;height: 400px;align-content: center;"></textarea>
 </div>
 
-<div id="msgDiv" class="layui-row sqlTab" style="display: none;position: relative;padding: 8px;box-sizing: border-box;">
+<div id="msgDiv" class="layui-row sqlTab card"
+     style="display: none;position: relative;padding: 8px;box-sizing: border-box;">
     <div style="font-size: 13px;color: #61914e;display:block;">
         <span id="msgSpan"
               style="margin-left: 10px;display:block;width:95%;word-wrap:break-word;white-space:normal;"></span>
     </div>
-
     <i class="layui-icon layui-icon-close layui-unselect layui-tab-close" id="closeMsgDivBtn"></i>
 </div>
 
-<div class="layui-row sqlTab" style="display: none;" id="sqlTableDiv">
+<div class="layui-row sqlTab card" style="display: none;" id="sqlTableDiv">
     <div class="layui-tab layui-tab-brief" lay-filter="sqlTableTab" lay-allowclose="true">
         <ul class="layui-tab-title" id="lists">
         </ul>
@@ -152,7 +209,7 @@
 <script th:src="@{/static/base64.min.js}"></script>
 <script th:replace="~{tableSqlPageMeta}"></script>
 <script>
-    layui.use(['jquery', 'layer', 'form', 'element', 'laySelect', 'table', 'dropdown', 'util', 'laytpl', 'code'], function () {
+    layui.use(['jquery', 'layer', 'form', 'element', 'laySelect', 'table', 'dropdown', 'util', 'laytpl', 'code', 'slider'], function () {
         const layer = layui.layer;
         const form = layui.form;
         const $ = layui.jquery;
@@ -163,8 +220,25 @@
         const util = layui.util;
         const laytpl = layui.laytpl;
         const code = layui.code;
+        const slider = layui.slider;
         let pageVisibility;  //页面隐藏
-
+        let editorFontSizeKey = "editorFontSize";
+        const textArr = [
+            '【编辑器】区域内鼠标点击右键试试~',
+            '【编辑器】选中表名+Alt+X 可以查看元数据~',
+            '【编辑器】选中表名+Alt+Z 查看建表语句~',
+            '【编辑器】Alt+C 格式化SQL',
+            '【编辑器】Ctrl  可以自动提示关联',
+            '【编辑器】F7    打开新的窗口',
+            '【编辑器】F8    执行所有SQL语句',
+            '【编辑器】F9    保存SQL片段',
+            '【编辑器】选中内容+F8 选中SQL单条执行',
+            '拖动左侧滑块，可以修改编辑器字体大小',
+            '【结果集】 选中数据右键试试~',
+            '全部导出为离线全量下载，小数据量推荐使用结果集右上角导出~',
+            '无法执行Drop等语句？ 参数设置-语句限制修改~',
+            '默认展示多少条数据能修改吗？ 默认1000条，参数设置-分页条数修改！'
+        ];
         /**
          * 编辑器初始化
          * @type {CodeMirror}
@@ -197,17 +271,7 @@
                     showTableSql(cm);
                 }
             },
-            hintOptions: {completeSingle: false},
-            placeholder: '请输入您要执行的SQL... \n\n\n' +
-                '结果列表 Or SQL区域内鼠标右键试试~ \n' +
-                '鼠标选中【表名】+Alt+X  查看元数据 \n' +
-                '鼠标选中【表名】+Alt+Z  查看建表语句 \n' +
-                'Alt+C      格式化内容 \n' +
-                'Ctrl       自动提示 \n' +
-                'F7         打开新窗口 \n' +
-                'F8         执行所有SQL \n' +
-                'F9         保存SQL内容 \n' +
-                '选中内容+F8 选中SQL执行 \n'
+            hintOptions: {completeSingle: false}
         });
 
         /**
@@ -215,6 +279,26 @@
          */
         editor.on('keypress', () => {
             editor.showHint();
+        });
+
+        /**
+         * 字体大小调整
+         * @type {HTMLElement}
+         */
+        editor.getWrapperElement().style.fontSize = viewStore.get(editorFontSizeKey, 14) + 'px';
+        editor.refresh();
+        slider.render({
+            elem: '#id-slider',
+            value: viewStore.get(editorFontSizeKey, 14),
+            min: 10,
+            max: 30,
+            change: function (size) {
+                editor.getWrapperElement().style.fontSize = size + 'px';
+                editor.refresh();
+            },
+            done: function (value) {
+                viewStore.put(editorFontSizeKey, value);
+            }
         });
 
 
@@ -240,6 +324,22 @@
                 editorHintSettings();
             }
         });
+
+
+        /**
+         * 跑马灯提示
+         * @type {string[]}
+         */
+        let box   = $('#rollBox');
+        let index = 0;
+        box.html('<span class="roll-item layui-anim layui-anim-upbit">' + textArr[0] + '</span>');
+        setInterval(function () {
+            index = (index + 1) % textArr.length;
+            box.find('.roll-item').addClass('layui-anim-upbit out');
+            setTimeout(function () {
+                box.html('<span class="roll-item layui-anim layui-anim-upbit ">' + textArr[index] + '</span>');
+            }, 200);
+        }, 3000);
 
         /**
          * 选中内容中获取表名
@@ -566,10 +666,10 @@
                     , data: rowsData
                     , title: '结果集' + (i + 1)
                     , loading: true
-                    , height: 935
+                    , height: 535
                     , cellMinWidth: 150
-                    , limit: 20
-                    , limits: [20, 500, 1000, 3000, 5000, 8000, 10000]
+                    , limit: 50
+                    , limits: [50, 500, 1000, 3000, 5000, 8000, 10000]
                     , even: true
                     , toolbar: toolbarHtml
                     , defaultToolbar: ['filter', 'exports', 'print']
@@ -583,7 +683,7 @@
                 pageBar(elId);
             }
             window.scrollTo({
-                top: 90,
+                top: 180,
                 behavior: "smooth"
             });
             return false;
@@ -739,7 +839,7 @@
          * 动态悬浮功能菜单
          */
         document.addEventListener('scroll', function () {
-            var navContainer = document.querySelector('.menus');
+            var navContainer = document.getElementById("menu-id");
             if (window.pageYOffset > 0) {
                 navContainer.classList.add('nav-container');
             } else {

@@ -254,7 +254,7 @@ public class LoginServiceImpl implements LoginService {
     public Boolean deleteUserRole(Long id) {
         sysUserRepository.deleteById(id);
         sysUserRoleRepository.delete(new SysUserRole().setUserId(id));
-        teamResourceRepository.deleteResourceByResId(Collections.singletonList(id),"USER");
+        teamResourceRepository.deleteResourceByResId(Collections.singletonList(id), "USER");
         CacheUtils.remove("user_roles_model");
         CacheUtils.remove("super_user_roles_model");
         return true;
@@ -489,6 +489,14 @@ public class LoginServiceImpl implements LoginService {
         return resultList;
     }
 
+    @Override
+    public List<SysDriverConfig> findDriverConfigList(String id) {
+        if (ObjectUtil.isNotEmpty(id)) {
+            SysDriverConfig sysDriverConfig = sysDriverConfigRepository.findById(Long.valueOf(id)).orElse(new SysDriverConfig());
+            return Collections.singletonList(sysDriverConfig);
+        }
+        return sysDriverConfigRepository.findAll();
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -604,7 +612,7 @@ public class LoginServiceImpl implements LoginService {
                     .setMaxWait(20)
                     .setDbState("有效");
             DataSourceFactory.saveDataSource(model);
-            dbSourceService.addDbSource(model,teamSourceModel.getId());
+            dbSourceService.addDbSource(model, teamSourceModel.getId());
         } catch (Exception e) {
             log.error("初始化系统报错" + e.getMessage());
             e.printStackTrace();

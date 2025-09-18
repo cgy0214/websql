@@ -20,7 +20,7 @@ public class ColumnTypeCastUtil {
 
 
     public static Object getDataTypeResult(ResultSet resultSet, int index, ResultSetMetaData metaData) throws SQLException {
-        Object colsValue = resultSet.getObject(index);
+        Object colsValue = resultSet.getString(index);
         if (ObjectUtil.isEmpty(colsValue)) {
             return "";
         }

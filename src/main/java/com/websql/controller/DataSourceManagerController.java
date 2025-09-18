@@ -8,6 +8,7 @@ import com.websql.config.JdbcUtils;
 import com.websql.model.AjaxResult;
 import com.websql.model.DataSourceModel;
 import com.websql.model.Result;
+import com.websql.model.SysDriverConfig;
 import com.websql.service.DbSourceService;
 import com.websql.service.LoginService;
 import com.websql.service.TeamSourceService;
@@ -16,6 +17,7 @@ import com.websql.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import java.sql.Connection;
@@ -23,6 +25,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,8 +55,27 @@ public class DataSourceManagerController {
     }
 
     @RequestMapping("/addSourcePage")
-    public String addSourcePage() {
-        return "addSourcePage";
+    public ModelAndView addSourcePage(@RequestParam(required = false) String id) {
+        ModelAndView modelAndView = new ModelAndView("addSourcePage");
+        SysDriverConfig sysDriverConfig = new SysDriverConfig();
+        modelAndView.addObject("id", id);
+        if (ObjectUtil.equal("-1", id)) {
+            sysDriverConfig.setName("Custom");
+            sysDriverConfig.setCapacity("自定义数据源，需要自行引入数据源JDBC驱动。");
+        }
+        if (ObjectUtil.isNotEmpty(id) && ObjectUtil.notEqual("-1", id)) {
+            List<SysDriverConfig> driverConfigList = loginService.findDriverConfigList(id);
+            if (!driverConfigList.isEmpty()) {
+                sysDriverConfig = driverConfigList.get(0);
+            }
+        }
+        modelAndView.addObject("data", sysDriverConfig);
+        return modelAndView;
+    }
+
+    @RequestMapping("/dataSourceChoice")
+    public String dataSourceChoice() {
+        return "dataSourceChoice";
     }
 
     @RequestMapping("/dataSourceList")
@@ -161,13 +183,10 @@ public class DataSourceManagerController {
         return result;
     }
 
-    @RequestMapping("/findDriverConfigListSelect")
+    @RequestMapping("/findDriverConfigList")
     @ResponseBody
-    public Map findDriverConfigListSelect(@RequestParam(required = false) String id) {
-        Map result = new HashMap(2);
-        result.put("code", 0);
-        result.put("data", loginService.findDriverConfigListSelect(id));
-        return result;
+    public AjaxResult findDriverConfigList(@RequestParam(required = false) String id) {
+        return AjaxResult.success(loginService.findDriverConfigList(id));
     }
 
     @RequestMapping("/updateDataSourceName")

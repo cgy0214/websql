@@ -230,7 +230,6 @@ public class DbSourceServiceImpl implements DbSourceService {
             log.setLogResult(JSON.toJSONString(resultVos));
             return AjaxResult.success(resultVos);
         } catch (Exception e) {
-            e.printStackTrace();
             log.setLogResult(e.getMessage());
             return AjaxResult.error(e.getMessage());
         } finally {
@@ -278,8 +277,11 @@ public class DbSourceServiceImpl implements DbSourceService {
         List<Map<String, String>> dataSourceList = CacheUtils.get("data_source_model", List.class);
         if (ObjectUtil.isNull(dataSourceList)) {
             dataSourceList = new ArrayList<>(0);
-            List<DataSourceModel> list = dbSourceRepository.findAll().stream().filter(s -> s.getDbState().equals("有效")).sorted(Comparator.comparing(DataSourceModel::getId).reversed()).collect(Collectors.toList());
+            List<DataSourceModel> list = dbSourceRepository.findAll();
             for (DataSourceModel dataSourceModel : list) {
+                if (ObjectUtil.notEqual("有效",dataSourceModel.getDbState())) {
+                    break;
+                }
                 Map<String, String> item = new HashMap<>(3);
                 item.put("code", dataSourceModel.getDbName());
                 item.put("value", dataSourceModel.getDbName());
@@ -287,6 +289,9 @@ public class DbSourceServiceImpl implements DbSourceService {
                 item.put("select", "false");
                 dataSourceList.add(item);
             }
+            dataSourceList = dataSourceList.stream()
+                    .sorted(Comparator.comparing(map -> map.get("id"), Comparator.reverseOrder()))
+                    .collect(Collectors.toList());
             CacheUtils.put("data_source_model", dataSourceList, 30000);
         }
         //按照团队过滤

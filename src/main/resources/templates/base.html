@@ -142,8 +142,7 @@
                             if (obj.hasOwnProperty(key)) {
                                 if (typeof obj[key] === 'number' && Math.abs(obj[key]) > Number.MAX_SAFE_INTEGER) {
                                     obj[key] = BigInt(obj[key]);
-                                }
-                                else if (typeof obj[key] === 'object') {
+                                } else if (typeof obj[key] === 'object') {
                                     convertLargeNumbersToBigInt(obj[key]);
                                 }
                             }
@@ -159,19 +158,20 @@
                     if (typeof (callback) === "function") {
                         callback(result);
                     } else {
-                        layer.msg(result.msg, { icon: 1 });
+                        layer.msg(result.msg, {icon: 1});
                     }
                 },
                 error: function () {
                     if (typeof (callback) === "function") {
                         callback(false);
                     } else {
-                        layer.msg("系统繁忙!", { icon: 2 });
+                        layer.msg("系统繁忙!", {icon: 2});
                     }
                 }
             });
         });
     }
+
     /**
      * 弹出信息框
      * @param title  标题
@@ -190,7 +190,7 @@
                 anim: 'slideLeft',
                 isOutAnim: false,
                 offset: 'auto',
-                maxmin:true,
+                maxmin: true,
                 closeBtn: 1,
                 content: content
             });
@@ -215,7 +215,7 @@
                 area: ['80%', '80%'],
                 anim: 'slideLeft',
                 content: url,
-                maxmin:true,
+                maxmin: true,
                 isOutAnim: false,
                 offset: 'auto'
             });
@@ -259,6 +259,20 @@
             });
         }
     }
+
+    /**
+     * 存储数据
+     * 支持任意可 JSON 序列化的值
+     */
+    const viewStore = {
+        put(k, v) {
+            localStorage.setItem(k, JSON.stringify(v));
+        },
+        get(k, d = null) {
+            const r = localStorage.getItem(k);
+            return r === null ? d : JSON.parse(r);
+        }
+    };
 
     /*]]>*/
 </script>
