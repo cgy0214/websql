@@ -353,7 +353,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             }
             Map<String, Object> map = JdbcUtils.findMoreResult(database, viewSql, new ArrayList<>());
             if (ObjectUtil.notEqual(map.get("code"), "1")) {
-                return AjaxResult.error("查询此数据库表名时失败!");
+                return AjaxResult.error("查询数据库表名时失败!");
             }
             List<Map> list = (List<Map>) map.get("data");
             resultMap = list.stream().collect(Collectors.groupingBy(s -> s.get("TABLE_NAME").toString(), Collectors.mapping(s -> s.get("TABLE_FIELD").toString(), Collectors.toList())));

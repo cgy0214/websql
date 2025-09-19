@@ -201,7 +201,7 @@ public class LoginServiceImpl implements LoginService {
         if (ObjectUtil.isNotEmpty(sys.getEnabledNotification())) {
             sysSetup.setEnabledNotification(sys.getEnabledNotification());
         }
-        CacheUtils.remove("sys_setup");
+        CacheUtils.removeAll();
         sysSetUpRepository.save(sysSetup);
         CacheUtils.putNoDue("sys_setup", sysSetup);
         return true;

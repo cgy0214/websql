@@ -20,7 +20,6 @@
 
         body {
             background-color: var(--background-color);
-            font-family: var(--font-family), serif;
             color: var(--text-color);
             margin: 0;
             padding: 10px;
@@ -43,8 +42,6 @@
             left: 0;
             width: 99%;
             padding: 5px;
-            /**background-color: var(--background-color);**/
-            box-shadow: 0 3px 5px rgba(0, 0, 0, .1);
             z-index: 999;
             transition: all 0.2s ease-in-out;
         }
@@ -71,9 +68,6 @@
             align-items: center;
         }
 
-        .button-row .layui-btn {
-            margin-right: 8px;
-        }
 
         /* 滑块垂直居中 */
         .slider-wrapper {
@@ -95,6 +89,8 @@
         }
         #rollBox .roll-item{
             color: #958d8d;
+            font-size: 12px;
+            font-family: var(--font-family), serif;
         }
         .layui-form-item {
             margin-bottom: 5px;
@@ -104,18 +100,14 @@
         .layui-tab-content {
             margin-top: -36px;
         }
-
         .layui-tab {
             margin: 0;
         }
-
-
         pre.CodeMirror-placeholder {
             color: #4f664f;
             font-size: 1rem;
         }
-
-
+        /* 隐藏按钮 */
         #closeMsgDivBtn {
             position: absolute;
             right: 8px;
@@ -463,7 +455,7 @@
                 elem: "#sqlTexts",
                 url: ctx + 'sqlManager/querySqlTextSelect',
                 select: 10000,
-                title: '请选择SQL文本',
+                title: 'SQL片段',
                 format: function (data) {
                     return parseSelectData(data);
                 },
@@ -488,7 +480,8 @@
         form.on('submit(saveSqlText)', function (data) {
             let sqlContent = editor.getValue().trim();
             if (sqlContent == "" || sqlContent == null) {
-                layer.msg("SQL语句为空，无需保存哦~", {icon: 2});
+                $("#msgDiv").show();
+                $("#msgSpan").text("ERROR:请输入SQL语句后保存~");
                 return false;
             }
             let openConfig = {
@@ -554,14 +547,12 @@
             $("#msgSpan").text("");
 
             if (activeDataSource === "" || activeDataSource == null) {
-                layer.msg("请先选择数据源~", {icon: 2});
                 $("#msgDiv").show();
                 $("#msgSpan").text("ERROR:请先选择数据源~");
                 return false;
             }
             let sqlContent = editor.getValue().trim();
             if (sqlContent === "" || sqlContent == null) {
-                layer.msg("请输入要执行的SQL~", {icon: 2});
                 $("#msgDiv").show();
                 $("#msgSpan").text("ERROR:请输入要执行的SQL~");
                 return false;
@@ -587,12 +578,11 @@
                 }
                 if (res.code !== 200) {
                     let msg = res.msg == null ? "空指针异常,请查看系统日志详情!" : res.msg;
-                    layer.msg(msg, {icon: 2});
                     $("#msgSpan").text("ERROR:" + msg);
                     $("#sqlTableDiv").hide();
                     return false;
                 }
-                tableInit(res.data);
+                setTimeout(() => tableInit(res.data), 0);
             });
             return false;
         });
@@ -694,17 +684,15 @@
          * 发起导出申请，查询结果的数据导出excel
          */
         form.on('submit(exportExcel)', function (data) {
-            //if(elementTabCount.length===0){
-            //layer.msg("请执行查询，呈现结果后再导出数据!", {icon: 2});
-            //return false;
-            //}
             if (activeDataSource === "" || activeDataSource == null) {
-                layer.msg("您修改数据源后请重新查询~", {icon: 2});
+                $("#msgDiv").show();
+                $("#msgSpan").text("ERROR:您修改数据源后请重新查询~");
                 return false;
             }
             let sqlContent = editor.getValue().trim();
             if (sqlContent === "" || sqlContent == null) {
-                layer.msg("您修改SQL后请重新查询~", {icon: 2});
+                $("#msgDiv").show();
+                $("#msgSpan").text("ERROR:清输入SQL语句后导出~");
                 return false;
             }
             let pitchTxt = editor.getSelection();
@@ -823,8 +811,12 @@
          * tab删除事件,最后一个被删除是隐藏tableDiv
          */
         element.on('tabDelete(sqlTableTab)', function (data) {
-            if ($("#lists li").length == 0) {
-                $("#sqlTableDiv").hide();
+            try {
+                if ($("#lists li").length == 0) {
+                    $("#sqlTableDiv").hide();
+                }
+            } catch (err) {
+                console.error('隐藏失败');
             }
         });
 
@@ -832,7 +824,11 @@
          * tab切换事件,修正table表格单元格不对齐问题
          */
         element.on('tab(sqlTableTab)', function (data) {
-            table.resize("sqlTable" + data.index);
+            try {
+                table.resize("sqlTable" + data.index);
+            } catch (err) {
+                console.error('resize 失败');
+            }
         });
 
         /**
@@ -955,7 +951,6 @@
                 }
             }
         });
-
         //进入页面后,让编辑器获得焦点
         editor.focus();
     })

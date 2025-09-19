@@ -18,10 +18,10 @@ public class TableFieldSqlUtils {
     /**
      * 查询列名
      */
-    private static final Map<String, String> DATA_BASE_TABLE_VIEW_SQL = MapUtil.builder(new HashMap<String, String>(5))
-            .put("mysql", " SELECT TABLE_NAME AS TABLE_NAME,COLUMN_NAME TABLE_FIELD from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA= (select database())  ")
+    private static final Map<String, String> DATA_BASE_TABLE_VIEW_SQL = MapUtil.builder(new HashMap<String, String>(8))
+            .put("mysql", " SELECT TABLE_NAME,COLUMN_NAME AS TABLE_FIELD FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=(SELECT DATABASE()) AND TABLE_NAME IN (SELECT TABLE_NAME FROM (SELECT DISTINCT TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=(SELECT DATABASE()) ORDER BY TABLE_NAME LIMIT 1000) T) ORDER BY TABLE_NAME,ORDINAL_POSITION ")
 
-            .put("oracle", " SELECT table_name AS TABLE_NAME, column_name AS TABLE_FIELD from user_col_comments ")
+            .put("oracle", "  SELECT * FROM (SELECT DISTINCT table_name AS TABLE_NAME, column_name AS TABLE_FIELD FROM user_col_comments ORDER BY table_name )  WHERE ROWNUM <= 1000 ")
 
             .put("h2", " SELECT TABLE_NAME AS TABLE_NAME,COLUMN_NAME TABLE_FIELD from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA='PUBLIC' ")
 
@@ -29,11 +29,11 @@ public class TableFieldSqlUtils {
 
             .put("kingbase", " SELECT table_name AS TABLE_NAME,column_name AS TABLE_FIELD from  INFORMATION_SCHEMA.COLUMNS where table_schema='public' ")
 
-            .put("postgresql", " SELECT table_name AS \"TABLE_NAME\",column_name AS \"TABLE_FIELD\"  from  INFORMATION_SCHEMA.COLUMNS where table_schema='public' ")
+            .put("postgresql", " SELECT table_name AS \"TABLE_NAME\", column_name AS \"TABLE_FIELD\" FROM information_schema.columns WHERE table_schema='public' AND table_name IN (SELECT table_name FROM (SELECT DISTINCT table_name FROM information_schema.columns WHERE table_schema='public' ORDER BY table_name LIMIT 1000) t) ORDER BY table_name, ordinal_position ")
 
             .put("oscar", " SELECT TABLE_NAME AS TABLE_NAME,COLUMN_NAME AS TABLE_FIELD from all_tab_columns where owner not in('SYS','SYSDBA','CTISYS') ")
 
-            .put("clickhouse"," SELECT t.name AS TABLE_NAME,c.name AS TABLE_FIELD FROM system.tables t JOIN system.columns c ON t.database = c.database AND t.name = c.table WHERE t.database = (select database()) ")
+            .put("clickhouse"," SELECT t.name AS TABLE_NAME,c.name AS TABLE_FIELD FROM system.tables t JOIN system.columns c ON t.database=c.database AND t.name=c.table WHERE t.database=(SELECT database()) AND t.name IN (SELECT name FROM (SELECT name FROM system.tables WHERE database=(SELECT database()) ORDER BY name LIMIT 1000) AS x) ORDER BY t.name,c.position ")
             .build();
 
 
