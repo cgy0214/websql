@@ -47,4 +47,10 @@ public class SysDriverConfig extends Pages {
      * 数据源分类 内置，自定义
      */
     private String typeName;
+
+    @Column(columnDefinition = "TEXT")
+    private String image;
+
+    @Column(columnDefinition = "TEXT")
+    private String capacity;
 }

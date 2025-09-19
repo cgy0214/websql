@@ -206,11 +206,23 @@ public class DataSourceFactory {
     public static String getDataBaseName(String sourceKey) {
         try {
             DruidDataSource dataSource = getDataSource(sourceKey);
-            return dataSource.getConnection().getCatalog();
+            try (Connection conn = dataSource.getConnection()) {
+                return conn.getCatalog();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
+    public static String getDataBaseProductName(String sourceKey) {
+        try {
+            DruidDataSource dataSource = getDataSource(sourceKey);
+            try (Connection conn = dataSource.getConnection()) {
+                return conn.getMetaData().getDatabaseProductName();
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
 }

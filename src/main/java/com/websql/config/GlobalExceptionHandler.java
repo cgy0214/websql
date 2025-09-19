@@ -7,6 +7,8 @@ import cn.dev33.satoken.exception.NotRoleException;
 import cn.dev33.satoken.stp.StpUtil;
 import com.websql.model.AjaxResult;
 import com.websql.util.StpUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -24,6 +26,9 @@ import javax.servlet.http.HttpServletRequest;
 @ResponseBody
 public class GlobalExceptionHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger("GLOBAL");
+
+
     @ExceptionHandler(NotLoginException.class)
     public Object handlerException(HttpServletRequest request, NotLoginException e) {
         return hintErrorMsg(request, e, "您还未登录!");
@@ -32,6 +37,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotPermissionException.class)
     public Object handlerException(HttpServletRequest request, NotPermissionException e) {
         String message = "您没有[" + e.getPermission() + "]权限不允许访问此功能，请联系管理员开通!";
+        logger.warn(message);
         if (isAjax(request)) {
             return AjaxResult.error(message, e.getMessage());
         } else {
@@ -63,7 +69,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public Object handlerException(HttpServletRequest request, Exception e) {
-        e.printStackTrace();
+        logger.error(e.getMessage());
         return hintErrorMsg(request, e, "未知异常!");
     }
 
@@ -80,7 +86,7 @@ public class GlobalExceptionHandler {
     }
 
     public static boolean isAjax(HttpServletRequest request) {
-        return (request.getHeader("X-Requested-With") != null && "XMLHttpRequest".equals(request.getHeader("X-Requested-With").toString()));
+        return (request.getHeader("X-Requested-With") != null && "XMLHttpRequest" .equals(request.getHeader("X-Requested-With").toString()));
     }
 
 }

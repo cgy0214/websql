@@ -69,8 +69,49 @@
         };
     }
 
+    // /**
+    //  * post请求
+    //  * @param url
+    //  * @param data
+    //  * @param callback
+    //  */
+    // function post(url, data, callback) {
+    //     layui.use(function () {
+    //         const $ = layui.jquery;
+    //         const layer = layui.layer;
+    //         let loadIndex;
+    //         $.ajax({
+    //             type: "post",
+    //             url: url,
+    //             async: true,
+    //             data: data == null ? null : JSON.stringify(data),
+    //             dataType: "json",
+    //             contentType: "application/json",
+    //             beforeSend: function () {
+    //                 loadIndex = layer.load(0);
+    //             },
+    //             complete: function () {
+    //                 layer.close(loadIndex);
+    //             },
+    //             success: function (result) {
+    //                 if (typeof (callback) === "function") {
+    //                     callback(result);
+    //                 } else {
+    //                     layer.msg(result.msg, {icon: 1});
+    //                 }
+    //             },
+    //             error: function () {
+    //                 if (typeof (callback) === "function") {
+    //                     callback(false);
+    //                 } else {
+    //                     layer.msg("系统繁忙!", {icon: 2});
+    //                 }
+    //             }
+    //         });
+    //     });
+    // }
     /**
-     * post请求
+     * 该方法进行优化 优化前端精度丢失问题i
      * @param url
      * @param data
      * @param callback
@@ -80,6 +121,7 @@
             const $ = layui.jquery;
             const layer = layui.layer;
             let loadIndex;
+
             $.ajax({
                 type: "post",
                 url: url,
@@ -94,6 +136,25 @@
                     layer.close(loadIndex);
                 },
                 success: function (result) {
+                    //优化前端精度丢失的问题
+                    const convertLargeNumbersToBigInt = (obj) => {
+                        for (const key in obj) {
+                            if (obj.hasOwnProperty(key)) {
+                                if (typeof obj[key] === 'number' && Math.abs(obj[key]) > Number.MAX_SAFE_INTEGER) {
+                                    obj[key] = BigInt(obj[key]);
+                                } else if (typeof obj[key] === 'object') {
+                                    convertLargeNumbersToBigInt(obj[key]);
+                                }
+                            }
+                        }
+                    };
+
+                    // 处理返回数据中的大数字
+                    if (result) {
+                        convertLargeNumbersToBigInt(result);
+                    }
+
+                    // 调用回调函数
                     if (typeof (callback) === "function") {
                         callback(result);
                     } else {
@@ -129,7 +190,7 @@
                 anim: 'slideLeft',
                 isOutAnim: false,
                 offset: 'auto',
-                maxmin:true,
+                maxmin: true,
                 closeBtn: 1,
                 content: content
             });
@@ -154,7 +215,7 @@
                 area: ['80%', '80%'],
                 anim: 'slideLeft',
                 content: url,
-                maxmin:true,
+                maxmin: true,
                 isOutAnim: false,
                 offset: 'auto'
             });
@@ -198,6 +259,20 @@
             });
         }
     }
+
+    /**
+     * 存储数据
+     * 支持任意可 JSON 序列化的值
+     */
+    const viewStore = {
+        put(k, v) {
+            localStorage.setItem(k, JSON.stringify(v));
+        },
+        get(k, d = null) {
+            const r = localStorage.getItem(k);
+            return r === null ? d : JSON.parse(r);
+        }
+    };
 
     /*]]>*/
 </script>

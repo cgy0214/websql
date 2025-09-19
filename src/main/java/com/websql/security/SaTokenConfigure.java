@@ -91,4 +91,5 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 "/detectionManager/logList",
                 "/detectionManager/logCharts");
     }
+
 }

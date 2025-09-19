@@ -37,7 +37,11 @@ public class SqlParserHandler {
 
 
     public static List<SqlParserVo> getParserVo(String databaseKey, String sql) {
-        DbType dbType = DbType.valueOf(DataSourceFactory.getDbType(databaseKey));
+        String type = DataSourceFactory.getDbType(databaseKey);
+        if (ObjectUtil.isEmpty(type)) {
+            throw new RuntimeException(databaseKey+"未获取到数据库类型，请检查数据源连接或重试一次！");
+        }
+        DbType dbType = DbType.of(type);
         List<SqlParserVo> resultList = new ArrayList<>();
         List<SQLStatement> statements = SQLUtils.parseStatements(sql, dbType);
         for (SQLStatement statement : statements) {

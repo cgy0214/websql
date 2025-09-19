@@ -20,7 +20,7 @@ public class ColumnTypeCastUtil {
 
 
     public static Object getDataTypeResult(ResultSet resultSet, int index, ResultSetMetaData metaData) throws SQLException {
-        Object colsValue = resultSet.getObject(index);
+        Object colsValue = resultSet.getString(index);
         if (ObjectUtil.isEmpty(colsValue)) {
             return "";
         }
@@ -47,6 +47,9 @@ public class ColumnTypeCastUtil {
         if ("BLOB".equals(columnType)) {
             Blob blob = resultSet.getBlob(index);
             return new String(blob.getBytes(1, (int) blob.length()));
+        }
+        if("jsonb".equals(columnType)){
+            return resultSet.getString(index);
         }
         return colsValue;
     }
