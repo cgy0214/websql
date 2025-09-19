@@ -1,3 +1,4 @@
+<!-- dataGrid Page -->
 <script type="text/html" id="table-page-pageBar">
     <div class="layui-btn-container">
         <button class="layui-btn layui-btn-primary layui-border-green layui-btn-xs" lay-event="footerBtn1">编辑区
@@ -5,6 +6,22 @@
         <button class="layui-btn layui-btn-primary layui-border-purple layui-btn-xs" lay-event="footerBtn2">结果区
         </button>
     </div>
+</script>
+
+<!-- dataGrid tool -->
+<script type="text/html" id="table-page-toolbar">
+    <div class="layui-btn-container">
+        <div style="display:inline-flex; align-items:center; gap:8px;">
+            <span class="layui-badge"> {{= d.cols.length }}  <span style="margin-left:2px;">列</span></span>
+            <span class="layui-badge layui-bg-green">{{= d.data.length }} <span style="margin-left:2px;">条</span></span>
+            <span class="layui-badge layui-bg-blue">{{= d.time }} <span style="margin-left:2px;">毫秒</span></span>
+            <!--<button class='layui-btn layui-btn-primary layui-border-purple layui-btn-xs'
+                    onclick='window.scrollTo({top: document.documentElement.scrollHeight, behavior:"smooth"})'>分页区
+            </button>-->
+        </div>
+    </div>
+
+
 </script>
 
 <!-- 建表语句-->

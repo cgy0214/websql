@@ -7,116 +7,7 @@
     <link rel="stylesheet" th:href="@{/static/code/codemirror.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/show-hint.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/highlight.min.css}" media="all">
-    <style>
-        :root {
-            --primary-color: #007bff;
-            --secondary-color: #6c757d;
-            --background-color: #f8f9fa;
-            --card-background-color: #ffffff;
-            --border-color: #dee2e6;
-            --text-color: #212529;
-            --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--background-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 10px;
-        }
-
-        /* 块级卡片 */
-        .card {
-            background-color: var(--card-background-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-            padding: 1px;
-            margin: 2px;
-        }
-
-        /* 悬浮导航栏 */
-        .nav-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 99%;
-            padding: 5px;
-            z-index: 999;
-            transition: all 0.2s ease-in-out;
-        }
-
-        .layui-btn {
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .layui-select-sm {
-            height: 30px;
-            line-height: 20px;
-            font-size: 14px;
-            padding: 0 8px;
-        }
-
-        .layui-form-select .layui-input {
-            height: 30px;
-        }
-
-        /* 让整行变成 flex，按钮垂直居中 按钮组 */
-        .button-row {
-            display: flex;
-            align-items: center;
-        }
-
-
-        /* 滑块垂直居中 */
-        .slider-wrapper {
-            display: flex;
-            align-items: center;
-            margin-left: 8px;
-        }
-
-        /* 编辑器 */
-        .CodeMirror {
-            border-radius: 2px;
-            height: 230px;
-            border: 0 solid #ddd;
-        }
-
-        /* 跑马灯 */
-        .layui-anim-upbit{
-            animation-duration: .5s;
-        }
-        #rollBox .roll-item{
-            color: #958d8d;
-            font-size: 12px;
-            font-family: var(--font-family), serif;
-        }
-        .layui-form-item {
-            margin-bottom: 5px;
-            margin-top: 5px;
-        }
-
-        .layui-tab-content {
-            margin-top: -36px;
-        }
-        .layui-tab {
-            margin: 0;
-        }
-        pre.CodeMirror-placeholder {
-            color: #4f664f;
-            font-size: 1rem;
-        }
-        /* 隐藏按钮 */
-        #closeMsgDivBtn {
-            position: absolute;
-            right: 8px;
-            top: 8px;
-            font-size: 22px;
-        }
-
-
-    </style>
+    <link rel="stylesheet" th:href="@{/static/css/sqlPage.css}" media="all">
 </head>
 <body>
 <div id="menu-id">
@@ -153,8 +44,15 @@
                     lay-submit lay-filter="showSqlDiv">
                 <i class="layui-icon layui-icon-up"></i> 收起
             </button>
+            <button class="layui-btn layui-btn-primary layui-btn-sm layui-border" id="dropdownTableSize">
+                表格尺寸
+                <i class="layui-icon layui-icon-down layui-font-12"></i>
+            </button>
             <div class="layui-form-mid slider-wrapper">
                 <div id="id-slider" style="width: 100px;"></div>
+            </div>
+            <div class="layui-form-mid slider-wrapper">
+                <div id="id-editorSlider" style="width: 100px;"></div>
             </div>
             <div id="rollBox"
                  style="height:40px;line-height:40px;text-align:center;overflow:hidden;">
@@ -187,6 +85,7 @@
 
 <div id="view-open-table-wrapper" style="display: none;padding: 10px;" class="hidden-scrollbar">
 </div>
+
 <script th:src="@{/static/layui.js}"></script>
 <script th:replace="~{base::ctx}"></script>
 <script th:src="@{/static/lay-config.js}"></script>
@@ -201,6 +100,22 @@
 <script th:src="@{/static/base64.min.js}"></script>
 <script th:replace="~{tableSqlPageMeta}"></script>
 <script>
+    const textArr = [
+        '【编辑器】区域内鼠标点击右键试试~',
+        '【编辑器】选中表名+Alt+X 可以查看元数据~',
+        '【编辑器】选中表名+Alt+Z 查看建表语句~',
+        '【编辑器】Alt+C 格式化SQL',
+        '【编辑器】Ctrl  可以自动提示关联',
+        '【编辑器】F7    打开新的窗口',
+        '【编辑器】F8    执行所有SQL语句',
+        '【编辑器】F9    保存SQL片段',
+        '【编辑器】选中内容+F8 选中SQL单条执行',
+        '拖动左侧滑块，可以修改编辑大小哦~',
+        '【结果集】 选中数据右键试试~',
+        '全部导出为离线全量下载，小数据量推荐使用结果集右上角导出~',
+        '无法执行Drop等语句？ 参数设置-语句限制修改~',
+        '默认展示多少条数据能修改吗？ 默认1000条，参数设置-分页条数修改！'
+    ];
     layui.use(['jquery', 'layer', 'form', 'element', 'laySelect', 'table', 'dropdown', 'util', 'laytpl', 'code', 'slider'], function () {
         const layer = layui.layer;
         const form = layui.form;
@@ -215,22 +130,10 @@
         const slider = layui.slider;
         let pageVisibility;  //页面隐藏
         let editorFontSizeKey = "editorFontSize";
-        const textArr = [
-            '【编辑器】区域内鼠标点击右键试试~',
-            '【编辑器】选中表名+Alt+X 可以查看元数据~',
-            '【编辑器】选中表名+Alt+Z 查看建表语句~',
-            '【编辑器】Alt+C 格式化SQL',
-            '【编辑器】Ctrl  可以自动提示关联',
-            '【编辑器】F7    打开新的窗口',
-            '【编辑器】F8    执行所有SQL语句',
-            '【编辑器】F9    保存SQL片段',
-            '【编辑器】选中内容+F8 选中SQL单条执行',
-            '拖动左侧滑块，可以修改编辑器字体大小',
-            '【结果集】 选中数据右键试试~',
-            '全部导出为离线全量下载，小数据量推荐使用结果集右上角导出~',
-            '无法执行Drop等语句？ 参数设置-语句限制修改~',
-            '默认展示多少条数据能修改吗？ 默认1000条，参数设置-分页条数修改！'
-        ];
+        let tableSizeKey = "tableSize";
+        let editorHeightKey = "editorHeight";
+
+
         /**
          * 编辑器初始化
          * @type {CodeMirror}
@@ -274,11 +177,13 @@
         });
 
         /**
-         * 字体大小调整
+         * 字体.编辑器大小调整
          * @type {HTMLElement}
          */
         editor.getWrapperElement().style.fontSize = viewStore.get(editorFontSizeKey, 14) + 'px';
+        editor.setSize(null, viewStore.get(editorHeightKey, 230));
         editor.refresh();
+
         slider.render({
             elem: '#id-slider',
             value: viewStore.get(editorFontSizeKey, 14),
@@ -292,8 +197,21 @@
                 viewStore.put(editorFontSizeKey, value);
             }
         });
-
-
+        slider.render({
+            elem: '#id-editorSlider',
+            value: viewStore.get(editorHeightKey, 230),
+            min: 100,
+            max: 800,
+            theme: '#22aaff',
+            change: function (size) {
+                editor.setSize(null, size);
+            },
+            done: function (value) {
+                if(value){
+                    viewStore.put(editorHeightKey, value);
+                }
+            }
+        });
         /**
          * 展示数据源
          */
@@ -322,7 +240,7 @@
          * 跑马灯提示
          * @type {string[]}
          */
-        let box   = $('#rollBox');
+        let box = $('#rollBox');
         let index = 0;
         box.html('<span class="roll-item layui-anim layui-anim-upbit">' + textArr[0] + '</span>');
         setInterval(function () {
@@ -480,8 +398,7 @@
         form.on('submit(saveSqlText)', function (data) {
             let sqlContent = editor.getValue().trim();
             if (sqlContent == "" || sqlContent == null) {
-                $("#msgDiv").show();
-                $("#msgSpan").text("ERROR:请输入SQL语句后保存~");
+                message("请输入SQL语句后保存~", false);
                 return false;
             }
             let openConfig = {
@@ -543,18 +460,14 @@
          * 执行SQL
          */
         form.on('submit(execute)', function (data) {
-            $("#msgDiv").show();
-            $("#msgSpan").text("");
-
+            $("#sqlTableDiv").hide();
             if (activeDataSource === "" || activeDataSource == null) {
-                $("#msgDiv").show();
-                $("#msgSpan").text("ERROR:请先选择数据源~");
+                message("请先选择数据源~", false);
                 return false;
             }
             let sqlContent = editor.getValue().trim();
             if (sqlContent === "" || sqlContent == null) {
-                $("#msgDiv").show();
-                $("#msgSpan").text("ERROR:请输入要执行的SQL~");
+                message("请输入要执行的SQL~", false);
                 return false;
             }
             let pitchTxt = editor.getSelection();
@@ -564,7 +477,7 @@
             let intervalTime = 0;
             let interval = setInterval(function () {
                 intervalTime++;
-                $("#msgSpan").text("执行耗时:" + intervalTime + "毫秒");
+                message("执行耗时:" + intervalTime + "毫秒", true);
             }, 1);
             post(ctx + "sqlManager/executeSqlNew", {'dataBaseName': activeDataSource, 'sqlText': sqlContent}, (res) => {
                 window.clearInterval(interval);
@@ -572,14 +485,12 @@
                     sendNotification("SQL执行完成,请查看页面执行结果~");
                 }
                 if (!res) {
-                    $("#msgSpan").text("ERROR:未知异常!");
-                    $("#sqlTableDiv").hide();
+                    message("结果返回未知异常！", false);
                     return false;
                 }
                 if (res.code !== 200) {
-                    let msg = res.msg == null ? "空指针异常,请查看系统日志详情!" : res.msg;
-                    $("#msgSpan").text("ERROR:" + msg);
-                    $("#sqlTableDiv").hide();
+                    let msg = res.msg == null ? "空指针异常,请查看日志!" : res.msg;
+                    message(msg, false);
                     return false;
                 }
                 setTimeout(() => tableInit(res.data), 0);
@@ -600,26 +511,30 @@
                 element.tabDelete('sqlTableTab', elementTabCount[i]);
             }
             $("#sqlTableDiv").hide();
+            $("#msgDiv").hide();
             $("#msgSpan").html("");
             let index = 0;
             for (let i = 0; i < data.length; i++) {
                 index++;
                 let item = data[i];
-                let statusMsg;
+                let statusMsg = "";
                 if ((typeof item.data === 'number' && !isNaN(item.data))) {
                     statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功影响【" + item.data + "】条数据!";
                 }
                 if (item.data === null) {
                     statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功返回为空!";
                 }
-                if (item.data instanceof Array) {
-                    statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功返回【" + item.data.length + "】条数据呈现!";
+                if (item.data instanceof Array && item.status === 2) {
+                    statusMsg = "执行失败 " + item.errorMessage;
                 }
-                if (typeof item.data == 'string') {
-                    statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功返回【" + item.data + "】!";
+                if (typeof item.data == 'string' && item.status === 2) {
+                    statusMsg = "执行失败 " + item.errorMessage;
                 }
-                let msg = "第[" + index + "]条SQL语句" + statusMsg + "<br>";
-                $("#msgSpan").append(msg);
+                if (statusMsg !== "") {
+                    let msg = "第[" + index + "]条SQL语句" + statusMsg + "<br>";
+                    $("#msgSpan").append(msg);
+                    $("#msgDiv").show();
+                }
                 if (item.type === 1) {
                     continue;
                 }
@@ -649,11 +564,11 @@
                     id: elId,
                     change: true
                 })
-                let toolbarHtml = "<div><span class=\"layui-badge\">" + head.length + "列</span> <span class=\"layui-badge layui-bg-green\">" + rowsData.length + "条</span>  <span class=\"layui-badge layui-bg-blue\">" + item.time + "ms</span>   <button class='layui-btn layui-btn-primary layui-border-purple layui-btn-xs' onclick='window.scrollTo({top: document.documentElement.scrollHeight, behavior: \"smooth\"})'>分页区</button></div>";
                 table.render({
                     elem: '#' + elId
                     , cols: [head]
                     , data: rowsData
+                    , time: item.time
                     , title: '结果集' + (i + 1)
                     , loading: true
                     , height: 535
@@ -661,21 +576,22 @@
                     , limit: 50
                     , limits: [50, 500, 1000, 3000, 5000, 8000, 10000]
                     , even: true
-                    , toolbar: toolbarHtml
+                    , toolbar: '#table-page-toolbar'
                     , defaultToolbar: ['filter', 'exports', 'print']
                     , page: {prev: '上一页', next: '下一页', groups: 6}
                     , defaultContextmenu: false
                     , pagebar: '#table-page-pageBar'
                     , text: {none: '查询返回0条数据'}
+                    , size: viewStore.get(tableSizeKey, 'sm')
                 });
                 table.resize(elId);
-                rowContextmenu(elId, item);
+                rowContextMenu(elId, item);
                 pageBar(elId);
             }
-            window.scrollTo({
+            /*window.scrollTo({
                 top: 180,
                 behavior: "smooth"
-            });
+            });*/
             return false;
         }
 
@@ -685,14 +601,12 @@
          */
         form.on('submit(exportExcel)', function (data) {
             if (activeDataSource === "" || activeDataSource == null) {
-                $("#msgDiv").show();
-                $("#msgSpan").text("ERROR:您修改数据源后请重新查询~");
+                message("您修改数据源后请重新查询~", false);
                 return false;
             }
             let sqlContent = editor.getValue().trim();
             if (sqlContent === "" || sqlContent == null) {
-                $("#msgDiv").show();
-                $("#msgSpan").text("ERROR:清输入SQL语句后导出~");
+                message("清输入SQL语句后在导出~", false);
                 return false;
             }
             let pitchTxt = editor.getSelection();
@@ -781,7 +695,7 @@
         /**
          * 表格增加点击事件
          */
-        function rowContextmenu(id, res) {
+        function rowContextMenu(id, res) {
             table.on('rowContextmenu(' + id + ')', function (obj) {
                 let data = obj.data;
                 let index = obj.index;
@@ -805,6 +719,17 @@
                     }
                 });
             });
+        }
+
+        function message(text, flag) {
+            $("#msgDiv").show();
+            if (!flag) {
+                $("#msgSpan").text(text);
+                $("#sqlTableDiv").hide();
+            } else {
+                $("#msgSpan").text(text);
+                $("#sqlTableDiv").show();
+            }
         }
 
         /**
@@ -866,6 +791,27 @@
         document.addEventListener('visibilitychange', function () {
             pageVisibility = document.visibilityState
         })
+
+        /**
+         * 表格尺寸
+         */
+        dropdown.render({
+            elem: '#dropdownTableSize',
+            data: [{
+                id: 'lg',
+                title: '最大'
+            }, {
+                id: 'md',
+                title: '中等'
+            }, {
+                id: 'sm',
+                title: '最小'
+            }],
+            click: function (obj) {
+                viewStore.put(tableSizeKey, obj.id);
+                layer.msg('设置成功，查询试下~', {icon: 1});
+            }
+        });
 
         // 右键菜单
         dropdown.render({

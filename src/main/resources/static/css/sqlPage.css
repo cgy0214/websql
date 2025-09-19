@@ -1,0 +1,110 @@
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --background-color: #f8f9fa;
+    --card-background-color: #ffffff;
+    --border-color: #dee2e6;
+    --text-color: #212529;
+    --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 10px;
+}
+
+/* 块级卡片 */
+.card {
+    background-color: var(--card-background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    padding: 1px;
+    margin: 2px;
+}
+
+/* 悬浮导航栏 */
+.nav-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 99%;
+    padding: 5px;
+    z-index: 999;
+    transition: all 0.2s ease-in-out;
+}
+
+.layui-btn {
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.layui-select-sm {
+    height: 30px;
+    line-height: 20px;
+    font-size: 14px;
+    padding: 0 8px;
+}
+
+.layui-form-select .layui-input {
+    height: 30px;
+}
+
+/* 让整行变成 flex，按钮垂直居中 按钮组 */
+.button-row {
+    display: flex;
+    align-items: center;
+}
+
+
+/* 滑块垂直居中 */
+.slider-wrapper {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+/* 编辑器 */
+.CodeMirror {
+    border-radius: 2px;
+    border: 0 solid #ddd;
+}
+
+/* 跑马灯 */
+.layui-anim-upbit {
+    animation-duration: .5s;
+}
+
+#rollBox .roll-item {
+    color: #958d8d;
+    font-size: 12px;
+    font-family: var(--font-family), serif;
+}
+
+.layui-form-item {
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+.layui-tab-content {
+    margin-top: -36px;
+}
+
+.layui-tab {
+    margin: 0;
+}
+
+pre.CodeMirror-placeholder {
+    color: #4f664f;
+    font-size: 1rem;
+}
+
+/* 隐藏按钮 */
+#closeMsgDivBtn {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    font-size: 22px;
+}

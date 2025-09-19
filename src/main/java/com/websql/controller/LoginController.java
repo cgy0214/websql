@@ -23,10 +23,12 @@ import com.wf.captcha.base.Captcha;
 import com.wf.captcha.utils.CaptchaUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
@@ -39,7 +41,7 @@ import java.util.*;
  **/
 @Controller
 @Log4j2
-public class LoginController {
+public class LoginController implements ErrorController {
 
     @Autowired
     private LoginService loginService;
@@ -59,6 +61,15 @@ public class LoginController {
             mav.addObject("siteConfig", dbSourceFactory.getSysSetUp());
         }
         return mav;
+    }
+
+    @RequestMapping("/error")
+    public String handleError(HttpServletRequest request, HttpServletResponse response) {
+        Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+        Object message = request.getAttribute(RequestDispatcher.ERROR_MESSAGE);
+        Object uri = request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
+        log.warn("404 captured — status:{}, message:{}, uri:{}", status, message, uri);
+        return "redirect:/";
     }
 
     @RequestMapping("main")
