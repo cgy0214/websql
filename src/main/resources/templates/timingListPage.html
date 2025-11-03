@@ -16,14 +16,14 @@
                     <input type="text" name="title" id="title" placeholder="请输入作业名称" class="layui-input"
                            lay-affix="clear">
                 </div>
-                <label class="layui-form-label">作业数据源:</label>
+                <label class="layui-form-label">数据来源:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="timingName" id="timingName" placeholder="请输入作业数据源"
+                    <input type="text" name="timingName" id="timingName" placeholder="请输入数据来源"
                            class="layui-input" lay-affix="clear">
                 </div>
-                <label class="layui-form-label">同步数据源:</label>
+                <label class="layui-form-label">数据去向:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="syncName" id="syncName" placeholder="请输入同步数据源" class="layui-input"
+                    <input type="text" name="syncName" id="syncName" placeholder="请输入数据去向" class="layui-input"
                            lay-affix="clear">
                 </div>
                 <label class="layui-form-label">作业状态:</label>
@@ -59,6 +59,8 @@
         <a class="layui-btn layui-btn-xs" lay-event="view">SQL</a>
         <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="updateCron">CRON</a>
         <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="updateState">{{= d.state=='停用'? '开始':'停止'}}</a>
+        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="execOne">执行一次</a>
+        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="logView">日志</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
@@ -135,6 +137,27 @@
                 case 'delete':
                     layer.confirm("您确认要删除此任务吗？", function () {
                         post(ctx + "timingManager/executeOnce/4/" + data.id, null, (res) => {
+                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                                $(".search-btn").click();
+                            });
+                        })
+                    })
+                    break;
+                case 'execOne':
+                    layer.confirm("您确认要立即执行一次吗？", function () {
+                        var requestData = {"id": data.id,"title": data.title};
+                        post(ctx + "timingManager/executeOne", requestData, (res) => {
+                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                                $(".search-btn").click();
+                            });
+                        })
+                    })
+                    break;
+                case 'logView':
+                    var path = data.state === '停用' ? '2':'1';
+                    var message = data.state === '停用' ? '确认要开启作业吗?':'确认要停止作业吗?';
+                    layer.confirm(message, function () {
+                        post(ctx + "timingManager/executeOnce/"+path+"/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });

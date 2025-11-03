@@ -699,26 +699,105 @@
             table.on('rowContextmenu(' + id + ')', function (obj) {
                 let data = obj.data;
                 let index = obj.index;
-                dropdown.render({
+                let tableName = '';
+                try {
+                    let tableList = JSON.parse(res.tableNameList);
+                    tableName = tableList[0];
+                } catch (e) {
+                    tableName = res.tableNameList;
+                }
+                let columns = Object.keys(data);
+                let dropdownInstance = dropdown.render({
                     trigger: 'contextmenu',
                     show: true,
                     data: [
-                        {title: '复制JSON数据', id: 'json'}
-                        //{title: 'INSERT语句', id: 'insert'}
+                        {title: 'copy insert', id: 'insert'},
+                        {title: 'copy update', id: 'update'},
+                        {title: 'copy select', id: 'select'},
+                        {title: 'copy json', id: 'json'},
+                        {title: 'copy 字段名', id: 'head'},
+                        {title: 'copy 字段值', id: 'value'}
                     ],
                     click: function (menuData, othis) {
                         if (menuData.id === "json") {
-                            layer.alert(util.escape(JSON.stringify({data})));
-                            return false;
+                            copyToClipboard(JSON.stringify(data, null, 2));
+                            layer.msg('JSON数据已复制到剪贴板');
+                            return true;
                         }
-                        // 待处理拼接，暂时无法应对多条sql执行
+                        if (menuData.id === "head") {
+                            let columns = Object.keys(data);
+                            copyToClipboard(columns.join(','));
+                            layer.msg('字段名已复制到剪贴板');
+                            return true;
+                        }
+                        if (menuData.id === "value") {
+                            let columns = Object.keys(data);
+                            let values = columns.map(col => {
+                                let val = data[col];
+                                if (val === null) return '';
+                                return String(val);
+                            });
+                            copyToClipboard(values.join(','));
+                            layer.msg('字段值已复制到剪贴板');
+                            return true;
+                        }
                         if (menuData.id === "insert") {
-                            layer.alert("insert into " + res.tableNameList + " values.....");
-                            return false;
+                            let values = columns.map(col => {
+                                let val = data[col];
+                                if (val === null) return 'NULL';
+                                if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+                                if (typeof val === 'number') return val;
+                                if (val instanceof Date) return `'${val.toISOString().slice(0, 19).replace('T', ' ')}'`;
+                                return `'${val}'`;
+                            });
+                            let insertSql = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${values.join(', ')});`;
+                            copyToClipboard(insertSql);
+                            layer.msg('INSERT语句已复制到剪贴板');
+                            return true;
+                        }
+                        if (menuData.id === "update") {
+                            let setParts = columns.map(col => {
+                                let val = data[col];
+                                if (val === null) return `${col} = NULL`;
+                                if (typeof val === 'string') return `${col} = '${val.replace(/'/g, "''")}'`;
+                                if (typeof val === 'number') return `${col} = ${val}`;
+                                if (val instanceof Date) return `${col} = '${val.toISOString().slice(0, 19).replace('T', ' ')}'`;
+                                return `${col} = '${val}'`;
+                            });
+                            let firstCol = columns[0];
+                            let firstVal = data[firstCol];
+                            let whereClause = typeof firstVal === 'string' 
+                                ? `${firstCol} = '${firstVal.replace(/'/g, "''")}'` 
+                                : `${firstCol} = ${firstVal}`;
+                            let updateSql = `UPDATE ${tableName} SET ${setParts.join(', ')} WHERE ${whereClause};`;
+                            copyToClipboard(updateSql);
+                            layer.msg('UPDATE语句已复制到剪贴板');
+                            return true;
+                        }
+                        if (menuData.id === "select") {
+                            let firstCol = columns[0];
+                            let firstVal = data[firstCol];
+                            let whereClause = typeof firstVal === 'string' 
+                                ? `${firstCol} = '${firstVal.replace(/'/g, "''")}'` 
+                                : `${firstCol} = ${firstVal}`;
+                            let selectSql = `SELECT ${columns.join(', ')} FROM ${tableName} WHERE ${whereClause};`;
+                            copyToClipboard(selectSql);
+                            layer.msg('SELECT语句已复制到剪贴板');
+                            return true;
                         }
                     }
                 });
             });
+        }
+        
+        // 辅助函数：复制文本到剪贴板
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
         }
 
         function message(text, flag) {
