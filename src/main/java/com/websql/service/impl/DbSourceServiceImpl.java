@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 @Service
 public class DbSourceServiceImpl implements DbSourceService {
 
-    private static final Logger log = LoggerFactory.getLogger(DbSourceServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DbSourceServiceImpl.class);
 
     @Resource
     private DbSourceRepository dbSourceRepository;
@@ -231,6 +231,12 @@ public class DbSourceServiceImpl implements DbSourceService {
             return AjaxResult.success(resultVos);
         } catch (Exception e) {
             log.setLogResult(e.getMessage());
+            LOGGER.error("\n==================== SQL执行失败 ====================\n" +
+                            "【原始语句】 {}\n" +
+                            "【错误信息】 {}\n" +
+                            "【异常类型】 {}\n" +
+                            "=====================================================",
+                    sql, e.getMessage(), e.getClass().getName());
             return AjaxResult.error(e.getMessage());
         } finally {
             SysSetup sysSetup = CacheUtils.get("sys_setup", SysSetup.class);
@@ -279,7 +285,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             dataSourceList = new ArrayList<>(0);
             List<DataSourceModel> list = dbSourceRepository.findAll();
             for (DataSourceModel dataSourceModel : list) {
-                if (ObjectUtil.notEqual("有效",dataSourceModel.getDbState())) {
+                if (ObjectUtil.notEqual("有效", dataSourceModel.getDbState())) {
                     break;
                 }
                 Map<String, String> item = new HashMap<>(3);

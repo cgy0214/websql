@@ -8,13 +8,13 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
-import com.websql.config.DbSourceFactory;
 import com.websql.model.*;
 import com.websql.service.DbSourceService;
 import com.websql.service.LoginService;
 import com.websql.service.MessageTemplateService;
 import com.websql.service.TeamSourceService;
 import com.websql.task.ExamineVersionFactory;
+import com.websql.task.SystemInitPost;
 import com.websql.util.CacheUtils;
 import com.websql.util.EnvBeanUtil;
 import com.websql.util.PasswordUtil;
@@ -50,8 +50,7 @@ public class SettingConfigController {
 
 
     @Autowired
-    private DbSourceFactory dbSourceFactory;
-
+    private SystemInitPost systemInitPost;
 
     @Autowired
     private LoginService loginService;
@@ -165,7 +164,7 @@ public class SettingConfigController {
     @RequestMapping("/sysSetUpPage")
     public ModelAndView sysSetUpPage() {
         ModelAndView mav = new ModelAndView("sysSetUpPage");
-        SysSetup sysSetup = dbSourceFactory.getSysSetUp();
+        SysSetup sysSetup = systemInitPost.getSystemSetup();
         mav.addObject("obj", sysSetup);
         mav.addObject("version", examineVersionFactory.getVersionModel());
         return mav;
@@ -317,7 +316,7 @@ public class SettingConfigController {
     @RequestMapping("/reloadDataSourceAll")
     @ResponseBody
     public AjaxResult reloadDataSourceAll() {
-        int size = dbSourceFactory.initDataSource();
+        int size = systemInitPost.initDataSource();
         return AjaxResult.success(size);
     }
 

@@ -7,13 +7,13 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.servlet.ServletUtil;
 import com.alibaba.fastjson.JSON;
-import com.websql.config.DbSourceFactory;
 import com.websql.model.AjaxResult;
 import com.websql.model.SysSetup;
 import com.websql.model.SysUser;
 import com.websql.model.TeamSourceModel;
 import com.websql.service.LoginService;
 import com.websql.task.ExamineVersionFactory;
+import com.websql.task.SystemInitPost;
 import com.websql.util.CacheUtils;
 import com.websql.util.EnvBeanUtil;
 import com.websql.util.PasswordUtil;
@@ -21,7 +21,7 @@ import com.websql.util.StpUtils;
 import com.wf.captcha.GifCaptcha;
 import com.wf.captcha.base.Captcha;
 import com.wf.captcha.utils.CaptchaUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
@@ -40,14 +40,14 @@ import java.util.*;
  * @Date 2019/6/14 0014 10:51
  **/
 @Controller
-@Log4j2
+@Slf4j
 public class LoginController implements ErrorController {
 
     @Autowired
     private LoginService loginService;
 
     @Autowired
-    private DbSourceFactory dbSourceFactory;
+    private SystemInitPost systemInitPost;
 
     @Autowired
     private ExamineVersionFactory examineVersionFactory;
@@ -58,7 +58,7 @@ public class LoginController implements ErrorController {
         if (StpUtils.getCurrentLogin()) {
             mav.setViewName("index");
             mav.addObject("users", StpUtils.getCurrentUser());
-            mav.addObject("siteConfig", dbSourceFactory.getSysSetUp());
+            mav.addObject("siteConfig", systemInitPost.getSystemSetup());
         }
         return mav;
     }
@@ -199,7 +199,7 @@ public class LoginController implements ErrorController {
     @ResponseBody
     @RequestMapping(value = "/getSiteConfig", method = RequestMethod.POST)
     public AjaxResult getSiteConfig() {
-        SysSetup sysSetUp = dbSourceFactory.getSysSetUp();
+        SysSetup sysSetUp = systemInitPost.getSystemSetup();
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("enabledNotification", sysSetUp.getEnabledNotification());
         return AjaxResult.success(resultMap);
