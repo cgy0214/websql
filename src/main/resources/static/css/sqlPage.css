@@ -26,6 +26,11 @@ body {
 }
 
 /* 悬浮导航栏 */
+#menu-id {
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-radius: 8px;
+}
+
 .nav-container {
     position: fixed;
     top: 0;
@@ -33,7 +38,18 @@ body {
     width: 99%;
     padding: 5px;
     z-index: 999;
-    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(6px);
+    background-color: rgba(255, 255, 255, 0.92);
+    border-radius: 8px;
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.nav-container.show {
+    transform: translateY(0);
+    opacity: 1;
 }
 
 .layui-btn {
@@ -107,4 +123,21 @@ pre.CodeMirror-placeholder {
     right: 8px;
     top: 8px;
     font-size: 22px;
+}
+
+.demo-dropdown-tabs {
+    padding: 0 16px;
+}
+
+.layui-form-pane .layui-form-label {
+    width: 110px;
+    padding: 8px 15px;
+    height: 30px;
+    line-height: 15px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 2px 0 0 2px;
+    text-align: center;
+    background-color: #fafafa;
+    box-sizing: border-box;
 }

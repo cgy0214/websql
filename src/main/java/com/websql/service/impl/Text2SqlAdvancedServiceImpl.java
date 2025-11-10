@@ -40,10 +40,10 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
 
     @Autowired
     private SseEmitterService sseEmitterService;
-    
+
     @Autowired
     private ChatMemoryProvider chatMemoryProvider;
-    
+
     @Autowired
     private AiChatMemoryService aiChatMemoryService;
 
@@ -127,7 +127,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
     /**
      * 构建提示词
      *
-     * @param text   用户输入的自然语言
+     * @param text 用户输入的自然语言
      * @return 构建好的提示词
      */
     private String buildPrompt(String text) {
@@ -161,20 +161,21 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
         }
         if (ObjectUtil.isNotNull(streamingChatLanguageModel)) {
             ChatMemory chatMemory = chatMemoryProvider.get(userId);
-            
+
             boolean needSchemaInfo = chatMemory.messages().stream()
-                    .noneMatch(msg -> msg instanceof SystemMessage && 
-                           ((SystemMessage) msg).text().contains("数据库信息:"));
-                           
+                    .noneMatch(msg -> msg instanceof SystemMessage &&
+                            ((SystemMessage) msg).text().contains("数据库信息:"));
+
             if (needSchemaInfo) {
                 chatMemory.add(new SystemMessage("以下是数据库结构信息，供你参考:\n" + schema));
             }
-            
+
             chatMemory.add(UserMessage.from(prompt));
-            
+
+            log.info("开始请求大模型>>tokens:{}", prompt.length());
             streamingChatLanguageModel.generate(
                     chatMemory.messages(),
-                    new AiStreamingResponseHandler(emitter, chatMemory)
+                    new AiStreamingResponseHandler(emitter, chatMemory,prompt.length())
             );
         } else {
             log.error("请检查是否配置了OpenAI API Key,wiki: https://gitee.com/boy_0214/websql/wikis/%E5%BC%80%E5%8F%91%E6%89%8B%E5%86%8C");

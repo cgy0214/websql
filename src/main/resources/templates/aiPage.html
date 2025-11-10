@@ -7,87 +7,146 @@
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
 <body>
-<div class="layui-container" style="margin-top: 20px;">
+<div class="layui-container">
     <div class="copilot-container">
         <div class="copilot-header">
-            <img th:src="@{/static/img/copilot.png}" alt="Copilot Icon" class="copilot-icon">
-            <h1>DMS Data Copilot</h1>
-            <p>Copilot由 AI 提供支持,因此可能会存在错误</p>
-            <p>请在使用前仔细查看输出内容</p>
-        </div>
-        <div class="copilot-suggestions">
-            <div class="suggestion-card">
-                <p>按零售店和产品汇总出库数量和金额</p>
-            </div>
-            <div class="suggestion-card">
-                <p>查询指定零售代码和产品代码的库存明细</p>
-            </div>
-            <div class="suggestion-card">
-                <p>查询当前表使用的时区</p>
-            </div>
-            <div class="suggestion-card">
-                <p>怎么写窗口函数</p>
-            </div>
+            <svg t="1762763574651" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 p-id="5532" width="48" height="48">
+                <path d="M511.994264 511.994264m-511.994264 0a511.994264 511.994264 0 1 0 1023.988529 0 511.994264 511.994264 0 1 0-1023.988529 0Z"
+                      fill="#28176D" p-id="5533"></path>
+                <path d="M769.87841 652.183853h-53.444341V522.260992h53.444341zM789.528583 522.260992h-19.650173v129.922861h84.898383V522.260992h-65.24821z"
+                      fill="#F8C642" p-id="5534"></path>
+                <path d="M772.012054 782.095242h-55.577985V652.172382H772.012054z" fill="#F8C642" p-id="5535"></path>
+                <path d="M842.777913 782.095242h-72.910974V652.183853h84.886912v117.923981a11.99888 11.99888 0 0 1-11.975938 11.987408z"
+                      fill="#7B49B6" p-id="5536"></path>
+                <path d="M836.571992 522.260992H716.434069V392.338132h120.137923z" fill="#FC3A64" p-id="5537"></path>
+                <path d="M854.776793 522.260992h-65.24821V392.338132h65.24821z" fill="#FFFFFF" p-id="5538"></path>
+                <path d="M348.518131 692.73456l-20.18932 88.95919H169.211736l126.951818-522.14628h224.124391l120.447646 522.157751H483.316253l-20.533455-88.959189z m28.047095-122.48952h58.170477l-28.735367-127.640091z"
+                      fill="#F8C642" p-id="5539"></path>
+                <path d="M296.163554 259.54747l-22.896524 94.190059H542.014406l-21.726461-94.190059H296.163554z"
+                      fill="#7B49B6" p-id="5540"></path>
+                <path d="M220.625674 570.24504h214.1215l28.047095 122.48952H190.846427l29.779247-122.48952z"
+                      fill="#FC3A64" p-id="5541"></path>
+                <path d="M406.000336 442.604949h156.513112l29.435111 127.640091H434.747174l-28.746838-127.640091z"
+                      fill="#FFFFFF" p-id="5542"></path>
+                <path d="M718.556241 241.893286h134.098379v47.61697H718.556241z" fill="#FC3A64" p-id="5543"></path>
+                <path d="M718.556241 288.087826h134.098379v47.61697H718.556241z" fill="#FC3A64" p-id="5544"></path>
+            </svg>
+            <h1>AI Data Copilot</h1>
         </div>
         <div class="copilot-chat-area">
-            <div id="chat-history"></div>
-            <div class="chat-input">
-                <textarea id="question" placeholder="请问我任意问题..."></textarea>
-                <button type="button" class="layui-btn" onclick="ask()">发送</button>
-            </div>
+            <form class="layui-form">
+                <div id="chat-history"></div>
+                <div class="chat-input-container">
+                    <div class="database-selector">
+                        [[${database}]]
+                        <input type="hidden" th:value="${database}" name="dataBaseName" id="dataBaseName"/>
+                        <input type="hidden" th:value="${table}" name="tableName" id="tableName"/>
+                    </div>
+                    <div class="chat-input">
+                        <textarea id="question" placeholder="请问我任意问题..."></textarea>
+                        <button type="button" lay-filter="query" lay-submit>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round"
+                                      stroke-linejoin="round"/>
+                                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
         <div class="copilot-footer">
-            <p>服务生成的所有内容均由人工智能模型生成,其生成内容的准确性和完整性无法保证,不代表我们的态度或观点</p>
+            <p>请在使用前仔细查看输出内容</p>
+            <p>所有内容均由人工智能模型生成,其生成内容的准确性和完整性无法保证,不代表我们的态度或观点</p>
         </div>
     </div>
 </div>
 <script th:src="@{/static/layui.js}"></script>
-<script th:src="@{/static/base64.min.js}"></script>
-<script th:replace="~{base::ctx}"/>
+<script th:replace="~{base::ctx}"></script>
+<script th:src="@{/static/lay-config.js}"></script>
+<script th:src="@{/static/code/highlight.min.js}"></script>
+<script th:replace="~{tableSqlPageMeta}"></script>
 <script>
 
-    layui.use(function () {
+    const SQL_KEYWORD = ['select', 'insert', 'update', 'delete', 'from', 'where', 'order by', 'limit', 'offset', 'create', 'drop', 'alter', 'truncate', 'rename', 'set', 'show', 'desc', 'explain', 'begin', 'commit', 'rollback', 'lock', 'unlock', 'grant', 'revoke', 'call', 'declare', 'procedure', 'function', 'trigger', 'view', 'index'];
+
+    layui.use(['jquery', 'layer', 'form', 'util', 'laytpl', 'code',], function () {
         const layer = layui.layer;
         const form = layui.form;
         const $ = layui.jquery;
-        const table = layui.table;
-        const laytpl = layui.laytpl;
         const util = layui.util;
+        const laytpl = layui.laytpl;
+        const code = layui.code;
 
-        layui.code({
-            elem: '.code-sql'
+        // 矫正模型给的换行错误问题
+        const keywordHtml = function (text, index) {
+            if (text == null || text === '') {
+                return text;
+            }
+            for (let i = 0; i < SQL_KEYWORD.length; i++) {
+                const key = SQL_KEYWORD[i];
+                const number = text.toLowerCase().trim().indexOf(key);
+                console.info(text.toLowerCase().trim());
+                if (number !== -1 && index === 0) {
+                    return text.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '$1<br/>');
+                }
+                if (number !== -1 && index > 0) {
+                    return text.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '<br/>$1<br/>');
+                }
+            }
+            return text;
+        };
+
+        code({
+            elem: '.chat-text-sql',
+            lang: 'SQL',
+            highlighter: "hljs",
+            encode: true,
+            langMarker: true,
+            codeRender: function (code, opts) {
+                return hljs.highlight(code, {language: opts.lang}).value;
+            }
         });
 
-        $('.suggestion-card').on('click', function() {
+        $('.suggestion-card').on('click', function () {
             const suggestionText = $(this).find('p').text();
             $('#question').val(suggestionText);
         });
 
+        form.on('submit(query)', function (data) {
+            const q = document.getElementById('question').value.trim();
+            if (!q) return layui.layer.msg('请输入问题');
+            const answerDom = document.getElementById('chat-history');
+            answerDom.innerHTML += '<p class="chat-text"><strong>Me:</strong> ' + q + '</p>';
+            answerDom.innerHTML += '<p class="chat-text"><strong>AI:</strong> 正在思考中...</p>';
+            const dataBaseName = document.getElementById('dataBaseName').value;
+            const tableName = document.getElementById('tableName').value;
+
+            let content = '/aiManager/stream?text=' + encodeURIComponent(q) + "&dataBaseName=" + dataBaseName + "&tableName=" + tableName;
+            const source = new EventSource(content);
+            let aiAnswer = '';
+            var index = 0;
+            source.onmessage = e => {
+                aiAnswer += keywordHtml(e.data, index);
+                index++;
+                const aiMessages = answerDom.querySelectorAll('p > strong');
+                const lastAiMessage = aiMessages[aiMessages.length - 1].parentElement;
+                lastAiMessage.innerHTML = '<strong>AI:</strong><br> <pre class="layui-code chat-text-sql">' + aiAnswer + "</pre>";
+            };
+            source.onerror = function () {
+                source.close();
+                layui.layer.msg('回答完毕');
+            };
+            return false;
+        });
+
+
     });
 
-    function ask() {
-        const q = document.getElementById('question').value.trim();
-        if (!q) return layui.layer.msg('请输入问题');
-        const answerDom = document.getElementById('chat-history');
-        answerDom.innerHTML += '<p><strong>You:</strong> ' + q + '</p>';
-        answerDom.innerHTML += '<p><strong>AI:</strong> 正在思考中...</p>';
-
-
-        let content = '/aiManager/stream?text=' + encodeURIComponent(q);
-        const source = new EventSource(content);
-        let aiAnswer = '';
-
-        source.onmessage = e => {
-            aiAnswer += e.data;
-            const aiMessages = answerDom.querySelectorAll('p > strong');
-            const lastAiMessage = aiMessages[aiMessages.length - 1].parentElement;
-            lastAiMessage.innerHTML = '<strong>AI:</strong> ' + aiAnswer;
-        };
-        source.onerror = function () {
-            source.close();
-            layui.layer.msg('回答完毕');
-        };
-    }
 </script>
 <style>
     .copilot-container {
@@ -96,26 +155,32 @@
         padding: 20px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
+
     .copilot-header {
         text-align: center;
         margin-bottom: 40px;
     }
+
     .copilot-icon {
         width: 60px;
         height: 60px;
     }
+
     .copilot-header h1 {
-        font-size: 28px;
+        font-size: 20px;
         margin: 10px 0;
     }
+
     .copilot-header p {
         color: #666;
     }
+
     .copilot-suggestions {
         display: flex;
         justify-content: space-around;
         margin-bottom: 40px;
     }
+
     .suggestion-card {
         border: 1px solid #eee;
         border-radius: 8px;
@@ -125,35 +190,84 @@
         cursor: pointer;
         transition: box-shadow 0.3s;
     }
+
     .suggestion-card:hover {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
+
     .copilot-chat-area {
         border: 1px solid #eee;
         border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
+        padding: 10px;
+        margin-bottom: 10px;
     }
+
     #chat-history {
-        min-height: 200px;
+        height: 300px;
+        overflow-y: auto;
         margin-bottom: 20px;
+        word-wrap: break-word;
+        word-break: break-word;
+        white-space: normal;
     }
-    .chat-input {
-        display: flex;
+
+    #chat-history p {
+        word-wrap: break-word;
+        word-break: break-word;
+        white-space: normal;
     }
-    .chat-input textarea {
-        flex-grow: 1;
-        border-radius: 4px;
-        border: 1px solid #ccc;
+
+    .chat-input-container {
+        border: 1px solid #eee;
+        border-radius: 8px;
         padding: 10px;
     }
+
+    .database-selector {
+        margin-bottom: 10px;
+    }
+
+    .database-selector select {
+        border: none;
+        background: transparent;
+        font-size: 14px;
+    }
+
+    .chat-input {
+        display: flex;
+        align-items: center;
+    }
+
+    .chat-input textarea {
+        flex-grow: 1;
+        border: none;
+        padding: 10px;
+        resize: none;
+        background: transparent;
+    }
+
     .chat-input button {
+        background-color: #6c5ce7;
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
         margin-left: 10px;
     }
+
     .copilot-footer {
         text-align: center;
         color: #999;
         font-size: 12px;
+    }
+
+    .chat-text {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        padding: 2px;
     }
 </style>
 </body>

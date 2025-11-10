@@ -9,22 +9,7 @@
     <link rel="stylesheet" th:href="@{/static/code/highlight.min.css}" media="all">
     <link rel="stylesheet" th:href="@{/static/css/sqlPage.css}" media="all">
     <style>
-        .demo-dropdown-tabs {
-            padding: 0 16px;
-        }
 
-        .layui-form-pane .layui-form-label {
-            width: 110px;
-            padding: 8px 15px;
-            height: 30px;
-            line-height: 15px;
-            border-width: 1px;
-            border-style: solid;
-            border-radius: 2px 0 0 2px;
-            text-align: center;
-            background-color: #fafafa;
-            box-sizing: border-box;
-        }
     </style>
 </head>
 <body>
@@ -72,7 +57,7 @@
             </div>
 
             <div id="rollBox"
-                 style="height:40px;line-height:40px;text-align:center;overflow:hidden;">
+                 style="margin-left:5px;height:40px;line-height:40px;text-align:center;overflow:hidden;">
             </div>
         </div>
     </form>
@@ -108,18 +93,18 @@
             <div class="layui-form-item">
                 <label class="layui-form-label">表格大小</label>
                 <div class="layui-input-block">
-                    <div class="layui-btn-group" style="margin-left: 2px;">
+                    <div class="layui-btn-group" style="margin-left: 5px;">
                         <button type="button" class="layui-btn layui-btn-primary layui-btn-sm"
                                 onclick="viewStore.put('tableSize', 'lg');return false;">
-                            <i class="layui-icon layui-icon-addition"></i>大
+                            <i class="layui-icon layui-icon-addition"></i>
                         </button>
                         <button type="button" class="layui-btn layui-btn-primary layui-btn-sm"
                                 onclick="viewStore.put('tableSize', 'md');return false;">
-                            <i class="layui-icon layui-icon-ok"></i>中
+                            <i class="layui-icon layui-icon-ok"></i>
                         </button>
                         <button type="button" class="layui-btn layui-btn-primary layui-btn-sm"
                                 onclick="viewStore.put('tableSize', 'sm');return false;">
-                            <i class="layui-icon layui-icon-subtraction"></i>小
+                            <i class="layui-icon layui-icon-subtraction"></i>
                         </button>
                     </div>
                 </div>
@@ -129,7 +114,7 @@
                 <label class="layui-form-label">字体大小</label>
                 <div class="layui-input-block">
                     <div class="layui-form-mid slider-wrapper">
-                        <div id="id-slider" style="width: 100px;"></div>
+                        <div id="id-slider" style="width: 130px;"></div>
                     </div>
                 </div>
             </div>
@@ -138,7 +123,7 @@
                 <label class="layui-form-label">编辑器高度</label>
                 <div class="layui-input-block">
                     <div class="layui-form-mid slider-wrapper">
-                        <div id="id-editorSlider" style="width: 100px;"></div>
+                        <div id="id-editorSlider" style="width: 130px;"></div>
                     </div>
                 </div>
             </div>
@@ -147,7 +132,7 @@
                 <label class="layui-form-label">多窗口</label>
                 <div class="layui-input-block">
                     <button id="newSqlOpen" onclick="window.open(ctx+'sqlManager/sqlPage');return false"
-                            class="layui-btn layui-btn-primary layui-btn-sm">
+                            class="layui-btn layui-btn-primary layui-btn-sm" style="margin-left: 5px;">
                         <i class="layui-icon layui-icon-layer"></i> F7
                     </button>
                 </div>
@@ -887,10 +872,11 @@
          */
         document.addEventListener('scroll', function () {
             var navContainer = document.getElementById("menu-id");
+            console.info("======>"+window.pageYOffset)
             if (window.pageYOffset > 0) {
-                navContainer.classList.add('nav-container');
+                navContainer.classList.add('nav-container', 'show');
             } else {
-                navContainer.classList.remove('nav-container');
+                navContainer.classList.remove('nav-container', 'show');
             }
         });
 
@@ -958,7 +944,7 @@
             elem: '#setting-dropdown-demo-content',
             content: [$("#settingTable").html()].join(''),
             className: 'setting-dropdown-tabs',
-            style: 'width: 320px; height: 180px; box-shadow: 1px 1px 30px rgb(0 0 0 / 12%);border-radius:10px;',
+            style: 'width: 300px; height: 180px; box-shadow: 1px 1px 30px rgb(0 0 0 / 12%);border-radius:10px;padding:10px;',
             //shade: 0.3,
             ready: function () {
                 settingView();
@@ -981,6 +967,10 @@
                 {
                     title: '格式化',
                     id: 'format'
+                },
+                {
+                    title: '清空',
+                    id: 'clear'
                 },
                 {
                     title: '保存',
@@ -1023,6 +1013,9 @@
                 if (obj.id === 'reload') {
                     location.reload();
                 }
+                if(obj.id ==='clear'){
+                    editor.setValue('');
+                }
                 //格式化
                 if (obj.id === 'format') {
                     const altCKeyHandler = editor.getOption("extraKeys")["Alt-C"];
@@ -1063,11 +1056,11 @@
                     type: 2,
                     offset: 'r',
                     anim: 'slideLeft',
-                    area: ['320px', '100%'],
+                    area: ['420px', '100%'],
                     shade: 0.1,
                     shadeClose: true,
-                    title: 'AI智能助手',
-                    hideOnClose: true,
+                    title: 'AI Data Copilot',
+                    hideOnClose: false,
                     id: 'ai-layer-direction-r',
                     content: [url, 'yes']
                 });
