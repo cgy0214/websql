@@ -144,6 +144,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
         prompt.append("7. 返回语句要格式化好，不要出现连带\n");
         prompt.append("9. 语句中INSERT INTO,UPDATE,SET,DELETE FROM,SELECT,WHERE,ORDER BY,GROUP BY,HAVING关键词前后要换2次行 \n");
         prompt.append("10. 如果用户想要清除历史记录，请在响应中包含 [CLEAR_HISTORY] 标记\n");
+        prompt.append("11. 每个主要关键字换行,使用适当的缩进 \n");
         prompt.append("用户需求: ").append(text).append("\n");
         prompt.append("SQL语句:");
         return prompt.toString();

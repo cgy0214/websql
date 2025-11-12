@@ -69,8 +69,16 @@
 <script th:replace="~{base::ctx}"></script>
 <script th:src="@{/static/lay-config.js}"></script>
 <script th:src="@{/static/code/highlight.min.js}"></script>
-<script th:replace="~{tableSqlPageMeta}"></script>
+<script th:src="@{/static/code/sql-formatter.min.cjs}"></script>
+<script type="text/html" id="table-sql-code-tpl">
+    <strong>AI:</strong>
+    <br>
+    <pre class="layui-code chat-text-sql">
+    {{= d}}
+    </pre>
+</script>
 <script>
+
 
     const SQL_KEYWORD = ['select', 'insert', 'update', 'delete', 'from', 'where', 'order by', 'limit', 'offset', 'create', 'drop', 'alter', 'truncate', 'rename', 'set', 'show', 'desc', 'explain', 'begin', 'commit', 'rollback', 'lock', 'unlock', 'grant', 'revoke', 'call', 'declare', 'procedure', 'function', 'trigger', 'view', 'index'];
 
@@ -81,6 +89,7 @@
         const util = layui.util;
         const laytpl = layui.laytpl;
         const code = layui.code;
+        let refresh = true;
 
         // 矫正模型给的换行错误问题
         const keywordHtml = function (text, index) {
@@ -101,21 +110,12 @@
             return text;
         };
 
-        code({
-            elem: '.chat-text-sql',
-            lang: 'SQL',
-            highlighter: "hljs",
-            encode: true,
-            langMarker: true,
-            codeRender: function (code, opts) {
-                return hljs.highlight(code, {language: opts.lang}).value;
-            }
-        });
 
         $('.suggestion-card').on('click', function () {
             const suggestionText = $(this).find('p').text();
             $('#question').val(suggestionText);
         });
+
 
         form.on('submit(query)', function (data) {
             const q = document.getElementById('question').value.trim();
@@ -129,15 +129,34 @@
             let content = '/aiManager/stream?text=' + encodeURIComponent(q) + "&dataBaseName=" + dataBaseName + "&tableName=" + tableName;
             const source = new EventSource(content);
             let aiAnswer = '';
-            var index = 0;
+            let index = 0;
+
             source.onmessage = e => {
                 aiAnswer += keywordHtml(e.data, index);
                 index++;
                 const aiMessages = answerDom.querySelectorAll('p > strong');
                 const lastAiMessage = aiMessages[aiMessages.length - 1].parentElement;
-                lastAiMessage.innerHTML = '<strong>AI:</strong><br> <pre class="layui-code chat-text-sql">' + aiAnswer + "</pre>";
+
+                laytpl($("#table-sql-code-tpl").html()).render(aiAnswer, function (data) {
+                    // answerDom.innerHTML += data;
+                    lastAiMessage.innerHTML = data;
+                    //  lastAiMessage.innerHTML = '<strong>AI:</strong><br>' + data + "</>";
+                });
             };
             source.onerror = function () {
+                if (refresh) {
+                    code({
+                        elem: '.chat-text-sql',
+                        lang: 'SQL',
+                        highlighter: "hljs",
+                        encode: false,
+                        id:'s',
+                        codeRender: function (code, opts) {
+                            return hljs.highlight(code, {language: opts.lang}).value;
+                        }
+                    });
+                    refresh = false;
+                }
                 source.close();
                 layui.layer.msg('回答完毕');
             };
