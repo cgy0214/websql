@@ -32,11 +32,12 @@
                 <path d="M718.556241 241.893286h134.098379v47.61697H718.556241z" fill="#FC3A64" p-id="5543"></path>
                 <path d="M718.556241 288.087826h134.098379v47.61697H718.556241z" fill="#FC3A64" p-id="5544"></path>
             </svg>
-            <h1>AI Data Copilot</h1>
+            <h3>AI Data Copilot</h3>
         </div>
         <div class="copilot-chat-area">
             <form class="layui-form">
-                <div id="chat-history"></div>
+                <div id="chat-history">
+                </div>
                 <div class="chat-input-container">
                     <div class="database-selector">
                         [[${database}]]
@@ -44,7 +45,7 @@
                         <input type="hidden" th:value="${table}" name="tableName" id="tableName"/>
                     </div>
                     <div class="chat-input">
-                        <textarea id="question" placeholder="请问我任意问题..."></textarea>
+                        <textarea id="question" placeholder="请问我SQL语句相关问题..."></textarea>
                         <button type="button" lay-filter="query" lay-submit>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                  xmlns="http://www.w3.org/2000/svg">
@@ -71,10 +72,10 @@
 <script th:src="@{/static/code/highlight.min.js}"></script>
 <script th:src="@{/static/code/sql-formatter.min.cjs}"></script>
 <script type="text/html" id="table-sql-code-tpl">
-    <strong>AI:</strong>
+    <strong><i class="layui-icon layui-icon-bot"></i>Ai</strong>
     <br>
-    <pre class="layui-code chat-text-sql">
-    {{= d}}
+    <pre class="layui-code chat-text-sql{{- d.id}}">
+    {{- d.data}}
     </pre>
 </script>
 <script>
@@ -89,7 +90,8 @@
         const util = layui.util;
         const laytpl = layui.laytpl;
         const code = layui.code;
-        let refresh = true;
+        let codeInst;
+        let indexEl = 0;
 
         // 矫正模型给的换行错误问题
         const keywordHtml = function (text, index) {
@@ -101,10 +103,10 @@
                 const number = text.toLowerCase().trim().indexOf(key);
                 console.info(text.toLowerCase().trim());
                 if (number !== -1 && index === 0) {
-                    return text.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '$1<br/>');
+                    return text.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '$1\n');
                 }
                 if (number !== -1 && index > 0) {
-                    return text.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '<br/>$1<br/>');
+                    return text.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '\n $1 \n');
                 }
             }
             return text;
@@ -118,11 +120,17 @@
 
 
         form.on('submit(query)', function (data) {
-            const q = document.getElementById('question').value.trim();
+
+            const q = $('#question').val();
             if (!q) return layui.layer.msg('请输入问题');
+
             const answerDom = document.getElementById('chat-history');
-            answerDom.innerHTML += '<p class="chat-text"><strong>Me:</strong> ' + q + '</p>';
-            answerDom.innerHTML += '<p class="chat-text"><strong>AI:</strong> 正在思考中...</p>';
+            answerDom.innerHTML += '<p class="chat-text"><strong><i class="layui-icon layui-icon-username"></i></strong> ' + q + '</p>';
+            answerDom.innerHTML += '<p class="chat-text"><strong><i class="layui-icon layui-icon-bot"></i></strong> 正在思考中...</p>';
+            
+            answerDom.scrollTop = answerDom.scrollHeight;
+
+            $('#question').val("");
             const dataBaseName = document.getElementById('dataBaseName').value;
             const tableName = document.getElementById('tableName').value;
 
@@ -130,35 +138,52 @@
             const source = new EventSource(content);
             let aiAnswer = '';
             let index = 0;
-
+            indexEl++;
+            /**
+             * <strong><i class="layui-icon layui-icon-bot"></i>Ai</strong>
+             *     <br>
+             *     <pre class="layui-code chat-text-sql{{- d.id}}">
+             *     {{- d.data}}
+             *     </pre>
+             *
+             *
+             * @param e
+             */
             source.onmessage = e => {
                 aiAnswer += keywordHtml(e.data, index);
                 index++;
                 const aiMessages = answerDom.querySelectorAll('p > strong');
                 const lastAiMessage = aiMessages[aiMessages.length - 1].parentElement;
+                const data = {"data": aiAnswer, "id": indexEl};
 
-                laytpl($("#table-sql-code-tpl").html()).render(aiAnswer, function (data) {
-                    // answerDom.innerHTML += data;
-                    lastAiMessage.innerHTML = data;
-                    //  lastAiMessage.innerHTML = '<strong>AI:</strong><br>' + data + "</>";
+                var head = "<strong><i class='layui-icon layui-icon-chat'></i>Ai</strong><br>";
+                var content = "<pre class='layui-code chat-text-sql"+indexEl+"'>"+aiAnswer+"</pre>";
+                lastAiMessage.innerHTML = head+content;
+                codeInst = code({
+                    elem: '.chat-text-sql' + indexEl,
+                    highlighter: "hljs",
+                    encode: false,
+                    id: 'chat-text-sql' + indexEl,
+                    preview: true,
+                    layout: ['code'],
+                    tools: [
+                        'copy',
+                        'full',
+                        {
+                            title: ['执行SQL'],
+                            type: 'link',
+                            event: function(obj) {
+                                console.log(obj);
+                            }
+                        }
+                    ]
                 });
+                answerDom.scrollTop = answerDom.scrollHeight;
             };
             source.onerror = function () {
-                if (refresh) {
-                    code({
-                        elem: '.chat-text-sql',
-                        lang: 'SQL',
-                        highlighter: "hljs",
-                        encode: false,
-                        id:'s',
-                        codeRender: function (code, opts) {
-                            return hljs.highlight(code, {language: opts.lang}).value;
-                        }
-                    });
-                    refresh = false;
-                }
                 source.close();
                 layui.layer.msg('回答完毕');
+                answerDom.scrollTop = answerDom.scrollHeight;
             };
             return false;
         });
@@ -171,13 +196,13 @@
     .copilot-container {
         max-width: 800px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 10px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
     .copilot-header {
         text-align: center;
-        margin-bottom: 40px;
+        margin-bottom: 10px;
     }
 
     .copilot-icon {
@@ -217,14 +242,12 @@
     .copilot-chat-area {
         border: 1px solid #eee;
         border-radius: 8px;
-        padding: 10px;
         margin-bottom: 10px;
     }
 
     #chat-history {
-        height: 300px;
+        height: 435px;
         overflow-y: auto;
-        margin-bottom: 20px;
         word-wrap: break-word;
         word-break: break-word;
         white-space: normal;
@@ -263,6 +286,7 @@
         padding: 10px;
         resize: none;
         background: transparent;
+        height: 80px;
     }
 
     .chat-input button {
