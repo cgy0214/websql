@@ -83,7 +83,7 @@ public class AiStreamingResponseHandler implements StreamingResponseHandler<AiMe
         }
 
         emitter.complete();
-        log.info("请求大模型结束>>tokens:{},response:{}", tokens, response.content().text().length());
+        log.info("请求AI结束>>tokens:{},response:{}", tokens, response.content().text().length());
     }
 
     @Override

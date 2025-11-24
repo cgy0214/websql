@@ -1072,6 +1072,16 @@
         });
 
 
+        //AI结果执行
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'executeSQL') {
+                var sqlFromAI = event.data.sql;
+                editor.setValue(sqlFromAI);
+                $("#execute").trigger('click');
+            }
+        });
+
+
         //进入页面后,让编辑器获得焦点
         editor.focus();
     })

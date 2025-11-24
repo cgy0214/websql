@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <title>WebSql-AI智能助手</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/static/css/aiPage.css}" media="all"/>
 </head>
 <body>
 <div class="layui-container">
@@ -43,10 +44,11 @@
                         [[${database}]]
                         <input type="hidden" th:value="${database}" name="dataBaseName" id="dataBaseName"/>
                         <input type="hidden" th:value="${table}" name="tableName" id="tableName"/>
+                        <i class="layui-icon layui-icon-addition"></i><a></a>
                     </div>
                     <div class="chat-input">
                         <textarea id="question" placeholder="请问我SQL语句相关问题..."></textarea>
-                        <button type="button" lay-filter="query" lay-submit>
+                        <button type="button" lay-filter="query" id="query" lay-submit>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                  xmlns="http://www.w3.org/2000/svg">
                                 <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round"
@@ -79,19 +81,16 @@
     </pre>
 </script>
 <script>
-
-
     const SQL_KEYWORD = ['select', 'insert', 'update', 'delete', 'from', 'where', 'order by', 'limit', 'offset', 'create', 'drop', 'alter', 'truncate', 'rename', 'set', 'show', 'desc', 'explain', 'begin', 'commit', 'rollback', 'lock', 'unlock', 'grant', 'revoke', 'call', 'declare', 'procedure', 'function', 'trigger', 'view', 'index'];
 
-    layui.use(['jquery', 'layer', 'form', 'util', 'laytpl', 'code',], function () {
+    layui.use(['jquery', 'layer', 'form', 'code',], function () {
         const layer = layui.layer;
         const form = layui.form;
         const $ = layui.jquery;
-        const util = layui.util;
-        const laytpl = layui.laytpl;
         const code = layui.code;
         let codeInst;
         let indexEl = 0;
+
 
         // 矫正模型给的换行错误问题
         const keywordHtml = function (text, index) {
@@ -101,7 +100,6 @@
             for (let i = 0; i < SQL_KEYWORD.length; i++) {
                 const key = SQL_KEYWORD[i];
                 const number = text.toLowerCase().trim().indexOf(key);
-                console.info(text.toLowerCase().trim());
                 if (number !== -1 && index === 0) {
                     return text.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '$1\n');
                 }
@@ -112,12 +110,44 @@
             return text;
         };
 
-
+        //
         $('.suggestion-card').on('click', function () {
             const suggestionText = $(this).find('p').text();
             $('#question').val(suggestionText);
         });
 
+        //新对话
+        $('.layui-icon-addition').on('click', function () {
+            post(ctx + "aiManager/clear", null, (res) => {
+                document.getElementById('chat-history').innerHTML = '';
+                recommend();
+            });
+        });
+
+        //推荐查询
+        $(document).on('click', '.recommendQuery', function () {
+            const labelText = $(this).find('.recommend-item').text();
+            $('#question').val(labelText);
+            $("#query").trigger('click');
+        });
+
+        //推荐初始化
+        function recommend() {
+            post(ctx + "aiManager/queryRecommend", null, (res) => {
+                if (res.code === 200) {
+                    const data = res.data;
+                    if (data!=null && data.length > 0) {
+                        const history = document.getElementById('chat-history');
+                        let container = '<div class="recommend-container"><div class="recommend-list">';
+                        data.forEach(item => {
+                            container += '<a class="recommendQuery" href="javascript:void(0);"><p class="chat-text recommend-item">' + item + '</p></a>';
+                        });
+                        container += '</div></div>';
+                        history.innerHTML += container;
+                    }
+                }
+            });
+        }
 
         form.on('submit(query)', function (data) {
 
@@ -125,9 +155,18 @@
             if (!q) return layui.layer.msg('请输入问题');
 
             const answerDom = document.getElementById('chat-history');
+
+            //关闭推荐
+            const isFirstQuestion = answerDom.querySelector('.recommend-container') !== null;
+            if (isFirstQuestion) {
+                const recommendContainer = answerDom.querySelector('.recommend-container');
+                if (recommendContainer) {
+                    recommendContainer.remove();
+                }
+            }
+
             answerDom.innerHTML += '<p class="chat-text"><strong><i class="layui-icon layui-icon-username"></i></strong> ' + q + '</p>';
             answerDom.innerHTML += '<p class="chat-text"><strong><i class="layui-icon layui-icon-bot"></i></strong> 正在思考中...</p>';
-            
             answerDom.scrollTop = answerDom.scrollHeight;
 
             $('#question').val("");
@@ -139,45 +178,16 @@
             let aiAnswer = '';
             let index = 0;
             indexEl++;
-            /**
-             * <strong><i class="layui-icon layui-icon-bot"></i>Ai</strong>
-             *     <br>
-             *     <pre class="layui-code chat-text-sql{{- d.id}}">
-             *     {{- d.data}}
-             *     </pre>
-             *
-             *
-             * @param e
-             */
+
             source.onmessage = e => {
                 aiAnswer += keywordHtml(e.data, index);
                 index++;
                 const aiMessages = answerDom.querySelectorAll('p > strong');
                 const lastAiMessage = aiMessages[aiMessages.length - 1].parentElement;
-                const data = {"data": aiAnswer, "id": indexEl};
-
-                var head = "<strong><i class='layui-icon layui-icon-chat'></i>Ai</strong><br>";
-                var content = "<pre class='layui-code chat-text-sql"+indexEl+"'>"+aiAnswer+"</pre>";
-                lastAiMessage.innerHTML = head+content;
-                codeInst = code({
-                    elem: '.chat-text-sql' + indexEl,
-                    highlighter: "hljs",
-                    encode: false,
-                    id: 'chat-text-sql' + indexEl,
-                    preview: true,
-                    layout: ['code'],
-                    tools: [
-                        'copy',
-                        'full',
-                        {
-                            title: ['执行SQL'],
-                            type: 'link',
-                            event: function(obj) {
-                                console.log(obj);
-                            }
-                        }
-                    ]
-                });
+                const head = "<strong><i class='layui-icon layui-icon-chat'></i>Ai</strong><br>";
+                const content = "<pre class='layui-code chat-text-sql" + indexEl + "'>" + aiAnswer + "</pre>";
+                lastAiMessage.innerHTML = head + content;
+                settingCode(indexEl);
                 answerDom.scrollTop = answerDom.scrollHeight;
             };
             source.onerror = function () {
@@ -189,129 +199,34 @@
         });
 
 
+        const settingCode = function (indexEl) {
+            codeInst = code({
+                elem: '.chat-text-sql' + indexEl,
+                highlighter: "hljs",
+                encode: false,
+                id: 'chat-text-sql' + indexEl,
+                preview: true,
+                layout: ['code'],
+                tools: [
+                    'copy',
+                    'full',
+                    {
+                        title: ['执行SQL'],
+                        type: 'link',
+                        event: function (obj) {
+                            if (window.parent) {
+                                window.parent.postMessage({
+                                    type: 'executeSQL',
+                                    sql: obj.finalCode
+                                }, '*');
+                            }
+                        }
+                    }
+                ]
+            });
+        };
+        recommend();
     });
-
 </script>
-<style>
-    .copilot-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 10px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-
-    .copilot-header {
-        text-align: center;
-        margin-bottom: 10px;
-    }
-
-    .copilot-icon {
-        width: 60px;
-        height: 60px;
-    }
-
-    .copilot-header h1 {
-        font-size: 20px;
-        margin: 10px 0;
-    }
-
-    .copilot-header p {
-        color: #666;
-    }
-
-    .copilot-suggestions {
-        display: flex;
-        justify-content: space-around;
-        margin-bottom: 40px;
-    }
-
-    .suggestion-card {
-        border: 1px solid #eee;
-        border-radius: 8px;
-        padding: 20px;
-        width: 45%;
-        text-align: center;
-        cursor: pointer;
-        transition: box-shadow 0.3s;
-    }
-
-    .suggestion-card:hover {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .copilot-chat-area {
-        border: 1px solid #eee;
-        border-radius: 8px;
-        margin-bottom: 10px;
-    }
-
-    #chat-history {
-        height: 435px;
-        overflow-y: auto;
-        word-wrap: break-word;
-        word-break: break-word;
-        white-space: normal;
-    }
-
-    #chat-history p {
-        word-wrap: break-word;
-        word-break: break-word;
-        white-space: normal;
-    }
-
-    .chat-input-container {
-        border: 1px solid #eee;
-        border-radius: 8px;
-        padding: 10px;
-    }
-
-    .database-selector {
-        margin-bottom: 10px;
-    }
-
-    .database-selector select {
-        border: none;
-        background: transparent;
-        font-size: 14px;
-    }
-
-    .chat-input {
-        display: flex;
-        align-items: center;
-    }
-
-    .chat-input textarea {
-        flex-grow: 1;
-        border: none;
-        padding: 10px;
-        resize: none;
-        background: transparent;
-        height: 80px;
-    }
-
-    .chat-input button {
-        background-color: #6c5ce7;
-        border: none;
-        border-radius: 50%;
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        margin-left: 10px;
-    }
-
-    .copilot-footer {
-        text-align: center;
-        color: #999;
-        font-size: 12px;
-    }
-
-    .chat-text {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        padding: 2px;
-    }
-</style>
 </body>
 </html>

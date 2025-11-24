@@ -173,7 +173,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
 
             chatMemory.add(UserMessage.from(prompt));
 
-            log.info("开始请求大模型>>tokens:{}", prompt.length());
+            log.debug("开始请求AI>>tokens:{}", prompt.length());
             streamingChatLanguageModel.generate(
                     chatMemory.messages(),
                     new AiStreamingResponseHandler(emitter, chatMemory,prompt.length())
