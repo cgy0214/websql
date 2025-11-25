@@ -137,8 +137,7 @@ public class SqlParserHandler {
                         }
                         return PagerUtils.limit(sql, getPageType(sqlSelectStatement.getDbType()), 0, limitMax);
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        logger.error("生成分页拦截SQL失败，不支持{}数据库类型,可以关闭分页拦截继续使用。", sqlSelectStatement.getDbType());
+                        logger.error("生成分页拦截SQL失败，不支持{}数据库类型,可以关闭分页拦截继续使用。", sqlSelectStatement.getDbType(),e);
                     }
                 }
             }

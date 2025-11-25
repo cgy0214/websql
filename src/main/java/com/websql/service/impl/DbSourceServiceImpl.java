@@ -23,6 +23,7 @@ import com.websql.model.*;
 import com.websql.service.DbSourceService;
 import com.websql.service.TeamSourceService;
 import com.websql.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
  * @Date 2019/6/14 0014 17:34
  **/
 @Service
+@Slf4j
 public class DbSourceServiceImpl implements DbSourceService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DbSourceServiceImpl.class);
@@ -416,7 +418,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             CacheUtils.put(key, dataSourceMeta);
             return AjaxResult.success(dataSourceMeta);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("获取元数据信息失败:{}",e.getMessage(), e);
             return AjaxResult.success(dataSourceMeta);
         }
     }
@@ -472,7 +474,8 @@ public class DbSourceServiceImpl implements DbSourceService {
         for (DataSourceModel dataSourceModel : all) {
             try {
                 deleteDataBaseSource(dataSourceModel.getId());
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.error("删除数据源失败:{},{}",dataSourceModel.getId(),e.getMessage(), e);
             }
         }
     }
@@ -566,7 +569,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             sysExportModel.setState("完成");
             return fileName;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("导出数据失败:{}",e.getMessage(), e);
             sysExportModel.setMessage(e.getMessage());
             sysExportModel.setState("失败");
             sysExportModel.setFiles(null);

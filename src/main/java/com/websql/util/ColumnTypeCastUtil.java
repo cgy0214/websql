@@ -3,6 +3,7 @@ package com.websql.util;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Reader;
 import java.sql.*;
@@ -16,6 +17,7 @@ import java.time.format.DateTimeFormatter;
  * @Author : rabbit boy_0214@sina.com
  * @Date: 2024/2/28 17:35
  */
+@Slf4j
 public class ColumnTypeCastUtil {
 
 
@@ -70,7 +72,7 @@ public class ColumnTypeCastUtil {
                 sb.append(buffer, 0, length);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("clob 转string异常", e);
             return null;
         }
         return sb.toString();

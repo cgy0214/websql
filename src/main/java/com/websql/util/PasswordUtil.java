@@ -10,6 +10,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
 import cn.hutool.crypto.symmetric.SymmetricCrypto;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @ClassName PasswordUtil
@@ -17,6 +18,7 @@ import cn.hutool.crypto.symmetric.SymmetricCrypto;
  * @Author rabbit boy_0214@sina.com
  * @Date 2019/7/5 0005 12:05
  **/
+@Slf4j
 public class PasswordUtil {
 
     private static final LRUFileCache CACHE = new LRUFileCache(1000, 500, 2000);
@@ -74,7 +76,7 @@ public class PasswordUtil {
                 return key;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("获取本地加密文件失败,{}",e.getMessage());
         }
         return null;
     }

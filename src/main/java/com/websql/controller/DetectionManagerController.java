@@ -91,7 +91,7 @@ public class DetectionManagerController {
             ScheduleUtils.addDetectionTask(model.getCron(), id, model.getName());
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("新增计划失败,{}",e.getMessage(),e);
             if (ObjectUtil.isNotNull(id)) {
                 detectionService.deleteById(id);
             }
@@ -142,7 +142,7 @@ public class DetectionManagerController {
             }
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("修改计划失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
     }

@@ -74,7 +74,7 @@ public class TimingController {
             createJob(model.getExecuteTime(), model.getId(), model.getTitle());
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("新增作业失败,{}",e.getMessage(),e);
             if (ObjectUtil.isNotNull(id)) {
                 timingService.delTiming(id);
             }
@@ -128,7 +128,7 @@ public class TimingController {
             }
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("修改作业失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
     }
@@ -162,7 +162,7 @@ public class TimingController {
             timingService.jobLogDelete();
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("删除作业失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
     }

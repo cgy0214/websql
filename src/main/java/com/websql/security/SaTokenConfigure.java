@@ -134,6 +134,11 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 "/sqlManager/sqlTextPage",
                 "/sqlManager/querySqlTextList",
                 "/sqlManager/saveSqlText",
+                "/sqlManager/metaTablePage",
+                "/sqlManager/metaTreeTableList",
+                "/sqlManager/createAsyncExport",
+                "/sqlManager/queryExportData",
+                "/sqlManager/downloadExcelFile",
 
                 // 定时任务相关
                 "/timingManager/listPage",
@@ -152,6 +157,12 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 // 系统设置相关
                 "/settingManager/driverConfigPage",
                 "/settingManager/driverConfigList",
+                "/settingManager/teamManagerPage",
+                "/settingManager/showTeamResourcePage/**",
+                "/settingManager/queryTeamList",
+                "/settingManager/queryTeamResourceList",
+                "/settingManager/exportLogPage",
+                "/settingManager/exportFilesLogList",
 
                 // 检测相关
                 "/detectionManager/listPage",
@@ -160,7 +171,9 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 "/detectionManager/list",
                 "/detectionManager/findDataSelect",
                 "/detectionManager/logList",
-                "/detectionManager/logCharts"
+                "/detectionManager/logCharts",
+                //ai 功能
+                "/aiManager/*"
         );
     }
 

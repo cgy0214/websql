@@ -170,7 +170,7 @@ public class LoginController implements ErrorController {
             }
             return loginService.unlock(password);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("解锁失败,{}",e.getMessage(),e);
         }
         return AjaxResult.error("解锁失败!");
     }

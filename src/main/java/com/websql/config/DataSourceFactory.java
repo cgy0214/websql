@@ -63,7 +63,7 @@ public class DataSourceFactory {
                 DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
                 index++;
             } catch (SQLException e) {
-                log.error(config.getDbName() + "数据源初始化失败：" + e.getMessage());
+                log.error("数据源初始化失败:{},错误信息：{}", config.getDbName(), e.getMessage());
                 DruidDataSourceStatManager.removeDataSource(ds);
             }
         }
@@ -210,7 +210,7 @@ public class DataSourceFactory {
                 return conn.getCatalog();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("获取数据库名称失败,{}", e.getMessage());
         }
         return null;
     }
@@ -221,7 +221,8 @@ public class DataSourceFactory {
             try (Connection conn = dataSource.getConnection()) {
                 return conn.getMetaData().getDatabaseProductName();
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.error("获取数据库产品名称失败,{}", e.getMessage());
         }
         return null;
     }

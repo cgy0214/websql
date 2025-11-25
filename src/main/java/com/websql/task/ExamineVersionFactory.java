@@ -3,6 +3,7 @@ package com.websql.task;
 import cn.hutool.core.comparator.VersionComparator;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.cron.task.Task;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
@@ -29,7 +30,6 @@ public class ExamineVersionFactory implements Task {
     private VersionModel versionModel;
 
 
-
     public void run() {
         versionModel = JSON.parseObject(ResourceUtil.readUtf8Str("version.json"), VersionModel.class);
         versionModel.setLocalVersion(versionModel.getVersion());
@@ -37,7 +37,7 @@ public class ExamineVersionFactory implements Task {
             return;
         }
         execute();
-        ScheduleUtils.addTask(10000L, "0 0 10 * * ?", this,"SYSTEM");
+        ScheduleUtils.addTask(10000L, "0 0 10 * * ?", this, "SYSTEM");
     }
 
     @Override
@@ -45,10 +45,15 @@ public class ExamineVersionFactory implements Task {
         try {
             VersionModel remoteVersion = JSON.parseObject(HttpUtil.get("https://gitee.com/boy_0214/websql/raw/master/src/main/resources/version.json", CharsetUtil.CHARSET_UTF_8), VersionModel.class);
             log.info("remote new version :{},release:{}", remoteVersion.getVersion(), remoteVersion.getDate());
+            if (ObjectUtil.isNotNull(remoteVersion.getAiRecommend())) {
+                versionModel.setAiRecommend(remoteVersion.getAiRecommend());
+            }
             String localVersion = versionModel.getVersion();
             int compare = VersionComparator.INSTANCE.compare(remoteVersion.getVersion(), localVersion);
             if (compare != 0) {
-                versionModel = remoteVersion;
+                versionModel.setVersion(remoteVersion.getVersion());
+                versionModel.setDate(remoteVersion.getDate());
+                versionModel.setLink(remoteVersion.getLink());
                 versionModel.setPush(true);
                 versionModel.setLocalVersion(localVersion);
             }

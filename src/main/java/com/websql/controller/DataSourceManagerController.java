@@ -118,9 +118,8 @@ public class DataSourceManagerController {
                 return AjaxResult.error("连接失败,返回结果集为空!");
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error(e.getMessage());
-            return AjaxResult.error("连接失败,error:" + e.getMessage());
+            log.error("检查链接失败,{}",e.getMessage(),e);
+            return AjaxResult.error("连接失败,错误信息:" + e.getMessage());
         } finally {
             JdbcUtils.releaseConn(rs, pre, conn);
         }
@@ -147,7 +146,7 @@ public class DataSourceManagerController {
             dbSourceService.addDbSource(model, null);
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("新增数据源失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
     }
@@ -164,7 +163,7 @@ public class DataSourceManagerController {
             dbSourceService.deleteDataBaseSource(Long.valueOf(id));
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("删除数据源失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
     }
@@ -207,7 +206,7 @@ public class DataSourceManagerController {
             log.info("Successful update  DbSources ");
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("修改数据源失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
     }

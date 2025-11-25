@@ -114,7 +114,7 @@ public class SettingConfigController {
         modelAndView.addObject("object", new SysDriverConfig());
         if (ObjectUtil.isNotNull(id)) {
             List<Map<String, String>> driverConfigListSelect = loginService.findDriverConfigListSelect(String.valueOf(id));
-            if (driverConfigListSelect.size() > 0) {
+            if (!driverConfigListSelect.isEmpty()) {
                 modelAndView.addObject("object", driverConfigListSelect.get(0));
             }
         }
@@ -360,7 +360,7 @@ public class SettingConfigController {
         try {
             Files.write(tempFile, JSONUtil.toJsonStr(resultList).getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("导出失败,{}",e.getMessage(),e);
         }
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(tempFile));
         HttpHeaders headers = new HttpHeaders();
@@ -392,7 +392,7 @@ public class SettingConfigController {
         try {
             Files.write(tempFile, JSONUtil.toJsonStr(resultList).getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("导出失败,{}",e.getMessage(),e);
         }
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(tempFile));
         HttpHeaders headers = new HttpHeaders();
@@ -435,7 +435,7 @@ public class SettingConfigController {
         try {
             Files.write(tempFile, JSONUtil.toJsonStr(resultList).getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("导出失败,{}",e.getMessage(),e);
         }
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(tempFile));
         HttpHeaders headers = new HttpHeaders();
@@ -496,7 +496,7 @@ public class SettingConfigController {
             }
             return flag ? AjaxResult.success("共导入" + dataSourceJson.size() + "条数据!") : AjaxResult.error(message.toString());
         } catch (Exception e) {
-            e.printStackTrace();
+           log.error("导入失败,{}",e.getMessage(),e);
             return AjaxResult.error("导入失败!" + e.getMessage());
         }
     }
@@ -533,7 +533,7 @@ public class SettingConfigController {
             }
             return AjaxResult.success("共导入" + dataSourceJson.size() + "条数据!");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("导入失败,{}",e.getMessage(),e);
             return AjaxResult.error("导入失败!" + e.getMessage());
         }
     }
@@ -574,7 +574,7 @@ public class SettingConfigController {
             }
             return AjaxResult.success("共导入" + dataSourceJson.size() + "条数据!");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("导入团队信息失败,{}",e.getMessage(),e);
             return AjaxResult.error("导入失败!" + e.getMessage());
         }
     }
