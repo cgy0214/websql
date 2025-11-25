@@ -44,10 +44,10 @@
 | Doris | ✅ | 支持所有功能 |
 | TiDB | ✅ | 支持所有功能 |
 | ClickHouse | ✅ | 支持所有功能 |
+| OceanBase | ✅ | 支持所有功能 |
 | 人大金仓 Kingbase8 | 部分 | 不支持元数据 |
 | 神州通用 Oscar | 部分 | 不支持元数据 |
 | 阿里云 MaxCompute | 部分 | 不支持元数据 |
-| OceanBase | ✅ | 支持所有功能 |
 
 ---
 
