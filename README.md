@@ -1,5 +1,5 @@
 <h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v4.0.3</h1>
-<h4 align="center">网页SQL管理工具，在线执行SQL、Text2Sql、ETL同步、动态数据源、SQL管理等众多功能,体积小开箱即用 ——— WEBSQL</h4>
+<h4 align="center">网页SQL管理工具，SQL执行、Text2Sql、ETL同步、动态数据源、SQL管理等功能 ——— 体积小开箱即用</h4>
 
 <p align="center">
 	<a href="https://gitee.com/boy_0214/websql/stargazers"><img src="https://gitee.com/boy_0214/websql/badge/star.svg?theme=gvp"></a>
