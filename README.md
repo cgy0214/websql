@@ -1,5 +1,5 @@
 <h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v4.0.3</h1>
-<h4 align="center">轻量级网页SQL管理工具，在线执行SQL、ETL同步、动态多数据源、常用SQL管理等众多功能，体积小开箱即用 ——— WEBSQL</h4>
+<h4 align="center">网页SQL管理工具，在线执行SQL、Text2Sql、ETL同步、动态数据源、SQL管理等众多功能,体积小开箱即用 ——— WEBSQL</h4>
 
 <p align="center">
 	<a href="https://gitee.com/boy_0214/websql/stargazers"><img src="https://gitee.com/boy_0214/websql/badge/star.svg?theme=gvp"></a>
@@ -147,8 +147,6 @@ docker logs websql
 ## 🌐 演示环境
 
 [演示环境](https://websql.cgygeo.com)
-
-[EasyDevelop](https://eazydevelop.eazytec-cloud.com/templates/dev-template-1683b6-1763602123?q=4K4b_1VnlTK_2bnN9Y)
 
 
 账号密码：**demo** / **demo123**
