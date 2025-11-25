@@ -26,10 +26,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * @ClassName Text2SqlAdvancedServiceImpl
- * @Description ai智能生成sql实现类
- * @Author rabbit boy_0214@sina.com
- * @Date 2025/11/04 10:52
+ * ClassName  Text2SqlAdvancedServiceImpl
+ * Description ai智能生成sql实现类
+ * Author rabbit boy_0214@sina.com
+ * Date 2025/11/04 10:52
  **/
 @Slf4j
 @Service

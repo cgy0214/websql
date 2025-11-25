@@ -97,7 +97,6 @@ public class Text2SqlAdvancedController {
     /**
      * 查询AI推荐词
      *
-     * @return
      */
     @PostMapping("/queryRecommend")
     @ResponseBody
