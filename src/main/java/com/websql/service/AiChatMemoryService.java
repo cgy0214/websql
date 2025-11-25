@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AiChatMemoryService {
 
-    @Autowired
+    @Autowired(required = false)
     private ChatMemoryProvider chatMemoryProvider;
 
     /**

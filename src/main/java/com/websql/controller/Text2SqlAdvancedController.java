@@ -63,7 +63,6 @@ public class Text2SqlAdvancedController {
     public SseEmitter streamAnswer(@RequestParam String dataBaseName,
                                    @RequestParam(required = false) String tableName,
                                    @RequestParam(required = false) String text) {
-        //todo 是否允许单用户并发请求或上次解答未完成时再次提问
         return text2SqlAdvancedService.streamAnswer(dataBaseName, tableName, text);
     }
 
@@ -77,7 +76,7 @@ public class Text2SqlAdvancedController {
     public AjaxResult clearCurrentUserChatHistory() {
         String userId = StpUtils.getCurrentUserId();
         aiChatMemoryService.clearUserChatHistory(userId);
-        return AjaxResult.success("聊天历史已清除");
+        return AjaxResult.success("历史记录已清除");
     }
 
     /**
@@ -92,7 +91,7 @@ public class Text2SqlAdvancedController {
             return AjaxResult.error("仅允许超级管理员清空聊天历史!");
         }
         aiChatMemoryService.clearAllChatHistory();
-        return AjaxResult.success("所有聊天历史已清除");
+        return AjaxResult.success("所有历史记录已清除");
     }
 
     /**

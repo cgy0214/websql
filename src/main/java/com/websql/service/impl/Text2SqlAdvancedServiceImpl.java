@@ -41,10 +41,10 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
     @Autowired
     private SseEmitterService sseEmitterService;
 
-    @Autowired
+    @Autowired(required = false)
     private ChatMemoryProvider chatMemoryProvider;
 
-    @Autowired
+    @Autowired(required = false)
     private AiChatMemoryService aiChatMemoryService;
 
     private static final String CACHE_NAME = "databaseSchema:";
@@ -180,7 +180,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
             );
         } else {
             log.error("请检查是否配置了OpenAI API Key,wiki: https://gitee.com/boy_0214/websql/wikis/%E5%BC%80%E5%8F%91%E6%89%8B%E5%86%8C");
-            sseEmitterService.sendToUser(userId, "请检查是否配置了AI相关参数，请参考Wiki手册配置！");
+            sseEmitterService.sendToUser(userId, "请检查是否配置AI相关参数，请参考LOG Wiki配置！");
             sseEmitterService.closeConnection(userId);
         }
         return emitter;
