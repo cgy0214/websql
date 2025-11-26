@@ -35,10 +35,16 @@
                 <i class="layui-icon layui-icon-add-1"></i> 保存F9
             </button>
 
+            <button id="codeFormat" class="layui-btn layui-btn-primary layui-btn-sm layui-border-blue"
+                    lay-submit lay-filter="codeFormat">
+                <i class="layui-icon layui-icon-fonts-clear"></i>
+            </button>
+
             <button id="exportExcel" class="layui-btn layui-btn-primary layui-btn-sm layui-border-red"
                     lay-submit lay-filter="exportExcel">
-                <i class="layui-icon layui-icon-export"></i> 异步导出
+                <i class="layui-icon layui-icon-export"></i>
             </button>
+
 
             <button id="showSqlDiv" class="layui-btn layui-btn-primary layui-btn-sm layui-border-purple"
                     lay-submit lay-filter="showSqlDiv">
@@ -333,8 +339,12 @@
                 "tabWidth": 3,
                 "keywordCase": "upper"
             };
-            let newContent = window.sqlFormatter.format(cm.getValue(), config);
-            cm.setValue(newContent);
+            try{
+                let newContent = window.sqlFormatter.format(cm.getValue(), config);
+                cm.setValue(newContent);
+            }catch (e){
+                console.warn("无法格式化SQL文本!" + e.message);
+            }
         }
 
         /**
@@ -619,10 +629,6 @@
                 rowContextMenu(elId, item);
                 pageBar(elId);
             }
-            /*window.scrollTo({
-                top: 180,
-                behavior: "smooth"
-            });*/
             return false;
         }
 
@@ -637,7 +643,7 @@
             }
             let sqlContent = editor.getValue().trim();
             if (sqlContent === "" || sqlContent == null) {
-                message("清输入SQL语句后在导出~", false);
+                message("请输入SQL语句后在导出~", false);
                 return false;
             }
             let pitchTxt = editor.getSelection();
@@ -1045,6 +1051,15 @@
                     }
                 }
             }
+        });
+
+        //格式化文本
+        form.on('submit(codeFormat)', function (data) {
+            const altCKeyHandler = editor.getOption("extraKeys")["Alt-C"];
+            if (altCKeyHandler) {
+                altCKeyHandler(editor);
+            }
+            return false;
         });
 
         util.on('lay-on', {
