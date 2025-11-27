@@ -27,17 +27,19 @@ public class StpUtils {
 
     public final static String SESSION_TEAM_ACTIVE_KEY = "login_user_team_active";
 
-
     public static SysUser getCurrentUser() {
         if (!getCurrentLogin()) {
-            throw new RuntimeException("当前用户暂未登录!");
+            throw new RuntimeException("用户未登录!");
         }
         return (SysUser) StpUtil.getSession().get(SESSION_USER_KEY);
     }
 
-
     public static String getCurrentUserName() {
         return getCurrentUser().getName();
+    }
+
+    public static String getCurrentUserId() {
+        return String.valueOf(getCurrentUser().getUserId());
     }
 
     public static Boolean getCurrentLogin() {
@@ -53,9 +55,12 @@ public class StpUtils {
         StpUtil.logout();
     }
 
-    public static String login(SysUser user) {
+    public static String login(SysUser user,List<TeamSourceModel> teamList) {
         StpUtil.login(user.getUserId());
         StpUtil.getSession().set(SESSION_USER_KEY, user);
+        if (ObjectUtil.isNotNull(teamList) && !teamList.isEmpty()) {
+            StpUtil.getSession().set(StpUtils.SESSION_TEAM_KEY, teamList);
+        }
         return user.getName();
     }
 
@@ -74,7 +79,7 @@ public class StpUtils {
         sysUser.setName("openApi");
         sysUser.setUserId(999L);
         sysUser.setUserName("openApi");
-        login(sysUser);
+        login(sysUser,null);
     }
 
     private static HttpServletRequest getRequest() {

@@ -15,7 +15,6 @@ import com.websql.util.SpringContextHolder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,10 +28,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JobExecuteFactory implements Task {
 
-
     private final Long id;
 
     private final String jobName;
+
+    private final String SUCCESS = "SUCCESS";
+    private final String FAIL = "FAIL";
 
     public JobExecuteFactory(Long id, String jobName) {
         this.id = id;
@@ -44,15 +45,22 @@ public class JobExecuteFactory implements Task {
      */
     @Override
     public void execute() {
+        run(true);
+    }
+
+    public String run(boolean state) {
         Long begin = System.currentTimeMillis();
         log.info("{}-作业任务开始.", jobName);
         TimingService timingService = SpringContextHolder.getBean(TimingService.class);
         TimingVo vo = timingService.queryTimingJobById(id);
         if (ObjectUtil.isNull(vo)) {
-            ScheduleUtils.removeTask(id,"timing",false);
-            return;
+            ScheduleUtils.removeTask(id, "timing", false);
+            log.error("{}-作业任务不存在", jobName);
+            return FAIL;
         }
-        vo.setState("作业中");
+        if (state) {
+            vo.setState("作业中");
+        }
         timingService.updateStatus(vo);
         StringBuffer param = new StringBuffer();
         StringBuffer values = new StringBuffer();
@@ -61,7 +69,8 @@ public class JobExecuteFactory implements Task {
         try {
             String sql = Base64Decoder.decodeStr(vo.getSqlText());
             if (ObjectUtil.isEmpty(sql)) {
-                throw new NullPointerException("作业SQL为空");
+                log.error("{}-作业SQL为空", jobName);
+                return FAIL;
             }
             //SQL预处理
             List<SqlParserVo> parserVoList = SqlParserHandler.getParserVo(vo.getTimingName(), sql);
@@ -70,7 +79,8 @@ public class JobExecuteFactory implements Task {
                 for (SqlParserVo executeSql : parserVoList) {
                     Map<String, Object> resultData = JdbcUtils.findMoreResult(vo.getTimingName(), executeSql.getSqlContent(), new ArrayList<>());
                     if ("2".equals(resultData.get("code"))) {
-                        throw new NullPointerException("作业SQL执行异常.error:" + resultData.get("msg"));
+                        log.error("{}-作业SQL执行异常,{}", jobName, resultData.get("msg"));
+                        return FAIL;
                     }
                     List itemList = (List) resultData.get("data");
                     //表中没有数据时，数据占位忽略。
@@ -78,15 +88,14 @@ public class JobExecuteFactory implements Task {
                         JSONObject object = (JSONObject) itemList.get(0);
                         List<Object> webSqlPlaceholder = object.values().stream().filter(s -> s.equals("WEB_SQL_PLACEHOLDER")).collect(Collectors.toList());
                         if (object.keySet().size() == webSqlPlaceholder.size()) {
-                            return;
+                            log.warn("{}-源数据表中没有任何数据跳过。", jobName);
+                            return SUCCESS;
                         }
                     }
                     if (!itemList.isEmpty()) {
                         JSONObject jo = (JSONObject) itemList.get(0);
-                        Iterator<String> keys = jo.keySet().iterator();
-                        while (keys.hasNext()) {
-                            String key = keys.next();
-                            param.append("," + key);
+                        for (String key : jo.keySet()) {
+                            param.append(",").append(key);
                             values.append(",?");
                         }
                         param = param.deleteCharAt(0);
@@ -104,11 +113,11 @@ public class JobExecuteFactory implements Task {
                     }
                 }
             }
+            return SUCCESS;
         } catch (Exception e) {
-            e.printStackTrace();
             logs.setTaskState("执行失败");
             logs.setTaskError(e.getMessage());
-            log.error("定时作业异常.", e);
+            log.warn("{}-作业异常", jobName, e);
         } finally {
             Long end = System.currentTimeMillis();
             Long exDate = end - begin;
@@ -116,10 +125,13 @@ public class JobExecuteFactory implements Task {
             logs.setTaskId(vo.getId());
             logs.setTaskName(vo.getTitle());
             logs.setCo1(String.valueOf(exDate));
-            vo.setState("休眠");
+            if (state) {
+                vo.setState("休眠");
+            }
             timingService.updateStatus(vo);
             timingService.saveLogs(logs);
         }
+        return FAIL;
     }
 
 

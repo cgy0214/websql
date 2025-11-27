@@ -6,6 +6,7 @@ import com.websql.model.AjaxResult;
 import com.websql.model.JobLogs;
 import com.websql.model.TimingVo;
 import com.websql.service.TimingService;
+import com.websql.task.JobExecuteFactory;
 import com.websql.task.ScheduleUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * @program: websql
@@ -72,7 +74,7 @@ public class TimingController {
             createJob(model.getExecuteTime(), model.getId(), model.getTitle());
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("新增作业失败,{}",e.getMessage(),e);
             if (ObjectUtil.isNotNull(id)) {
                 timingService.delTiming(id);
             }
@@ -126,7 +128,7 @@ public class TimingController {
             }
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("修改作业失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
     }
@@ -160,8 +162,15 @@ public class TimingController {
             timingService.jobLogDelete();
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("删除作业失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
+    }
+
+    @RequestMapping("/executeOne")
+    @ResponseBody
+    public AjaxResult executeOne(@RequestBody TimingVo model) {
+        JobExecuteFactory jobExecuteFactory = new JobExecuteFactory(model.getId(), model.getTitle());
+        return Objects.equals(jobExecuteFactory.run(false), "SUCCESS") ? AjaxResult.success() : AjaxResult.error("请查看日志定位原因!");
     }
 }

@@ -96,6 +96,7 @@ public class SqlManagerController {
         try {
             dbSourceService.saveSqlText(model);
         } catch (Exception e) {
+            log.error("保存SQL信息失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
         return AjaxResult.success();
@@ -115,7 +116,7 @@ public class SqlManagerController {
             dbSourceService.deleteSqlText(id);
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("删除失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
     }
@@ -127,7 +128,7 @@ public class SqlManagerController {
             dbSourceService.sqlTextDeleteAll();
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("删除全部失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
     }

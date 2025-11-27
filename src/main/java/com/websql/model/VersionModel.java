@@ -2,6 +2,8 @@ package com.websql.model;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName : VersionModel
  * @Description : 版本检查实体
@@ -20,5 +22,7 @@ public class VersionModel {
     private String link;
 
     private Boolean push = false;
+
+    private List<String> aiRecommend;
 
 }

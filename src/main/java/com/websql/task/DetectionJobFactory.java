@@ -106,8 +106,7 @@ public class DetectionJobFactory implements Task {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error("{}-监测任务执行失败.msg:{}", jobName, e.getMessage());
+            log.error("{}-监测任务执行失败.msg:{}", jobName, e.getMessage(),e);
             detectionLogsModel.setErrorMessage(e.getMessage());
         } finally {
             Long end = System.currentTimeMillis();

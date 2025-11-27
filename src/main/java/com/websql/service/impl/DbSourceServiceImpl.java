@@ -5,7 +5,6 @@ import cn.hutool.core.codec.Base64Encoder;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.text.StrFormatter;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.http.HttpStatus;
@@ -23,6 +22,7 @@ import com.websql.model.*;
 import com.websql.service.DbSourceService;
 import com.websql.service.TeamSourceService;
 import com.websql.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -48,9 +48,10 @@ import java.util.stream.Collectors;
  * @Date 2019/6/14 0014 17:34
  **/
 @Service
+@Slf4j
 public class DbSourceServiceImpl implements DbSourceService {
 
-    private static final Logger log = LoggerFactory.getLogger(DbSourceServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DbSourceServiceImpl.class);
 
     @Resource
     private DbSourceRepository dbSourceRepository;
@@ -231,6 +232,12 @@ public class DbSourceServiceImpl implements DbSourceService {
             return AjaxResult.success(resultVos);
         } catch (Exception e) {
             log.setLogResult(e.getMessage());
+            LOGGER.error("\n==================== SQL执行失败 ====================\n" +
+                            "【原始语句】 {}\n" +
+                            "【错误信息】 {}\n" +
+                            "【异常类型】 {}\n" +
+                            "=====================================================",
+                    sql, e.getMessage(), e.getClass().getName());
             return AjaxResult.error(e.getMessage());
         } finally {
             SysSetup sysSetup = CacheUtils.get("sys_setup", SysSetup.class);
@@ -279,7 +286,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             dataSourceList = new ArrayList<>(0);
             List<DataSourceModel> list = dbSourceRepository.findAll();
             for (DataSourceModel dataSourceModel : list) {
-                if (ObjectUtil.notEqual("有效",dataSourceModel.getDbState())) {
+                if (ObjectUtil.notEqual("有效", dataSourceModel.getDbState())) {
                     break;
                 }
                 Map<String, String> item = new HashMap<>(3);
@@ -410,7 +417,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             CacheUtils.put(key, dataSourceMeta);
             return AjaxResult.success(dataSourceMeta);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("获取元数据信息失败:{}", e.getMessage(), e);
             return AjaxResult.success(dataSourceMeta);
         }
     }
@@ -418,34 +425,38 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public AjaxResult showTableSql(String databaseKey, String table) {
-
-        String sql = "show create table " + table;
-        Map<String, Object> dataResult = JdbcUtils.findOneResult(databaseKey, sql, null);
         Map<String, String> resultMap = new HashMap<>(2);
-
+        String tips = "暂未支持此类型数据库，敬请期待!";
         //create 模板
-        if (ObjectUtil.notEqual("1", dataResult.get("code"))) {
-            return AjaxResult.error(dataResult.get("msg").toString());
-        }
-        if (ObjectUtil.isNotNull(dataResult.get("Create Table"))) {
-            resultMap.put("createTableSql", dataResult.get("Create Table").toString());
-        }
-        if (ObjectUtil.isNotNull(dataResult.get("statement"))) {
-            resultMap.put("createTableSql", dataResult.get("statement").toString());
+        String sql = TableFieldSqlUtils.getShowCreateTableSql(databaseKey, table);
+        if (ObjectUtil.isNotNull(sql)) {
+            Map<String, Object> dataResult = JdbcUtils.findOneResult(databaseKey, sql, null);
+            if (ObjectUtil.notEqual("1", dataResult.get("code"))) {
+                return AjaxResult.error(dataResult.get("msg").toString());
+            }
+            if (ObjectUtil.isNotNull(dataResult.getOrDefault("create_table_sql",dataResult.get("CREATE_TABLE_SQL")))) {
+                resultMap.put("createTableSql", dataResult.getOrDefault("create_table_sql",dataResult.get("CREATE_TABLE_SQL")).toString());
+            }
+            // mysql
+            if (ObjectUtil.isNotNull(dataResult.get("Create Table"))) {
+                resultMap.put("createTableSql", dataResult.get("Create Table").toString());
+            }
+        } else {
+            resultMap.put("createTableSql", tips);
         }
 
         //insert 模板
-        String inertSql = TableFieldSqlUtils.getInertSql(databaseKey);
-        if (ObjectUtil.isNotNull(inertSql)) {
-            String dataBaseName = DataSourceFactory.getDataBaseName(databaseKey);
-            String insertSql = StrFormatter.format(inertSql, dataBaseName, table);
+        String insertSql = TableFieldSqlUtils.getInsertSql(databaseKey, table);
+        if (ObjectUtil.isNotNull(insertSql)) {
             Map<String, Object> dataResult2 = JdbcUtils.findOneResult(databaseKey, insertSql, null);
-            if (ObjectUtil.equal("1", dataResult2.get("code"))) {
-                resultMap.put("insertSql", dataResult2.get("insertText").toString());
+            if (ObjectUtil.equal("1", dataResult2.get("code")) && ObjectUtil.isNotNull(dataResult2.get("create_table_sql"))) {
+                resultMap.put("insertSql", dataResult2.get("create_table_sql").toString());
             }
+        } else {
+            resultMap.put("createTableSql", tips);
         }
-        resultMap.put("updateSql", "todo");
-        resultMap.put("deleteSql", "todo");
+        resultMap.put("updateSql", tips);
+        resultMap.put("deleteSql", tips);
         return AjaxResult.success(resultMap);
     }
 
@@ -466,7 +477,8 @@ public class DbSourceServiceImpl implements DbSourceService {
         for (DataSourceModel dataSourceModel : all) {
             try {
                 deleteDataBaseSource(dataSourceModel.getId());
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.error("删除数据源失败:{},{}", dataSourceModel.getId(), e.getMessage(), e);
             }
         }
     }
@@ -560,7 +572,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             sysExportModel.setState("完成");
             return fileName;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("导出数据失败:{}", e.getMessage(), e);
             sysExportModel.setMessage(e.getMessage());
             sysExportModel.setState("失败");
             sysExportModel.setFiles(null);

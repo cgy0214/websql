@@ -1,6 +1,5 @@
 package com.websql.service.impl;
 
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.thread.ThreadUtil;
@@ -15,7 +14,8 @@ import com.websql.service.TeamSourceService;
 import com.websql.util.CacheUtils;
 import com.websql.util.PasswordUtil;
 import com.websql.util.StpUtils;
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,9 +38,9 @@ import java.util.stream.Collectors;
  * @Date 2019/6/26 0026 16:45
  **/
 @Service
-@Log4j2
 public class LoginServiceImpl implements LoginService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(LoginServiceImpl.class);
 
     @Autowired
     private SysUserRepository sysUserRepository;
@@ -109,22 +109,20 @@ public class LoginServiceImpl implements LoginService {
                 log.setLoginFlag("账号或密码错误!");
                 return AjaxResult.error("账号或密码错误!");
             }
-            log.setUserId(user.getUserId());
-            String name = StpUtils.login(user);
+
             List<TeamSourceModel> teamList;
-            if (StpUtils.currentSuperAdmin()) {
+            if (user.getUserId() == 1L) {
                 teamList = teamSourceService.queryValidTeamList();
             } else {
                 List<TeamResourceModel> resourceModels = teamSourceService.queryTeamResourceById(Collections.singletonList(user.getUserId()), "USER");
                 teamList = teamSourceService.queryTeamByIds(resourceModels.stream().map(TeamResourceModel::getTeamId).filter(ObjectUtil::isNotEmpty).collect(Collectors.toList()));
             }
-            if (ObjectUtil.isNotNull(teamList) && !teamList.isEmpty()) {
-                StpUtil.getSession().set(StpUtils.SESSION_TEAM_KEY, teamList);
-            }
+            String name = StpUtils.login(user, teamList);
+            log.setUserId(user.getUserId());
             return AjaxResult.success("欢迎您:" + name);
         } catch (Exception e) {
-            e.printStackTrace();
             log.setLoginFlag(e.getMessage());
+            LOGGER.error("登录失败,{}", e.getMessage());
             return AjaxResult.error(e.getMessage());
         } finally {
             if (!log.getLoginFlag().contains("登录成功")) {
@@ -498,6 +496,16 @@ public class LoginServiceImpl implements LoginService {
         return sysDriverConfigRepository.findAll();
     }
 
+
+    @Override
+    public SysUser findUserById(Long id) {
+        Optional<SysUser> sysUser = sysUserRepository.findById(id);
+        if (!sysUser.isPresent()) {
+            throw new RuntimeException("没有找到此用户信息，请刷新页面再试!");
+        }
+        return sysUser.get();
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void initSystem() {
@@ -614,8 +622,7 @@ public class LoginServiceImpl implements LoginService {
             DataSourceFactory.saveDataSource(model);
             dbSourceService.addDbSource(model, teamSourceModel.getId());
         } catch (Exception e) {
-            log.error("初始化系统报错" + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("初始化系统失败,{}", e.getMessage(),e);
         }
     }
 

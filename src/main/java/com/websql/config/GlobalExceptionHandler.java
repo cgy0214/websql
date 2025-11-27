@@ -69,7 +69,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public Object handlerException(HttpServletRequest request, Exception e) {
-        logger.error(e.getMessage());
+        String requestURI = request.getRequestURI();
+        logger.error("uri:{} ;message:{}", requestURI, e.getMessage());
         return hintErrorMsg(request, e, "未知异常!");
     }
 
@@ -86,7 +87,7 @@ public class GlobalExceptionHandler {
     }
 
     public static boolean isAjax(HttpServletRequest request) {
-        return (request.getHeader("X-Requested-With") != null && "XMLHttpRequest" .equals(request.getHeader("X-Requested-With").toString()));
+        return (request.getHeader("X-Requested-With") != null && "XMLHttpRequest".equals(request.getHeader("X-Requested-With").toString()));
     }
 
 }

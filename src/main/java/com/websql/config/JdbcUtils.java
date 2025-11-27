@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.websql.model.DataSourceIndexMeta;
 import com.websql.model.DataSourceMeta;
 import com.websql.model.DataSourceTableMeta;
+import com.websql.util.ColumnTypeCastUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
@@ -40,7 +41,7 @@ public class JdbcUtils {
             result = pstmt.executeUpdate();
             map.put("data", result);
         } catch (SQLException e) {
-            log.error("执行异常," + e.getMessage());
+            logErrorWithDetails(sql, e);
             map.put("code", "2");
             map.put("msg", e.getMessage());
         } finally {
@@ -102,8 +103,7 @@ public class JdbcUtils {
             }
             map.put("data", list);
         } catch (Exception e) {
-            log.error("执行异常," + e.getMessage());
-            e.printStackTrace();
+            logErrorWithDetails(sql, e);
             map.put("code", "2");
             map.put("msg", e.getMessage());
             map.put("data", "执行失败,无返回结果.");
@@ -152,7 +152,7 @@ public class JdbcUtils {
             }
             return map;
         } catch (Exception e) {
-            log.error("执行异常," + e.getMessage());
+            logErrorWithDetails(sql, e);
             map.put("code", "2");
             map.put("msg", e.getMessage());
             map.put("data", "执行失败,无返回结果.");
@@ -198,7 +198,7 @@ public class JdbcUtils {
                 throw new NullPointerException("属性数据为空，无效插入.");
             }
         } catch (Exception e) {
-            log.error("执行异常," + e.getMessage());
+            logErrorWithDetails(sql, e);
             map.put("code", "2");
             map.put("msg", e.getMessage());
         } finally {
@@ -229,7 +229,7 @@ public class JdbcUtils {
                 count = resultSet.getLong(1);
             }
         } catch (SQLException e) {
-            log.error(e.getMessage());
+            logErrorWithDetails(sql, e);
         } finally {
             releaseConn(resultSet, pstmt, connection);
         }
@@ -242,21 +242,21 @@ public class JdbcUtils {
             try {
                 resultSet.close();
             } catch (SQLException e) {
-                log.error(e.getMessage());
+                logErrorWithDetails("ResultSet close error", e);
             }
         }
         if (pstmt != null) {
             try {
                 pstmt.close();
             } catch (SQLException e) {
-                log.error(e.getMessage());
+                logErrorWithDetails("PreparedStatement close error", e);
             }
         }
         if (connection != null) {
             try {
                 connection.close();
             } catch (SQLException e) {
-                log.error(e.getMessage());
+                logErrorWithDetails("Connection close error", e);
             }
         }
     }
@@ -295,7 +295,7 @@ public class JdbcUtils {
             dataSourceMeta.setReadOnly(dbMetaData.isReadOnly());
             dataSourceMeta.setSupportsTransactions(dbMetaData.supportsTransactions());
         } catch (Exception e) {
-            e.printStackTrace();
+            logErrorWithDetails("获取数据源元数据失败", e);
         } finally {
             releaseConn(null, null, connection);
         }
@@ -325,7 +325,7 @@ public class JdbcUtils {
                 dataSourceMeta.setTableSchema(tables.getString("TABLE_SCHEM"));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logErrorWithDetails("获取表元数据失败", e);
         } finally {
             releaseConn(null, null, connection);
         }
@@ -360,7 +360,7 @@ public class JdbcUtils {
                     Collectors.collectingAndThen(Collectors.toCollection(
                             () -> new TreeSet<>(Comparator.comparing(o -> o.getColumnName() + o.getTableName()))), ArrayList::new));
         } catch (Exception e) {
-            e.printStackTrace();
+            logErrorWithDetails("获取列元数据失败", e);
         } finally {
             releaseConn(null, null, connection);
         }
@@ -393,7 +393,7 @@ public class JdbcUtils {
                     Collectors.collectingAndThen(Collectors.toCollection(
                             () -> new TreeSet<>(Comparator.comparing(o -> o.getIndexName() + o.getColumnName()))), ArrayList::new));
         } catch (Exception e) {
-            e.printStackTrace();
+            logErrorWithDetails("获取索引元数据失败", e);
         } finally {
             releaseConn(null, null, connection);
         }
@@ -427,12 +427,25 @@ public class JdbcUtils {
                     Collectors.collectingAndThen(Collectors.toCollection(
                             () -> new TreeSet<>(Comparator.comparing(o -> o.getKeySeq() + o.getPkName() + o.getColumnName()))), ArrayList::new));
         } catch (Exception e) {
-            e.printStackTrace();
+            logErrorWithDetails("获取主键元数据失败", e);
         } finally {
             releaseConn(null, null, connection);
         }
         return keysMetas;
     }
-
+    
+    /**
+     * SQL执行错误信息
+     * 
+     * @param sql 执行的SQL语句
+     * @param e 异常对象
+     */
+    private static void logErrorWithDetails(String sql, Exception e) {
+        log.error("\n==================== SQL执行失败 ====================\n" +
+                 "【原始语句】 {}\n\n" +
+                 "【错误信息】 {}\n\n" +
+                 "【异常类型】 {}\n" +
+                 "=====================================================", 
+                 sql, e.getMessage(), e.getClass().getName());
+    }
 }
-

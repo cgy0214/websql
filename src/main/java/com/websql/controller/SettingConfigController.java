@@ -8,13 +8,13 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
-import com.websql.config.DbSourceFactory;
 import com.websql.model.*;
 import com.websql.service.DbSourceService;
 import com.websql.service.LoginService;
 import com.websql.service.MessageTemplateService;
 import com.websql.service.TeamSourceService;
 import com.websql.task.ExamineVersionFactory;
+import com.websql.task.SystemInitPost;
 import com.websql.util.CacheUtils;
 import com.websql.util.EnvBeanUtil;
 import com.websql.util.PasswordUtil;
@@ -50,8 +50,7 @@ public class SettingConfigController {
 
 
     @Autowired
-    private DbSourceFactory dbSourceFactory;
-
+    private SystemInitPost systemInitPost;
 
     @Autowired
     private LoginService loginService;
@@ -115,7 +114,7 @@ public class SettingConfigController {
         modelAndView.addObject("object", new SysDriverConfig());
         if (ObjectUtil.isNotNull(id)) {
             List<Map<String, String>> driverConfigListSelect = loginService.findDriverConfigListSelect(String.valueOf(id));
-            if (driverConfigListSelect.size() > 0) {
+            if (!driverConfigListSelect.isEmpty()) {
                 modelAndView.addObject("object", driverConfigListSelect.get(0));
             }
         }
@@ -165,7 +164,7 @@ public class SettingConfigController {
     @RequestMapping("/sysSetUpPage")
     public ModelAndView sysSetUpPage() {
         ModelAndView mav = new ModelAndView("sysSetUpPage");
-        SysSetup sysSetup = dbSourceFactory.getSysSetUp();
+        SysSetup sysSetup = systemInitPost.getSystemSetup();
         mav.addObject("obj", sysSetup);
         mav.addObject("version", examineVersionFactory.getVersionModel());
         return mav;
@@ -317,7 +316,7 @@ public class SettingConfigController {
     @RequestMapping("/reloadDataSourceAll")
     @ResponseBody
     public AjaxResult reloadDataSourceAll() {
-        int size = dbSourceFactory.initDataSource();
+        int size = systemInitPost.initDataSource();
         return AjaxResult.success(size);
     }
 
@@ -361,7 +360,7 @@ public class SettingConfigController {
         try {
             Files.write(tempFile, JSONUtil.toJsonStr(resultList).getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("导出失败,{}",e.getMessage(),e);
         }
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(tempFile));
         HttpHeaders headers = new HttpHeaders();
@@ -393,7 +392,7 @@ public class SettingConfigController {
         try {
             Files.write(tempFile, JSONUtil.toJsonStr(resultList).getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("导出失败,{}",e.getMessage(),e);
         }
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(tempFile));
         HttpHeaders headers = new HttpHeaders();
@@ -436,7 +435,7 @@ public class SettingConfigController {
         try {
             Files.write(tempFile, JSONUtil.toJsonStr(resultList).getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("导出失败,{}",e.getMessage(),e);
         }
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(tempFile));
         HttpHeaders headers = new HttpHeaders();
@@ -497,7 +496,7 @@ public class SettingConfigController {
             }
             return flag ? AjaxResult.success("共导入" + dataSourceJson.size() + "条数据!") : AjaxResult.error(message.toString());
         } catch (Exception e) {
-            e.printStackTrace();
+           log.error("导入失败,{}",e.getMessage(),e);
             return AjaxResult.error("导入失败!" + e.getMessage());
         }
     }
@@ -534,7 +533,7 @@ public class SettingConfigController {
             }
             return AjaxResult.success("共导入" + dataSourceJson.size() + "条数据!");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("导入失败,{}",e.getMessage(),e);
             return AjaxResult.error("导入失败!" + e.getMessage());
         }
     }
@@ -575,7 +574,7 @@ public class SettingConfigController {
             }
             return AjaxResult.success("共导入" + dataSourceJson.size() + "条数据!");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("导入团队信息失败,{}",e.getMessage(),e);
             return AjaxResult.error("导入失败!" + e.getMessage());
         }
     }

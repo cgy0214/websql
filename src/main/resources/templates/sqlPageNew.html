@@ -1,18 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
 <head>
-    <title>WEBSQL-SQL执行窗口</title>
+    <title>WebSql-SQL执行</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/codemirror.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/show-hint.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/highlight.min.css}" media="all">
     <link rel="stylesheet" th:href="@{/static/css/sqlPage.css}" media="all">
+    <style>
+
+    </style>
 </head>
 <body>
 <div id="menu-id">
     <form class="layui-form card">
         <div class="layui-form-item button-row">
+
             <div class="layui-input-inline layui-select-sm">
                 <select name="dbtype" id="dbtype" lay-filter="dbtype" lay-search="" lay-affix="clear"></select>
             </div>
@@ -20,14 +24,10 @@
             <div class="layui-input-inline layui-select-sm">
                 <select name="sqlTexts" id="sqlTexts" lay-filter="sqlTexts" lay-search="" lay-affix="clear"></select>
             </div>
+
             <button class="layui-btn layui-btn-primary layui-btn-sm layui-border-green"
                     id="execute" lay-submit lay-filter="execute">
                 <i class="layui-icon layui-icon-play"></i> 执行F8
-            </button>
-
-            <button id="newSqlOpen" onclick="window.open(ctx+'sqlManager/sqlPage');return false"
-                    class="layui-btn layui-btn-primary layui-btn-sm layui-border-blue">
-                <i class="layui-icon layui-icon-layer"></i> 大窗口F7
             </button>
 
             <button id="saveSqlText" class="layui-btn layui-btn-primary layui-btn-sm layui-border-orange"
@@ -35,27 +35,35 @@
                 <i class="layui-icon layui-icon-add-1"></i> 保存F9
             </button>
 
+            <button id="codeFormat" class="layui-btn layui-btn-primary layui-btn-sm layui-border-blue"
+                    lay-submit lay-filter="codeFormat">
+                <i class="layui-icon layui-icon-fonts-clear"></i>
+            </button>
+
             <button id="exportExcel" class="layui-btn layui-btn-primary layui-btn-sm layui-border-red"
                     lay-submit lay-filter="exportExcel">
-                <i class="layui-icon layui-icon-export"></i> 全部导出
+                <i class="layui-icon layui-icon-export"></i>
             </button>
+
 
             <button id="showSqlDiv" class="layui-btn layui-btn-primary layui-btn-sm layui-border-purple"
                     lay-submit lay-filter="showSqlDiv">
-                <i class="layui-icon layui-icon-up"></i> 收起
+                <i class="layui-icon layui-icon-up"></i>
             </button>
-            <button class="layui-btn layui-btn-primary layui-btn-sm layui-border" id="dropdownTableSize">
-                表格尺寸
-                <i class="layui-icon layui-icon-down layui-font-12"></i>
+
+            <button class="layui-btn layui-btn-primary layui-btn-sm layui-border-blue"
+                    id="setting-dropdown-demo-content">
+                <i class="layui-icon layui-icon-set"></i>
             </button>
-            <div class="layui-form-mid slider-wrapper">
-                <div id="id-slider" style="width: 100px;"></div>
+
+            <div lay-on="ai-offset-t"
+                 style="cursor: pointer;display: inline-block;vertical-align: middle;height: 24px; width: 78px; border-radius: 12px; position: relative; background: url('data:image/png;base64,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') no-repeat center; background-size: cover;margin-left: 10px;"
+                 title="AI智能助手">
+                <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 12px; text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">AI</span>
             </div>
-            <div class="layui-form-mid slider-wrapper">
-                <div id="id-editorSlider" style="width: 100px;"></div>
-            </div>
+
             <div id="rollBox"
-                 style="height:40px;line-height:40px;text-align:center;overflow:hidden;">
+                 style="margin-left:5px;height:40px;line-height:40px;text-align:center;overflow:hidden;">
             </div>
         </div>
     </form>
@@ -82,10 +90,63 @@
         </div>
     </div>
 </div>
-
 <div id="view-open-table-wrapper" style="display: none;padding: 10px;" class="hidden-scrollbar">
 </div>
+<script type="text/html" id="settingTable">
+    <div class="layui-clear-space">
+        <form class="layui-form layui-form-pane" action="">
 
+            <div class="layui-form-item">
+                <label class="layui-form-label">表格大小</label>
+                <div class="layui-input-block">
+                    <div class="layui-btn-group" style="margin-left: 5px;">
+                        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm"
+                                onclick="viewStore.put('tableSize', 'lg');return false;">
+                            <i class="layui-icon layui-icon-addition"></i>
+                        </button>
+                        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm"
+                                onclick="viewStore.put('tableSize', 'md');return false;">
+                            <i class="layui-icon layui-icon-ok"></i>
+                        </button>
+                        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm"
+                                onclick="viewStore.put('tableSize', 'sm');return false;">
+                            <i class="layui-icon layui-icon-subtraction"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">字体大小</label>
+                <div class="layui-input-block">
+                    <div class="layui-form-mid slider-wrapper">
+                        <div id="id-slider" style="width: 130px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">编辑器高度</label>
+                <div class="layui-input-block">
+                    <div class="layui-form-mid slider-wrapper">
+                        <div id="id-editorSlider" style="width: 130px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">多窗口</label>
+                <div class="layui-input-block">
+                    <button id="newSqlOpen" onclick="window.open(ctx+'sqlManager/sqlPage');return false"
+                            class="layui-btn layui-btn-primary layui-btn-sm" style="margin-left: 5px;">
+                        <i class="layui-icon layui-icon-layer"></i> F7
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</script>
 <script th:src="@{/static/layui.js}"></script>
 <script th:replace="~{base::ctx}"></script>
 <script th:src="@{/static/lay-config.js}"></script>
@@ -132,6 +193,7 @@
         let editorFontSizeKey = "editorFontSize";
         let tableSizeKey = "tableSize";
         let editorHeightKey = "editorHeight";
+        let aiViewId = null;
 
 
         /**
@@ -184,34 +246,6 @@
         editor.setSize(null, viewStore.get(editorHeightKey, 230));
         editor.refresh();
 
-        slider.render({
-            elem: '#id-slider',
-            value: viewStore.get(editorFontSizeKey, 14),
-            min: 10,
-            max: 30,
-            change: function (size) {
-                editor.getWrapperElement().style.fontSize = size + 'px';
-                editor.refresh();
-            },
-            done: function (value) {
-                viewStore.put(editorFontSizeKey, value);
-            }
-        });
-        slider.render({
-            elem: '#id-editorSlider',
-            value: viewStore.get(editorHeightKey, 230),
-            min: 100,
-            max: 800,
-            theme: '#22aaff',
-            change: function (size) {
-                editor.setSize(null, size);
-            },
-            done: function (value) {
-                if(value){
-                    viewStore.put(editorHeightKey, value);
-                }
-            }
-        });
         /**
          * 展示数据源
          */
@@ -232,9 +266,11 @@
             onselect: function (data) {
                 activeDataSource = data;
                 editorHintSettings();
+                if(aiViewId != null){
+                    layer.close(aiViewId);
+                }
             }
         });
-
 
         /**
          * 跑马灯提示
@@ -250,6 +286,7 @@
                 box.html('<span class="roll-item layui-anim layui-anim-upbit ">' + textArr[index] + '</span>');
             }, 200);
         }, 3000);
+
 
         /**
          * 选中内容中获取表名
@@ -302,8 +339,12 @@
                 "tabWidth": 3,
                 "keywordCase": "upper"
             };
-            let newContent = window.sqlFormatter.format(cm.getValue(), config);
-            cm.setValue(newContent);
+            try{
+                let newContent = window.sqlFormatter.format(cm.getValue(), config);
+                cm.setValue(newContent);
+            }catch (e){
+                console.warn("无法格式化SQL文本!" + e.message);
+            }
         }
 
         /**
@@ -439,11 +480,11 @@
             if (display === 'none') {
                 $('.sqlText').css('display', 'block');
                 $("#msgDiv").css('display', 'block');
-                $("#showSqlDiv").html('<i class="layui-icon layui-icon-up">&nbsp;</i>收起');
+                $("#showSqlDiv").html('<i class="layui-icon layui-icon-up">&nbsp;</i>');
             } else {
                 $('.sqlText').css('display', 'none');
                 $("#msgDiv").css('display', 'none');
-                $("#showSqlDiv").html('<i class="layui-icon layui-icon-down">&nbsp;</i>展开');
+                $("#showSqlDiv").html('<i class="layui-icon layui-icon-down">&nbsp;</i>');
             }
             return false;
         });
@@ -588,10 +629,6 @@
                 rowContextMenu(elId, item);
                 pageBar(elId);
             }
-            /*window.scrollTo({
-                top: 180,
-                behavior: "smooth"
-            });*/
             return false;
         }
 
@@ -606,7 +643,7 @@
             }
             let sqlContent = editor.getValue().trim();
             if (sqlContent === "" || sqlContent == null) {
-                message("清输入SQL语句后在导出~", false);
+                message("请输入SQL语句后在导出~", false);
                 return false;
             }
             let pitchTxt = editor.getSelection();
@@ -699,26 +736,110 @@
             table.on('rowContextmenu(' + id + ')', function (obj) {
                 let data = obj.data;
                 let index = obj.index;
-                dropdown.render({
+                let tableName = '';
+                try {
+                    let tableList = JSON.parse(res.tableNameList);
+                    tableName = tableList[0];
+                } catch (e) {
+                    tableName = res.tableNameList;
+                }
+                let columns = Object.keys(data);
+                let dropdownInstance = dropdown.render({
                     trigger: 'contextmenu',
                     show: true,
                     data: [
-                        {title: '复制JSON数据', id: 'json'}
-                        //{title: 'INSERT语句', id: 'insert'}
+                        {title: 'copy insert', id: 'insert'},
+                        {title: 'copy update', id: 'update'},
+                        {title: 'copy select', id: 'select'},
+                        {title: 'copy json', id: 'json'},
+                        {title: 'copy 字段名', id: 'head'},
+                        {title: 'copy 字段值', id: 'value'}
                     ],
                     click: function (menuData, othis) {
                         if (menuData.id === "json") {
-                            layer.alert(util.escape(JSON.stringify({data})));
-                            return false;
+                            copyToClipboard(JSON.stringify(data, null, 2));
+                            layer.msg('JSON数据已复制到剪贴板');
+                            return true;
                         }
-                        // 待处理拼接，暂时无法应对多条sql执行
+                        if (menuData.id === "head") {
+                            let columns = Object.keys(data);
+                            copyToClipboard(columns.join(','));
+                            layer.msg('字段名已复制到剪贴板');
+                            return true;
+                        }
+                        if (menuData.id === "value") {
+                            let columns = Object.keys(data);
+                            let values = columns.map(col => {
+                                let val = data[col];
+                                if (val === null) return '';
+                                return String(val);
+                            });
+                            copyToClipboard(values.join(','));
+                            layer.msg('字段值已复制到剪贴板');
+                            return true;
+                        }
                         if (menuData.id === "insert") {
-                            layer.alert("insert into " + res.tableNameList + " values.....");
-                            return false;
+                            let values = columns.map(col => {
+                                let val = data[col];
+                                if (val === null) return 'NULL';
+                                if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+                                if (typeof val === 'number') return val;
+                                if (val instanceof Date) return `'${val.toISOString().slice(0, 19).replace('T', ' ')}'`;
+                                return `'${val}'`;
+                            });
+                            let insertSql = `INSERT INTO ${tableName} (${columns.join(', ')})
+                                             VALUES (${values.join(', ')});`;
+                            copyToClipboard(insertSql);
+                            layer.msg('INSERT语句已复制到剪贴板');
+                            return true;
+                        }
+                        if (menuData.id === "update") {
+                            let setParts = columns.map(col => {
+                                let val = data[col];
+                                if (val === null) return `${col} = NULL`;
+                                if (typeof val === 'string') return `${col} = '${val.replace(/'/g, "''")}'`;
+                                if (typeof val === 'number') return `${col} = ${val}`;
+                                if (val instanceof Date) return `${col} = '${val.toISOString().slice(0, 19).replace('T', ' ')}'`;
+                                return `${col} = '${val}'`;
+                            });
+                            let firstCol = columns[0];
+                            let firstVal = data[firstCol];
+                            let whereClause = typeof firstVal === 'string'
+                                ? `${firstCol} = '${firstVal.replace(/'/g, "''")}'`
+                                : `${firstCol} = ${firstVal}`;
+                            let updateSql = `UPDATE ${tableName}
+                                             SET ${setParts.join(', ')}
+                                             WHERE ${whereClause};`;
+                            copyToClipboard(updateSql);
+                            layer.msg('UPDATE语句已复制到剪贴板');
+                            return true;
+                        }
+                        if (menuData.id === "select") {
+                            let firstCol = columns[0];
+                            let firstVal = data[firstCol];
+                            let whereClause = typeof firstVal === 'string'
+                                ? `${firstCol} = '${firstVal.replace(/'/g, "''")}'`
+                                : `${firstCol} = ${firstVal}`;
+                            let selectSql = `SELECT ${columns.join(', ')}
+                                             FROM ${tableName}
+                                             WHERE ${whereClause};`;
+                            copyToClipboard(selectSql);
+                            layer.msg('SELECT语句已复制到剪贴板');
+                            return true;
                         }
                     }
                 });
             });
+        }
+
+        // 辅助函数：复制文本到剪贴板
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
         }
 
         function message(text, flag) {
@@ -762,9 +883,9 @@
         document.addEventListener('scroll', function () {
             var navContainer = document.getElementById("menu-id");
             if (window.pageYOffset > 0) {
-                navContainer.classList.add('nav-container');
+                navContainer.classList.add('nav-container', 'show');
             } else {
-                navContainer.classList.remove('nav-container');
+                navContainer.classList.remove('nav-container', 'show');
             }
         });
 
@@ -792,26 +913,53 @@
             pageVisibility = document.visibilityState
         })
 
+        // 初始化设置组件
+        const settingView = function () {
+            slider.render({
+                elem: '#id-slider',
+                value: viewStore.get(editorFontSizeKey, 14),
+                min: 10,
+                max: 30,
+                change: function (size) {
+                    editor.getWrapperElement().style.fontSize = size + 'px';
+                    editor.refresh();
+                },
+                done: function (value) {
+                    viewStore.put(editorFontSizeKey, value);
+                }
+            });
+            slider.render({
+                elem: '#id-editorSlider',
+                value: viewStore.get(editorHeightKey, 230),
+                min: 100,
+                max: 800,
+                theme: '#22aaff',
+                change: function (size) {
+                    editor.setSize(null, size);
+                },
+                done: function (value) {
+                    if (value) {
+                        viewStore.put(editorHeightKey, value);
+                    }
+                }
+            });
+        };
+        settingView();
+
         /**
-         * 表格尺寸
+         *  设置菜单
          */
         dropdown.render({
-            elem: '#dropdownTableSize',
-            data: [{
-                id: 'lg',
-                title: '最大'
-            }, {
-                id: 'md',
-                title: '中等'
-            }, {
-                id: 'sm',
-                title: '最小'
-            }],
-            click: function (obj) {
-                viewStore.put(tableSizeKey, obj.id);
-                layer.msg('设置成功，查询试下~', {icon: 1});
+            elem: '#setting-dropdown-demo-content',
+            content: [$("#settingTable").html()].join(''),
+            className: 'setting-dropdown-tabs',
+            style: 'width: 300px; height: 180px; box-shadow: 1px 1px 30px rgb(0 0 0 / 12%);border-radius:10px;padding:10px;',
+            //shade: 0.3,
+            ready: function () {
+                settingView();
             }
         });
+
 
         // 右键菜单
         dropdown.render({
@@ -828,6 +976,10 @@
                 {
                     title: '格式化',
                     id: 'format'
+                },
+                {
+                    title: '清空',
+                    id: 'clear'
                 },
                 {
                     title: '保存',
@@ -870,6 +1022,9 @@
                 if (obj.id === 'reload') {
                     location.reload();
                 }
+                if(obj.id ==='clear'){
+                    editor.setValue('');
+                }
                 //格式化
                 if (obj.id === 'format') {
                     const altCKeyHandler = editor.getOption("extraKeys")["Alt-C"];
@@ -897,6 +1052,50 @@
                 }
             }
         });
+
+        //格式化文本
+        form.on('submit(codeFormat)', function (data) {
+            const altCKeyHandler = editor.getOption("extraKeys")["Alt-C"];
+            if (altCKeyHandler) {
+                altCKeyHandler(editor);
+            }
+            return false;
+        });
+
+        util.on('lay-on', {
+            'ai-offset-t': function () {
+                if (activeDataSource === null || activeDataSource === '') {
+                    layer.msg('请选择数据源', {icon: 2});
+                    return false;
+                }
+                let table = editor.getSelection() === undefined ? '' : editor.getSelection();
+                const url = ctx + 'aiManager/page?database=' + activeDataSource + "&table=" + table;
+                aiViewId = layer.open({
+                    type: 2,
+                    offset: 'r',
+                    anim: 'slideLeft',
+                    area: ['420px', '100%'],
+                    shade: 0.1,
+                    shadeClose: true,
+                    title: 'AI Data Copilot',
+                    hideOnClose: true,
+                    id: 'ai-layer-direction-r',
+                    content: [url, 'yes']
+                });
+            }
+        });
+
+
+        //AI结果执行
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'executeSQL') {
+                var sqlFromAI = event.data.sql;
+                editor.setValue(sqlFromAI);
+                $("#execute").trigger('click');
+            }
+        });
+
+
         //进入页面后,让编辑器获得焦点
         editor.focus();
     })

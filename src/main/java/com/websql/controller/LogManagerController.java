@@ -77,7 +77,7 @@ public class LogManagerController {
             }
             return AjaxResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("删除日志失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
     }

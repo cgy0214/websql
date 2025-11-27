@@ -116,7 +116,7 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
             log.info("exec cmd result:{}", result);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+           log.error("发送命令行消息失败!,{}", e.getMessage());
         }
         return false;
     }
@@ -144,7 +144,6 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("发送飞书消息失败!,{}", e.getMessage());
         }
         return false;
@@ -175,8 +174,7 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
-
+            log.error("发送钉钉消息失败!,{}", e.getMessage());
         }
         return false;
     }
