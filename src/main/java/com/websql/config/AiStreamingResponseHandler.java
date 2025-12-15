@@ -88,6 +88,14 @@ public class AiStreamingResponseHandler implements StreamingResponseHandler<AiMe
 
     @Override
     public void onError(Throwable throwable) {
+        try {
+            log.error("请求AI错误返回错误:>>tokens:{},error:{}", tokens, throwable.getMessage());
+            emitter.send(SseEmitter.event().data("AI模型返回错误,请查看日志!"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            emitter.complete();
+        }
         emitter.completeWithError(throwable);
     }
 }

@@ -93,7 +93,8 @@
             const field = data.field;
             table.reloadData('dataTable', {
                 scrollPos: true,
-                where: field
+                where: field,
+                page: {curr: 1}
             });
             return false;
         });

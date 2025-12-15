@@ -238,7 +238,8 @@
             table.reloadData('dataTable', {
                 scrollPos: true,
                 url: ctx + 'detectionManager/logList',
-                where: field
+                where: field,
+                page: {curr: 1}
             });
             loadChartData();
             return false;

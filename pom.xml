@@ -38,11 +38,17 @@
         <easyexcel.version>4.0.3</easyexcel.version>
         <commons-io.version>2.15.0</commons-io.version>
         <aviator.version>5.4.3</aviator.version>
-        <clickhouse.version>0.3.2</clickhouse.version>
+        <clickhouse.version>0.2.6</clickhouse.version>
         <langchain.version>0.29.1</langchain.version>
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
