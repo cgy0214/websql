@@ -262,6 +262,9 @@
                 //默认选中的数据源需要单独赋值，不会走onSelect
                 activeDataSource = activeData == null ? null : activeData[0].code;
                 editorHintSettings();
+                if (activeDataSource) {
+                    sqlTextSelect(activeDataSource);
+                }
             },
             onselect: function (data) {
                 activeDataSource = data;
@@ -269,6 +272,7 @@
                 if(aiViewId != null){
                     layer.close(aiViewId);
                 }
+                sqlTextSelect(data);
             }
         });
 
@@ -409,10 +413,10 @@
         /**
          * 展示sql保存记录
          */
-        function sqlTextSelect() {
+        function sqlTextSelect(dataSourceCode) {
             select.render({
                 elem: "#sqlTexts",
-                url: ctx + 'sqlManager/querySqlTextSelect',
+                url: ctx + 'sqlManager/querySqlTextSelect?dataSourceCode=' + encodeURIComponent(dataSourceCode),
                 select: 10000,
                 title: 'SQL片段',
                 format: function (data) {
@@ -447,13 +451,13 @@
                 skin: 'layui-layer-win10',
                 shade: 0.3,
                 area: '520px',
-                title: '*保存SQL文本',
+                title: '*SQL片段',
                 closeBtn: 0,
                 formType: 0,
                 anim: 'slideDown',
                 shadeClose: true,
                 success: function () {
-                    $(".layui-layer-content .layui-layer-input").toggleClass("layui-input").attr('placeHolder', '请起个名字吧...');
+                    $(".layui-layer-content .layui-layer-input").toggleClass("layui-input").attr('placeHolder', '请起个名字.');
                 }
             };
             layer.prompt(openConfig, function (data, index) {
@@ -462,7 +466,31 @@
                     return false;
                 }
                 layer.close(index);
-                post(ctx + "sqlManager/saveSqlText", {'sqlText': Base64.encode(sqlContent), 'title': data}, (res) => {
+                // 获取当前选中的数据源信息
+                let dataSourceInfo = null;
+                if (activeDataSource) {
+                    // 从数据源下拉框中获取数据源名称
+                    const selectedOption = $('#dbtype option[value="' + activeDataSource + '"]');
+                    if (selectedOption.length > 0) {
+                        dataSourceInfo = {
+                            code: activeDataSource,
+                            name: selectedOption.text()
+                        };
+                    }
+                }
+                
+                const params = {
+                    'sqlText': Base64.encode(sqlContent), 
+                    'title': data
+                };
+                
+                // 如果有数据源信息，添加到参数中
+                if (dataSourceInfo) {
+                    params.dataSourceCode = dataSourceInfo.code;
+                    params.dataSourceName = dataSourceInfo.name;
+                }
+                
+                post(ctx + "sqlManager/saveSqlText", params, (res) => {
                     layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, (res) => {
                         sqlTextSelect();
                     });

@@ -11,16 +11,16 @@
     <div class="layui-panel">
         <div style="margin: 15px;">
             <div class="layui-form-item">
-                <label class="layui-form-label">名称:</label>
+                <label class="layui-form-label">片段名称:</label>
                 <div class="layui-input-inline">
                     <input type="text" name="title" id="title" placeholder="请输入名称" class="layui-input"
                            lay-affix="clear">
                 </div>
-                <label class="layui-form-label">文本内容:</label>
+                <!--<label class="layui-form-label">文本内容:</label>
                 <div class="layui-input-inline">
                     <input type="text" name="sqlText" id="sqlText" placeholder="请输入文本内容" class="layui-input"
                            lay-affix="clear">
-                </div>
+                </div>-->
                 <div class="layui-input-normal">
                     <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit
                             lay-filter="table-search">
@@ -65,8 +65,9 @@
             cols: [
                 [
                     {field: 'id', title: 'id', sort: true, fixed: true},
-                    {field: 'title', title: '名称', sort: true, fixed: true},
+                    {field: 'title', title: '片段名称', sort: true, fixed: true},
                     {field: 'sqlCreateUser', title: '创建人', sort: true, fixed: true},
+                    {field: 'dataSourceName', title: '所属数据源', sort: true, fixed: true},
                     {field: 'sqlCreateDate', title: '保存时间', sort: true, fixed: true},
                     {fixed: 'right', title: '操作', width: 134, minWidth: 125, toolbar: '#toolbarTable'}
                 ]

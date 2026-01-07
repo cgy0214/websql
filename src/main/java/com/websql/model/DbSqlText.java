@@ -37,4 +37,10 @@ public class DbSqlText extends Pages {
 
     @Column
     private Long teamId;
+    
+    @Column
+    private String dataSourceName;
+    
+    @Column
+    private String dataSourceCode;
 }

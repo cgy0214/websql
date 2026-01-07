@@ -140,6 +140,12 @@ public class DbSourceServiceImpl implements DbSourceService {
         dbSourceRepository.deleteById(id);
         DataSourceFactory.removeDataSource(dataSourceModel.getDbName());
         teamSourceService.deleteResourceByResIds(Collections.singletonList(Long.valueOf(id)), "DATASOURCE");
+        try {
+            deleteSqlTextByDataSourceCode(dataSourceModel.getDbName());
+            log.info("成功删除与数据源[{}]关联的SQL文本", dataSourceModel.getDbName());
+        } catch (Exception e) {
+            log.error("删除与数据源[{}]关联的SQL文本失败: {}", dataSourceModel.getDbName(), e.getMessage(), e);
+        }
     }
 
     @Override
@@ -481,6 +487,34 @@ public class DbSourceServiceImpl implements DbSourceService {
                 log.error("删除数据源失败:{},{}", dataSourceModel.getId(), e.getMessage(), e);
             }
         }
+    }
+
+    @Override
+    public void deleteSqlTextByDataSourceCode(String dataSourceCode) {
+        dbSqlTextRepository.deleteByDataSourceCode(dataSourceCode);
+    }
+
+    @Override
+    public int countSqlTextByDataSourceCode(String dataSourceCode) {
+        return dbSqlTextRepository.countByDataSourceCode(dataSourceCode);
+    }
+
+    @Override
+    public List<Map<String, String>> sqlTextListByDataSource(DataSourceModel model, String dataSourceCode) {
+        List<Map<String, String>> sqlTextModelList = new ArrayList<>();
+        Long itemId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
+        List<DbSqlText> all = dbSqlTextRepository.findAll().stream()
+                .filter(s -> s.getTeamId().equals(itemId))
+                .filter(s -> dataSourceCode.equals(s.getDataSourceCode()) || "DEFAULT-H2".equals(dataSourceCode))
+                .sorted(Comparator.comparing(DbSqlText::getId).reversed())
+                .collect(Collectors.toList());
+        for (DbSqlText dbSqlText : all) {
+            Map<String, String> item = new HashMap<>(2);
+            item.put("code", dbSqlText.getSqlText());
+            item.put("value", dbSqlText.getTitle());
+            sqlTextModelList.add(item);
+        }
+        return sqlTextModelList;
     }
 
     @Override
