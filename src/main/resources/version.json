@@ -1,6 +1,6 @@
 {
-  "version": "v4.0.3",
-  "date": "20251020",
+  "version": "v4.0.4",
+  "date": "20260108",
   "aiRecommend":["当前数据库时间","查看数据库有多少张表","查询表空间大小","查看表结构"],
-  "link": "https://gitee.com/boy_0214/websql/wikis/4.0.3%E7%89%88%E6%9C%AC%E5%8F%91%E5%B8%83%E5%86%85%E5%AE%B9"
+  "link": "https://gitee.com/boy_0214/websql/wikis/4.0.4%E7%89%88%E6%9C%AC%E5%8F%91%E5%B8%83%E5%86%85%E5%AE%B9"
 }

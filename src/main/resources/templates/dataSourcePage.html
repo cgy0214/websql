@@ -82,7 +82,12 @@
                     {field: 'maxActive', title: '最大连接', sort: true, fixed: true,width: 120},
                     {field: 'maxIdle', title: '空闲连接', sort: true, fixed: true,width: 120},
                     {field: 'maxWait', title: '等待时间', sort: true, fixed: true,width: 120},
-                    {field: 'connectionName', title: '数据库类型', sort: true, fixed: true},
+                    {field: 'connectionName', title: '数据库类型', sort: true, fixed: true,templet: function(d) {
+                            if (d.connectionName === '未连接到数据源') {
+                                return '<span style="color: red;">' + d.connectionName + '</span>';
+                            }
+                            return d.connectionName;
+                        }},
                     {fixed: 'right', title: '操作', width: 190, toolbar: '#toolbarTable'}
                 ]
             ],
