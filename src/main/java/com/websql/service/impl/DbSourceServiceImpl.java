@@ -440,8 +440,8 @@ public class DbSourceServiceImpl implements DbSourceService {
             if (ObjectUtil.notEqual("1", dataResult.get("code"))) {
                 return AjaxResult.error(dataResult.get("msg").toString());
             }
-            if (ObjectUtil.isNotNull(dataResult.getOrDefault("create_table_sql",dataResult.get("CREATE_TABLE_SQL")))) {
-                resultMap.put("createTableSql", dataResult.getOrDefault("create_table_sql",dataResult.get("CREATE_TABLE_SQL")).toString());
+            if (ObjectUtil.isNotNull(dataResult.getOrDefault("create_table_sql", dataResult.get("CREATE_TABLE_SQL")))) {
+                resultMap.put("createTableSql", dataResult.getOrDefault("create_table_sql", dataResult.get("CREATE_TABLE_SQL")).toString());
             }
             // mysql
             if (ObjectUtil.isNotNull(dataResult.get("Create Table"))) {
@@ -505,7 +505,7 @@ public class DbSourceServiceImpl implements DbSourceService {
         Long itemId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
         List<DbSqlText> all = dbSqlTextRepository.findAll().stream()
                 .filter(s -> s.getTeamId().equals(itemId))
-                .filter(s -> dataSourceCode.equals(s.getDataSourceCode()) || "DEFAULT-H2".equals(dataSourceCode))
+                .filter(s -> dataSourceCode.equals(s.getDataSourceCode()) || ("DEFAULT-H2".equals(dataSourceCode) && ObjectUtil.isEmpty(s.getDataSourceCode())))
                 .sorted(Comparator.comparing(DbSqlText::getId).reversed())
                 .collect(Collectors.toList());
         for (DbSqlText dbSqlText : all) {

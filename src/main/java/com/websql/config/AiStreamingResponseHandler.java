@@ -1,5 +1,6 @@
 package com.websql.config;
 
+import dev.ai4j.openai4j.OpenAiHttpException;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.StreamingResponseHandler;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * AI流式响应处理器
@@ -89,8 +91,17 @@ public class AiStreamingResponseHandler implements StreamingResponseHandler<AiMe
     @Override
     public void onError(Throwable throwable) {
         try {
-            log.error("请求AI错误返回错误:>>tokens:{},error:{}", tokens, throwable.getMessage());
-            emitter.send(SseEmitter.event().data("AI模型返回错误,请查看日志!"));
+            int code = 500;
+            if (throwable instanceof OpenAiHttpException) {
+                code = ((OpenAiHttpException) throwable).code();
+            }
+            log.error("请求AI错误返回错误:>>tokens:{},状态码：{},error:{}", tokens, code, throwable.getMessage(), throwable);
+            emitter.send(SseEmitter.event().data("AI模型返回错误信息: "));
+            emitter.send(SseEmitter.event().data("<br>"));
+            emitter.send(SseEmitter.event().data("statusCode:" + code));
+            emitter.send(SseEmitter.event().data("<br>"));
+            emitter.send(SseEmitter.event().data(Objects.equals(throwable.getMessage(), "") ? "异常信息为空" : throwable.getMessage()));
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
