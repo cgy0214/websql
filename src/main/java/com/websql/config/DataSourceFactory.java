@@ -45,9 +45,10 @@ public class DataSourceFactory {
             ds.setMaxActive(config.getMaxActive());
             ds.setMaxWait(config.getMaxWait());
             ds.setValidationQuery(config.getDbCheckUrl());
-            ds.setBreakAfterAcquireFailure(true);
-            ds.setConnectionErrorRetryAttempts(0);
-            ds.setNotFullTimeoutRetryCount(-1);
+            ds.setBreakAfterAcquireFailure(false);
+            ds.setConnectionErrorRetryAttempts(1);
+            ds.setNotFullTimeoutRetryCount(0);
+            ds.setTimeBetweenConnectErrorMillis(30000);
             try {
                 //druid不支持某些数据库防火墙功能
                 DbType dbTypeRaw = getDbTypeByJdbcUrl(config.getDbUrl().trim(), config.getDriverClass().trim());
@@ -61,6 +62,7 @@ public class DataSourceFactory {
                     ds.setFilters("stat,wall");
                 }
                 ds.setConnectionProperties("druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000");
+                ds.setAsyncInit(true);
                 ds.init();
                 DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
                 index++;
@@ -166,7 +168,6 @@ public class DataSourceFactory {
                 log.error(e.getMessage());
             }
             return con;
-
         }
         return con;
     }

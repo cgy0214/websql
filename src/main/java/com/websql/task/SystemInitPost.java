@@ -149,7 +149,6 @@ public class SystemInitPost {
      * 初始化数据源
      */
     public int initDataSource() {
-        log.info("Initializing DataSource...");
         List<DataSourceModel> dblist = dbSourceService.reloadDataSourceList();
         for (DataSourceModel model : dblist) {
             if (ObjectUtil.isNotEmpty(model.getDbPassword())) {
@@ -161,12 +160,8 @@ public class SystemInitPost {
                 model.setDbAccount(encrypt);
             }
         }
-        if (dblist.size() > 2) {
-            log.info("dataSource Size:{}  Async initDataSource ...", dblist.size());
-            ThreadUtil.execAsync(() -> DataSourceFactory.initDataSource(dblist));
-        } else {
-            DataSourceFactory.initDataSource(dblist);
-        }
+        log.info("Initializing {} DataSource...",dblist.size());
+        DataSourceFactory.initDataSource(dblist);
         return dblist.size();
     }
 
