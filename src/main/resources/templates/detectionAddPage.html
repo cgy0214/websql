@@ -245,8 +245,8 @@
             data.field.dataBaseName = activeDataSource;
             data.field.messageId = activeMessageTemplate;
             post(ctx + "detectionManager/add", data.field, (res) => {
-                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, (res) => {
-                    location.reload();
+                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                    if(res.code === 200) location.reload();
                 });
             });
             return false;

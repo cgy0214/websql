@@ -36,4 +36,6 @@ public interface TimingService {
     TimingVo queryTimingJobById(Long id);
 
 
+    void deleteByDataBaseName(String dbName);
+
 }

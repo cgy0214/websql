@@ -225,8 +225,8 @@
                 'syncTable': field.syncTable
             };
             post(ctx + "timingManager/addTimingData", params, (res) => {
-                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, (res) => {
-                    location.reload();
+                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                    if(res.code === 200) location.reload();
                 });
             });
             return false;

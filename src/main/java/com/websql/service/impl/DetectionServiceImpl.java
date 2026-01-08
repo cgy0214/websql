@@ -219,11 +219,7 @@ public class DetectionServiceImpl implements DetectionService {
         model.setTeamId(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId());
         model.setDataBaseName(dataBaseName);
         List<SysDetectionModel> detectionModels = detectionRepository.findAll(Example.of(model));
-        
-        // 删除检测任务
         detectionRepository.deleteAll(detectionModels);
-        
-        // 删除关联的任务日志
         for (SysDetectionModel detectionModel : detectionModels) {
             deleteLogsByTaskId(detectionModel.getId());
         }

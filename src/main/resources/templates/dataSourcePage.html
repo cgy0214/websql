@@ -135,52 +135,29 @@
                                     }
                                     let confirmMsg = '您确定要删除该数据源吗?';
                                     if (sqlCount > 0) {
-                                        confirmMsg += '<br/><span style="color: red;">该数据源关联了 ' + sqlCount + ' 条SQL片段，也将被一并删除！</span>';
+                                        confirmMsg += '<br/><span style="color: red;">关联了 ' + sqlCount + ' 条SQL片段，也将一并删除！</span>';
                                     }
                                     if (taskCount > 0) {
-                                        confirmMsg += '<br/><span style="color: red;">该数据源关联了 ' + taskCount + ' 条检测任务，也将被一并删除！</span>';
+                                        confirmMsg += '<br/><span style="color: red;">关联了 ' + taskCount + ' 条检测任务，也将一并删除！</span>';
                                     }
                                     if (etlCount > 0) {
-                                        confirmMsg += '<br/><span style="color: red;">当前数据源关联 ' + etlCount + ' 个ETL任务，删除后将影响这些任务的正常运行</span>';
+                                        confirmMsg += '<br/><span style="color: red;">关联了 ' + etlCount + ' 个ETL任务，也将一并删除!</span>';
                                     }
-                                    if (etlCount > 0) {
-                                        layer.prompt({
-                                            formType: 0,
-                                            value: '',
-                                            title: '二次确认',
-                                            content: '请输入关联的ETL任务数量 "' + etlCount + '" 以确认删除:',
-                                            btn: ['确认删除', '取消']
-                                        }, function(inputValue, index) {
+                                    layer.confirm(confirmMsg, {
+                                        icon: 3,
+                                        title: '确认删除',
+                                        btn: ['确认删除', '取消'],
+                                        yes: function(index) {
+                                            post(ctx + "dataSourceManager/deleteDataSource/" + data.id + "?etlCount=0", null, (res) => {
+                                                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                                                    if (res.code === 200) {
+                                                        obj.del();
+                                                    }
+                                                });
+                                            });
                                             layer.close(index);
-                                            if (inputValue === etlCount.toString()) {
-                                                post(ctx + "dataSourceManager/deleteDataSource/" + data.id + "?etlCount=" + etlCount, null, (res) => {
-                                                    layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                                        if (res.code === 200) {
-                                                            obj.del();
-                                                        }
-                                                    });
-                                                });
-                                            } else {
-                                                layer.msg('输入的数量不正确，请重新操作', {icon: 2});
-                                            }
-                                        });
-                                    } else {
-                                        layer.confirm(confirmMsg, {
-                                            icon: 3, 
-                                            title: '确认删除',
-                                            btn: ['确认删除', '取消'],
-                                            yes: function(index) {
-                                                post(ctx + "dataSourceManager/deleteDataSource/" + data.id + "?etlCount=0", null, (res) => {
-                                                    layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                                        if (res.code === 200) {
-                                                            obj.del();
-                                                        }
-                                                    });
-                                                });
-                                                layer.close(index);
-                                            }
-                                        });
-                                    }
+                                        }
+                                    });
                                 });
                             });
                         });

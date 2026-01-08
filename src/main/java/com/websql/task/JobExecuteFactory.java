@@ -50,12 +50,12 @@ public class JobExecuteFactory implements Task {
 
     public String run(boolean state) {
         Long begin = System.currentTimeMillis();
-        log.info("{}-作业任务开始.", jobName);
+        log.info("任务名称:{},开始执行->>>>>>>>>>>>>>>>>>>>", jobName);
         TimingService timingService = SpringContextHolder.getBean(TimingService.class);
         TimingVo vo = timingService.queryTimingJobById(id);
         if (ObjectUtil.isNull(vo)) {
             ScheduleUtils.removeTask(id, "timing", false);
-            log.error("{}-作业任务不存在", jobName);
+            log.info("任务名称:{},执行失败,作业任务不存在移除任务.", jobName);
             return FAIL;
         }
         if (state) {
@@ -69,7 +69,7 @@ public class JobExecuteFactory implements Task {
         try {
             String sql = Base64Decoder.decodeStr(vo.getSqlText());
             if (ObjectUtil.isEmpty(sql)) {
-                log.error("{}-作业SQL为空", jobName);
+                log.error("任务名称:{},执行失败,作业的SQL内容为空.", jobName);
                 return FAIL;
             }
             //SQL预处理
@@ -79,7 +79,7 @@ public class JobExecuteFactory implements Task {
                 for (SqlParserVo executeSql : parserVoList) {
                     Map<String, Object> resultData = JdbcUtils.findMoreResult(vo.getTimingName(), executeSql.getSqlContent(), new ArrayList<>());
                     if ("2".equals(resultData.get("code"))) {
-                        log.error("{}-作业SQL执行异常,{}", jobName, resultData.get("msg"));
+                        log.error("任务名称:{},执行失败,SQL执行异常:{}", jobName, resultData.get("msg"));
                         return FAIL;
                     }
                     List itemList = (List) resultData.get("data");
@@ -88,7 +88,7 @@ public class JobExecuteFactory implements Task {
                         JSONObject object = (JSONObject) itemList.get(0);
                         List<Object> webSqlPlaceholder = object.values().stream().filter(s -> s.equals("WEB_SQL_PLACEHOLDER")).collect(Collectors.toList());
                         if (object.keySet().size() == webSqlPlaceholder.size()) {
-                            log.warn("{}-源数据表中没有任何数据跳过。", jobName);
+                            log.warn("任务名称:{},源数据表中没有任何数据跳过", jobName);
                             return SUCCESS;
                         }
                     }
@@ -117,11 +117,11 @@ public class JobExecuteFactory implements Task {
         } catch (Exception e) {
             logs.setTaskState("执行失败");
             logs.setTaskError(e.getMessage());
-            log.warn("{}-作业异常", jobName, e);
+            log.error("任务名称:{},执行失败", jobName, e);
         } finally {
             Long end = System.currentTimeMillis();
             Long exDate = end - begin;
-            log.info("{}-作业任务结束. {}ms.", jobName, exDate);
+            log.info("任务名称:{},作业任务执行结束 耗时:{}-<<<<<<<<<<<<<<<<<<<", jobName, exDate);
             logs.setTaskId(vo.getId());
             logs.setTaskName(vo.getTitle());
             logs.setCo1(String.valueOf(exDate));

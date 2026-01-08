@@ -22,6 +22,7 @@ import com.websql.model.*;
 import com.websql.service.DbSourceService;
 import com.websql.service.DetectionService;
 import com.websql.service.TeamSourceService;
+import com.websql.service.TimingService;
 import com.websql.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -78,6 +79,9 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Resource
     private SysExportLogRepository sysExportLogRepository;
 
+    @Resource
+    private TimingService timingService;
+
 
     @Override
     public List<DataSourceModel> reloadDataSourceList() {
@@ -122,10 +126,10 @@ public class DbSourceServiceImpl implements DbSourceService {
         Long teamId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
         Specification<DbSqlText> spec = (root, query, cb) -> {
             Path<String> title = root.get("title");
-            Path<String> sqlText = root.get("sqlText");
-            String sqlText1 = model.getSqlText() == null ? "" : model.getSqlText();
+            Path<String> dataSourceName = root.get("dataSourceName");
+            String sqlText1 = model.getDataSourceName() == null ? "" : model.getDataSourceName();
             String title1 = model.getTitle() == null ? "" : model.getTitle();
-            Predicate p2 = cb.like(sqlText, "%" + sqlText1 + "%");
+            Predicate p2 = cb.like(dataSourceName, "%" + sqlText1 + "%");
             Predicate p3 = cb.like(title, "%" + title1 + "%");
             Predicate p = cb.and(p2, p3, root.get("teamId").in(teamId));
             query.orderBy(cb.desc(root.get("id")));
@@ -155,6 +159,12 @@ public class DbSourceServiceImpl implements DbSourceService {
             log.info("成功删除与数据源[{}]关联的检测任务及历史记录", dataSourceModel.getDbName());
         } catch (Exception e) {
             log.error("删除与数据源[{}]关联的检测任务失败: {}", dataSourceModel.getDbName(), e.getMessage(), e);
+        }
+        try {
+            timingService.deleteByDataBaseName(dataSourceModel.getDbName());
+            log.info("成功删除与数据源[{}]关联的ETL任务及历史记录", dataSourceModel.getDbName());
+        } catch (Exception e) {
+            log.error("删除与数据源[{}]关联的ETL任务及历史记录: {}", dataSourceModel.getDbName(), e.getMessage(), e);
         }
     }
 
