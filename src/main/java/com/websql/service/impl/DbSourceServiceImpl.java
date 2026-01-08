@@ -20,6 +20,7 @@ import com.websql.config.SqlParserHandler;
 import com.websql.dao.*;
 import com.websql.model.*;
 import com.websql.service.DbSourceService;
+import com.websql.service.DetectionService;
 import com.websql.service.TeamSourceService;
 import com.websql.util.*;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,9 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Resource
     private TeamSourceService teamSourceService;
+
+    @Resource
+    private DetectionService detectionService;
 
     @Resource
     private SysExportLogRepository sysExportLogRepository;
@@ -145,6 +149,12 @@ public class DbSourceServiceImpl implements DbSourceService {
             log.info("成功删除与数据源[{}]关联的SQL文本", dataSourceModel.getDbName());
         } catch (Exception e) {
             log.error("删除与数据源[{}]关联的SQL文本失败: {}", dataSourceModel.getDbName(), e.getMessage(), e);
+        }
+        try {
+            detectionService.deleteByDataBaseName(dataSourceModel.getDbName());
+            log.info("成功删除与数据源[{}]关联的检测任务及历史记录", dataSourceModel.getDbName());
+        } catch (Exception e) {
+            log.error("删除与数据源[{}]关联的检测任务失败: {}", dataSourceModel.getDbName(), e.getMessage(), e);
         }
     }
 

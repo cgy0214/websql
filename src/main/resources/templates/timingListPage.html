@@ -59,8 +59,7 @@
         <a class="layui-btn layui-btn-xs" lay-event="view">SQL</a>
         <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="updateCron">CRON</a>
         <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="updateState">{{= d.state=='停用'? '开始':'停止'}}</a>
-        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="execOne">执行一次</a>
-        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="logView">日志</a>
+        <a class="layui-btn layui-bg-orange layui-btn-xs" lay-event="execOne">一次</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
@@ -90,7 +89,7 @@
                     {field: 'executeTime', title: 'CRON表达式', sort: true, fixed: true, width: 200},
                     {field: 'sqlCreateUser', title: '创建人', sort: true, fixed: true},
                     {field: 'sqlCreateDate', title: '创建时间', sort: true, fixed: true},
-                    {fixed: 'right', title: '操作', width: 270, toolbar: '#toolbarTable'}
+                    {fixed: 'right', title: '操作', width: 300, toolbar: '#toolbarTable'}
                 ]
             ],
             parseData: res => parseData(res)
@@ -135,7 +134,7 @@
                     })
                     break;
                 case 'delete':
-                    layer.confirm("您确认要删除此任务吗？", function () {
+                    layer.confirm("您确认要删除此任务吗？<br/><span style='color: red;'>该任务的报表历史记录也将被一并删除！</span>", function () {
                         post(ctx + "timingManager/executeOnce/4/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
@@ -147,17 +146,6 @@
                     layer.confirm("您确认要立即执行一次吗？", function () {
                         var requestData = {"id": data.id,"title": data.title};
                         post(ctx + "timingManager/executeOne", requestData, (res) => {
-                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
-                            });
-                        })
-                    })
-                    break;
-                case 'logView':
-                    var path = data.state === '停用' ? '2':'1';
-                    var message = data.state === '停用' ? '确认要开启作业吗?':'确认要停止作业吗?';
-                    layer.confirm(message, function () {
-                        post(ctx + "timingManager/executeOnce/"+path+"/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                 $(".search-btn").click();
                             });

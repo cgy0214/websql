@@ -10,6 +10,7 @@ import com.websql.model.DataSourceModel;
 import com.websql.model.Result;
 import com.websql.model.SysDriverConfig;
 import com.websql.service.DbSourceService;
+import com.websql.service.DetectionService;
 import com.websql.service.LoginService;
 import com.websql.service.TeamSourceService;
 import com.websql.util.PasswordUtil;
@@ -47,6 +48,9 @@ public class DataSourceManagerController {
 
     @Resource
     private TeamSourceService teamSourceService;
+    
+    @Resource
+    private DetectionService detectionService;
 
 
     @RequestMapping("/page")
@@ -230,6 +234,17 @@ public class DataSourceManagerController {
             dataSourceModelResult.setDbAccount(encrypt);
         }
         return AjaxResult.success(dataSourceModelResult);
+    }
+
+    @RequestMapping("/countDetectionTaskByDataSourceCode")
+    @ResponseBody
+    public AjaxResult countDetectionTaskByDataSourceCode(String dataSourceCode) {
+        try {
+            return AjaxResult.success(detectionService.countByDataBaseName(dataSourceCode));
+        } catch (Exception e) {
+            log.error("统计检测任务失败,{}",e.getMessage(),e);
+            return AjaxResult.error(e.getMessage());
+        }
     }
 
 }

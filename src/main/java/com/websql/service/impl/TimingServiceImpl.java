@@ -55,6 +55,7 @@ public class TimingServiceImpl implements TimingService {
     @Override
     public void delTiming(Long id) {
         timingRepository.deleteById(id);
+        jobLogsRepository.deleteByTaskId(id);
     }
 
 

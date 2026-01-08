@@ -106,28 +106,46 @@
                     openContent("查看密钥", content);
                     break;
                 case 'delete':
-                    // 先查询该数据源关联的SQL数量
-                    post(ctx + "sqlManager/countSqlTextByDataSourceCode?dataSourceCode=" + data.dbName, null, (countRes) => {
-                        let confirmMsg = '您确定要删除该数据源吗?';
-                        if (countRes.code === 200 && countRes.data > 0) {
-                            confirmMsg += '<br/><br/><span style="color: red;">该数据源关联了 ' + countRes.data + ' 条SQL片段，也将被一并删除！</span>';
-                        }
+                        // 先查询该数据源关联的SQL数量和检测任务数量
+                        let sqlCount = 0;
+                        let taskCount = 0;
                         
-                        layer.confirm(confirmMsg, { 
-                            icon: 3, 
-                            title: '确认删除',
-                            btn: ['确认删除', '取消'],
-                            yes: function(index) {
-                                post(ctx + "dataSourceManager/deleteDataSource/" + data.id, null, (res) => {
-                                    layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                        $(".search-btn").click();
-                                    });
-                                    layer.close(index);
-                                });
+                        // 统计SQL数量
+                        post(ctx + "sqlManager/countSqlTextByDataSourceCode?dataSourceCode=" + data.dbName, null, (countRes) => {
+                            if (countRes.code === 200) {
+                                sqlCount = countRes.data;
                             }
+                            
+                            // 统计检测任务数量
+                            post(ctx + "dataSourceManager/countDetectionTaskByDataSourceCode?dataSourceCode=" + data.dbName, null, (taskRes) => {
+                                if (taskRes.code === 200) {
+                                    taskCount = taskRes.data;
+                                }
+                                
+                                let confirmMsg = '您确定要删除该数据源吗?';
+                                if (sqlCount > 0) {
+                                    confirmMsg += '<br/><span style="color: red;">该数据源关联了 ' + sqlCount + ' 条SQL片段，也将被一并删除！</span>';
+                                }
+                                if (taskCount > 0) {
+                                    confirmMsg += '<br/><span style="color: red;">该数据源关联了 ' + taskCount + ' 条检测任务，也将被一并删除！</span>';
+                                }
+                                
+                                layer.confirm(confirmMsg, { 
+                                    icon: 3, 
+                                    title: '确认删除',
+                                    btn: ['确认删除', '取消'],
+                                    yes: function(index) {
+                                        post(ctx + "dataSourceManager/deleteDataSource/" + data.id, null, (res) => {
+                                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                                                $(".search-btn").click();
+                                            });
+                                            layer.close(index);
+                                        });
+                                    }
+                                });
+                            });
                         });
-                    });
-                    break;
+                        break;
                 case 'update':
                     layer.prompt({
                         formType: 2,
