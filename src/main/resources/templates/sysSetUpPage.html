@@ -493,10 +493,12 @@
                     layer.confirm("您确认要删除此任务吗？", function () {
                         post(ctx + "settingManager/deleteMessageTemplate?id=" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                table.reloadData('dataTable', {
-                                    scrollPos: true,
-                                    page: {curr: 1}
-                                });
+                                if(res.code === 200) {
+                                    table.reloadData('dataTable', {
+                                        scrollPos: true,
+                                        page: {curr: 1}
+                                    });
+                                }
                             });
                         })
                     })

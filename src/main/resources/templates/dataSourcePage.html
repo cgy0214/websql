@@ -173,8 +173,10 @@
                         layer.confirm("确认修改名称？", function () {
                             post(ctx + "dataSourceManager/updateDataSourceName?id=" + data.id + "&name=" + value, null, (res) => {
                                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                    $(".search-btn").click();
-                                    layer.closeAll();
+                                    if(res.code === 200) {
+                                        $(".search-btn").click();
+                                        layer.closeAll();
+                                    }
                                 });
                             })
                         });

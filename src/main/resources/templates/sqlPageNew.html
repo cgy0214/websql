@@ -495,8 +495,8 @@
                 }
                 
                 post(ctx + "sqlManager/saveSqlText", params, (res) => {
-                    layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, (res) => {
-                        sqlTextSelect();
+                    layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                        if(res.code === 200) sqlTextSelect();
                     });
                 })
             });

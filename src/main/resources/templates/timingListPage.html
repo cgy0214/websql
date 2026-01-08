@@ -121,8 +121,10 @@
                         layer.confirm("确认修改CRON？", function () {
                             post(ctx + "timingManager/executeOnce/3/" + data.id + "?cron=" + value, null, (res) => {
                                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                    $(".search-btn").click();
-                                    layer.closeAll();
+                                    if(res.code === 200) {
+                                        $(".search-btn").click();
+                                        layer.closeAll();
+                                    }
                                 });
                             })
                         });
@@ -134,7 +136,7 @@
                     layer.confirm(message, function () {
                         post(ctx + "timingManager/executeOnce/"+path+"/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
+                                if(res.code === 200) $(".search-btn").click();
                             });
                         })
                     })
@@ -143,7 +145,7 @@
                     layer.confirm("您确认要删除此任务吗？<br/><span style='color: red;'>该任务的报表历史记录也将被一并删除！</span>", function () {
                         post(ctx + "timingManager/executeOnce/4/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
+                                if(res.code === 200) $(".search-btn").click();
                             });
                         })
                     })
@@ -153,7 +155,7 @@
                         var requestData = {"id": data.id,"title": data.title};
                         post(ctx + "timingManager/executeOne", requestData, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
+                                if(res.code === 200) $(".search-btn").click();
                             });
                         })
                     })

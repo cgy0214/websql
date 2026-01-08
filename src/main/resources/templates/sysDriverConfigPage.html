@@ -100,7 +100,7 @@
                     layer.confirm('您确认要删除此驱动吗?', {icon: 3}, function () {
                         post(ctx + "settingManager/deleteDriverConfig/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
+                                if(res.code === 200) $(".search-btn").click();
                             });
                         })
                     }, function () {

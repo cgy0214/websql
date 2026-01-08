@@ -115,8 +115,10 @@
                         layer.confirm("确认修改CRON？", function () {
                             post(ctx + "detectionManager/executeOnce/3/" + data.id + "?cron=" + value, null, (res) => {
                                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                    $(".search-btn").click();
-                                    layer.closeAll();
+                                    if(res.code === 200) {
+                                        $(".search-btn").click();
+                                        layer.closeAll();
+                                    }
                                 });
                             })
                         });
@@ -128,16 +130,16 @@
                     layer.confirm(message, function () {
                         post(ctx + "detectionManager/executeOnce/" + path + "/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
+                                if(res.code === 200) $(".search-btn").click();
                             });
                         })
                     })
                     break;
                 case 'delete':
-                        layer.confirm("您确认要删除此任务吗？<br/><span style='color: red;'>该任务的报表历史记录也将被一并删除！</span>", function () {
+                        layer.confirm("您确认要删除此任务吗？<br/><span style='color: red;'>该任务的报表记录也将被一并删除！</span>", function () {
                             post(ctx + "detectionManager/executeOnce/4/" + data.id, null, (res) => {
                                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                    $(".search-btn").click();
+                                    if(res.code === 200) $(".search-btn").click();
                                 });
                             })
                         })

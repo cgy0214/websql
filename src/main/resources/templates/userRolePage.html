@@ -120,8 +120,10 @@
                         layer.confirm("确认修改用户密码吗？", function () {
                             post(ctx + "settingManager/updateResetPassword", param, (res) => {
                                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                    $(".search-btn").click();
-                                    layer.closeAll();
+                                    if(res.code === 200) {
+                                        $(".search-btn").click();
+                                        layer.closeAll();
+                                    }
                                 });
                             })
                         });
@@ -134,7 +136,7 @@
                     layer.confirm("您确认要删除此用户吗？", function () {
                         post(ctx + "settingManager/deleteUserRole/" + data.userId, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
+                                if(res.code === 200) $(".search-btn").click();
                             });
                         })
                     })

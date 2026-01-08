@@ -71,7 +71,7 @@
         }
         form.on('submit(login)', function (data) {
             if (!loginEnabled) {
-                layer.msg("系统已关闭登录入口,请联系管理员!",{icon: 2});
+                layer.msg("系统已关闭登录,请联系管理员!",{icon: 2});
                 return false;
             }
             data.field.timestamp = new Date().getTime();
