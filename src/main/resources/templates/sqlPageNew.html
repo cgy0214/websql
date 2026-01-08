@@ -441,8 +441,12 @@
          * 保存SQL文本
          */
         form.on('submit(saveSqlText)', function (data) {
+            if (activeDataSource === "" || activeDataSource == null) {
+                message("请先选择数据源~", false);
+                return false;
+            }
             let sqlContent = editor.getValue().trim();
-            if (sqlContent == "" || sqlContent == null) {
+            if (sqlContent === "" || sqlContent == null) {
                 message("请输入SQL语句后保存~", false);
                 return false;
             }

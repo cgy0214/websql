@@ -74,12 +74,12 @@
             height: '525',
             cols: [
                 [
-                    {field: 'id', title: '序号', sort: true, fixed: true,width: 100},
+                    {field: 'id', title: '主键', sort: true, fixed: true,width: 100},
                     {field: 'dbName', title: '连接名称', sort: true, fixed: true, width: 200,templet: function(d) {
                             return '<span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText(\'' + d.dbName + '\')">' + d.dbName + '</span>';
                         }},
                     {field: 'sourceIdentifier', title: '数据源标识', sort: true, fixed: true, width: 200, align: 'left', templet: function(d) {
-                            var identifier = d.sourceIdentifier || '';
+                            let identifier = d.sourceIdentifier || '';
                             if (identifier === 'null' || identifier === null) {
                                 identifier = '';
                             }

@@ -64,11 +64,19 @@
             height: '525',
             cols: [
                 [
-                    {field: 'id', title: 'id', sort: true, fixed: true},
-                    {field: 'title', title: '片段名称', sort: true, fixed: true},
+                    {field: 'id', title: '主键', sort: true, fixed: true},
+                    {field: 'title', title: '片段名称', sort: true, fixed: true,templet: function(d) {
+                            return '<span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText(\'' + d.title + '\')">' + d.title + '</span>';
+                        }},
+                    {field: 'dataSourceName', title: '数据源名称', sort: true, fixed: true,templet: function(d) {
+                            let dataSourceName = d.dataSourceName || '';
+                            if (dataSourceName === 'null' || dataSourceName === null) {
+                                dataSourceName = '';
+                            }
+                            return '<span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText(\'' + dataSourceName + '\')">' + dataSourceName + '</span>';
+                        }},
                     {field: 'sqlCreateUser', title: '创建人', sort: true, fixed: true},
-                    {field: 'dataSourceName', title: '所属数据源', sort: true, fixed: true},
-                    {field: 'sqlCreateDate', title: '保存时间', sort: true, fixed: true},
+                    {field: 'sqlCreateDate', title: '创建时间', sort: true, fixed: true},
                     {fixed: 'right', title: '操作', width: 134, minWidth: 125, toolbar: '#toolbarTable'}
                 ]
             ],
