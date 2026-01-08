@@ -13,6 +13,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @ClassName DataSourceFactory
@@ -223,6 +225,61 @@ public class DataSourceFactory {
             }
         } catch (Exception e) {
             log.error("获取数据库产品名称失败,{}", e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * 根据jdbcUrl获取数据库名称
+     * @param jdbcUrl url
+     * @return
+     */
+    public static String getDataBaseNameByJdbcUrl(String jdbcUrl) {
+        if (jdbcUrl == null || jdbcUrl.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            Pattern pattern = Pattern.compile(".*://[^/]+(?::\\d+)?/([^/?]+)");
+            Matcher matcher = pattern.matcher(jdbcUrl);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+            pattern = Pattern.compile("@//[^/]+(?::\\d+)?/([^/?]+)");
+            matcher = pattern.matcher(jdbcUrl);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+            if (jdbcUrl.contains(":file:") || jdbcUrl.contains(":mem:")) {
+                int colonIndex = jdbcUrl.lastIndexOf(':');
+                if (colonIndex != -1) {
+                    String path = jdbcUrl.substring(colonIndex + 1);
+                    int slashIndex = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+                    if (slashIndex != -1) {
+                        path = path.substring(slashIndex + 1);
+                    }
+                    int dotIndex = path.lastIndexOf('.');
+                    return (dotIndex != -1) ? path.substring(0, dotIndex) : path;
+                }
+            }
+            int protocolIndex = jdbcUrl.indexOf("://");
+            if (protocolIndex > 0) {
+                String afterProtocol = jdbcUrl.substring(protocolIndex + 3);
+                int queryIndex = afterProtocol.indexOf('?');
+                if (queryIndex > 0) {
+                    afterProtocol = afterProtocol.substring(0, queryIndex);
+                }
+                String[] parts = afterProtocol.split("/");
+                if (parts.length > 1) {
+                    String lastPart = parts[parts.length - 1];
+                    int portIndex = lastPart.indexOf(':');
+                    if (portIndex > 0 && !lastPart.startsWith(":")) {
+                        lastPart = lastPart.substring(portIndex + 1);
+                    }
+                    return lastPart.split("\\?")[0]; // 再次确保去除参数
+                }
+            }
+        } catch (Exception e) {
+            log.error("解析jdbcUrl数据库名称失败,{}", e.getMessage());
         }
         return null;
     }

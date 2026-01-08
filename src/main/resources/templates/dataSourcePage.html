@@ -16,11 +16,11 @@
                     <input type="text" name="dbName" id="dbname" placeholder="请输入连接名称" class="layui-input"
                            lay-affix="clear">
                 </div>
-                <label class="layui-form-label">登录账号:</label>
+                <!--<label class="layui-form-label">登录账号:</label>
                 <div class="layui-input-inline">
                     <input type="text" name="dbAccount" id="dbAccount" placeholder="请输入登录账号" class="layui-input"
                            lay-affix="clear">
-                </div>
+                </div>-->
                 <label class="layui-form-label">连接地址:</label>
                 <div class="layui-input-inline">
                     <input type="text" name="dbUrl" id="dbUrl" placeholder="请输入连接地址" class="layui-input"
@@ -74,12 +74,21 @@
             height: '525',
             cols: [
                 [
-                    {field: 'id', title: '序号', sort: true, fixed: true},
-                    {field: 'dbName', title: '连接名称', sort: true, fixed: true},
-                    {field: 'driverClass', title: '驱动类型', sort: true, fixed: true},
-                    {field: 'dbCheckUrl', title: '验证语句', sort: true, fixed: true},
-                    {field: 'initialSize', title: '初始连接', sort: true, fixed: true,width: 120},
-                    {field: 'maxActive', title: '最大连接', sort: true, fixed: true,width: 120},
+                    {field: 'id', title: '序号', sort: true, fixed: true,width: 100},
+                    {field: 'dbName', title: '连接名称', sort: true, fixed: true, width: 200,templet: function(d) {
+                            return '<span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText(\'' + d.dbName + '\')">' + d.dbName + '</span>';
+                        }},
+                    {field: 'sourceIdentifier', title: '数据源标识', sort: true, fixed: true, width: 200, align: 'left', templet: function(d) {
+                            var identifier = d.sourceIdentifier || '';
+                            if (identifier === 'null' || identifier === null) {
+                                identifier = '';
+                            }
+                            return '<span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText(\'' + identifier + '\')">' + identifier + '</span>';
+                    }},
+                    {field: 'driverClass', title: '驱动类型', sort: true, fixed: true,width: 200},
+                    {field: 'dbCheckUrl', title: '验证', sort: true, fixed: true,width: 100},
+                    {field: 'initialSize', title: '初始', sort: true, fixed: true,width: 100},
+                    {field: 'maxActive', title: '最大', sort: true, fixed: true,width: 100},
                     {field: 'maxIdle', title: '空闲连接', sort: true, fixed: true,width: 120},
                     {field: 'maxWait', title: '等待时间', sort: true, fixed: true,width: 120},
                     {field: 'connectionName', title: '数据库类型', sort: true, fixed: true,templet: function(d) {
@@ -88,7 +97,7 @@
                             }
                             return d.connectionName;
                         }},
-                    {fixed: 'right', title: '操作', width: 190, toolbar: '#toolbarTable'}
+                    {fixed: 'right', title: '操作', width: 220, toolbar: '#toolbarTable'}
                 ]
             ],
             parseData: res => parseData(res)
@@ -106,40 +115,70 @@
                     openContent("查看密钥", content);
                     break;
                 case 'delete':
-                        // 先查询该数据源关联的SQL数量和检测任务数量
                         let sqlCount = 0;
                         let taskCount = 0;
-                        
+                        let etlCount = 0;
                         // 统计SQL数量
                         post(ctx + "sqlManager/countSqlTextByDataSourceCode?dataSourceCode=" + data.dbName, null, (countRes) => {
                             if (countRes.code === 200) {
                                 sqlCount = countRes.data;
                             }
-                            
                             // 统计检测任务数量
                             post(ctx + "dataSourceManager/countDetectionTaskByDataSourceCode?dataSourceCode=" + data.dbName, null, (taskRes) => {
                                 if (taskRes.code === 200) {
                                     taskCount = taskRes.data;
                                 }
-                                
-                                let confirmMsg = '您确定要删除该数据源吗?';
-                                if (sqlCount > 0) {
-                                    confirmMsg += '<br/><span style="color: red;">该数据源关联了 ' + sqlCount + ' 条SQL片段，也将被一并删除！</span>';
-                                }
-                                if (taskCount > 0) {
-                                    confirmMsg += '<br/><span style="color: red;">该数据源关联了 ' + taskCount + ' 条检测任务，也将被一并删除！</span>';
-                                }
-                                
-                                layer.confirm(confirmMsg, { 
-                                    icon: 3, 
-                                    title: '确认删除',
-                                    btn: ['确认删除', '取消'],
-                                    yes: function(index) {
-                                        post(ctx + "dataSourceManager/deleteDataSource/" + data.id, null, (res) => {
-                                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                                $(".search-btn").click();
-                                            });
+                                // 统计ETL任务数量
+                                post(ctx + "dataSourceManager/countEtlTaskByDataSourceCode?dataSourceCode=" + data.dbName, null, (etlRes) => {
+                                    if (etlRes.code === 200) {
+                                        etlCount = etlRes.data;
+                                    }
+                                    let confirmMsg = '您确定要删除该数据源吗?';
+                                    if (sqlCount > 0) {
+                                        confirmMsg += '<br/><span style="color: red;">该数据源关联了 ' + sqlCount + ' 条SQL片段，也将被一并删除！</span>';
+                                    }
+                                    if (taskCount > 0) {
+                                        confirmMsg += '<br/><span style="color: red;">该数据源关联了 ' + taskCount + ' 条检测任务，也将被一并删除！</span>';
+                                    }
+                                    if (etlCount > 0) {
+                                        confirmMsg += '<br/><span style="color: red;">当前数据源关联 ' + etlCount + ' 个ETL任务，删除后将影响这些任务的正常运行</span>';
+                                    }
+                                    if (etlCount > 0) {
+                                        layer.prompt({
+                                            formType: 0,
+                                            value: '',
+                                            title: '二次确认',
+                                            content: '请输入关联的ETL任务数量 "' + etlCount + '" 以确认删除:',
+                                            btn: ['确认删除', '取消']
+                                        }, function(inputValue, index) {
                                             layer.close(index);
+                                            if (inputValue === etlCount.toString()) {
+                                                post(ctx + "dataSourceManager/deleteDataSource/" + data.id + "?etlCount=" + etlCount, null, (res) => {
+                                                    layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                                                        if (res.code === 200) {
+                                                            obj.del();
+                                                        }
+                                                    });
+                                                });
+                                            } else {
+                                                layer.msg('输入的数量不正确，请重新操作', {icon: 2});
+                                            }
+                                        });
+                                    } else {
+                                        layer.confirm(confirmMsg, {
+                                            icon: 3, 
+                                            title: '确认删除',
+                                            btn: ['确认删除', '取消'],
+                                            yes: function(index) {
+                                                post(ctx + "dataSourceManager/deleteDataSource/" + data.id + "?etlCount=0", null, (res) => {
+                                                    layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                                                        if (res.code === 200) {
+                                                            obj.del();
+                                                        }
+                                                    });
+                                                });
+                                                layer.close(index);
+                                            }
                                         });
                                     }
                                 });
@@ -191,6 +230,7 @@
             return false;
         });
     });
+
 
 </script>
 </html>

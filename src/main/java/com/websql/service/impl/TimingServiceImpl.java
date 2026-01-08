@@ -148,4 +148,9 @@ public class TimingServiceImpl implements TimingService {
     public TimingVo queryTimingJobById(Long id) {
         return timingRepository.findById(id).get();
     }
+
+    @Override
+    public int countByDataSourceName(String dataSourceName) {
+        return timingRepository.countByDataSourceName(dataSourceName);
+    }
 }

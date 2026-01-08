@@ -6,15 +6,19 @@
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
 <body>
-<div class="layui-card-header" style="font-size: 15px;color: #999;font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif"><div>[[${data.name}]]  |  [[${data.capacity}]]</div></div>
+<div class="layui-card-header" style="font-size: 15px; color: #999; font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;">[[${data.name}]]  |  [[${data.capacity}]]</div>
 <hr class="layui-border-green">
 <div class="layui-field-box">
     <form class="layui-form" action="" id="addFrom">
         <div class="layui-form-item">
             <label class="layui-form-label">连接名称</label>
-            <div class="layui-input-block">
+            <div class="layui-input-inline" style="width: 30%;">
                 <input type="text" name="dbName" id="dbName" lay-verify="required" autocomplete="off" lay-affix="clear"
                        placeholder="数据源名称" class="layui-input">
+            </div>
+            <div class="layui-input-inline" style="width: 30%;">
+                <input type="text" name="sourceIdentifier" id="sourceIdentifier" autocomplete="off" lay-affix="clear"
+                       placeholder="数据源标识" class="layui-input" onblur="validateSourceIdentifier()">
             </div>
         </div>
         <div class="layui-form-item">
@@ -152,6 +156,26 @@
     });
     function goPage() {
         window.location.href = ctx + 'dataSourceManager/dataSourceChoice';
+    }
+    
+    /**
+     * 验证数据源标识格式
+     */
+    function validateSourceIdentifier() {
+        const sourceIdentifier = document.getElementById('sourceIdentifier').value;
+        if (sourceIdentifier.trim() === '') {
+            return true; 
+        }
+        const regex = /^[a-zA-Z0-9_]+$/;
+        if (!regex.test(sourceIdentifier)) {
+            layer.msg('数据源标识格式不正确，只允许字母、数字和下划线', {icon: 2});
+            return false;
+        }
+        if (sourceIdentifier.length > 50) {
+            layer.msg('数据源标识长度不能超过50个字符', {icon: 2});
+            return false;
+        }
+        return true;
     }
 </script>
 </body>

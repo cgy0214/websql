@@ -274,6 +274,19 @@
         }
     };
 
+    /**
+     * 复制数据源标识到剪贴板
+     */
+    function copyTableText(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("Copy");
+        textArea.remove();
+        layer.msg('已复制到剪贴板', {icon: 1});
+    }
+
     /*]]>*/
 </script>
 

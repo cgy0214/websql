@@ -1,6 +1,7 @@
 package com.websql.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.druid.DbType;
 import com.websql.config.DataSourceFactory;
@@ -12,7 +13,7 @@ import com.websql.model.SysDriverConfig;
 import com.websql.service.DbSourceService;
 import com.websql.service.DetectionService;
 import com.websql.service.LoginService;
-import com.websql.service.TeamSourceService;
+import com.websql.service.TimingService;
 import com.websql.util.PasswordUtil;
 import com.websql.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -47,10 +48,10 @@ public class DataSourceManagerController {
     private LoginService loginService;
 
     @Resource
-    private TeamSourceService teamSourceService;
+    private DetectionService detectionService;
     
     @Resource
-    private DetectionService detectionService;
+    private TimingService timingService;
 
 
     @RequestMapping("/page")
@@ -162,13 +163,18 @@ public class DataSourceManagerController {
      */
     @RequestMapping("/deleteDataSource/{id}")
     @ResponseBody
-    public AjaxResult deleteDataSource(@PathVariable String id) {
+    public AjaxResult deleteDataSource(@PathVariable Long id, @RequestParam(required = false, defaultValue = "0") Integer etlCount) {
         try {
-            dbSourceService.deleteDataBaseSource(Long.valueOf(id));
-            return AjaxResult.success();
+            DataSourceModel dataSourceModel = dbSourceService.selectDbById(id);
+            dbSourceService.deleteDataBaseSource(id);
+            String operator = StpUtils.getCurrentUserName();
+            String dbName = dataSourceModel.getDbName();
+            log.info("数据源删除操作: 时间={}, 操作人={}, 数据源名称={}, 关联ETL任务数={}", 
+                    DateUtil.now(), operator, dbName, etlCount);
+            return AjaxResult.success("删除成功!");
         } catch (Exception e) {
-            log.error("删除数据源失败,{}",e.getMessage(),e);
-            return AjaxResult.error(e.getMessage());
+            log.error("删除失败:{}", e.getMessage(), e);
+            return AjaxResult.error("删除失败:" + e.getMessage());
         }
     }
 
@@ -243,6 +249,17 @@ public class DataSourceManagerController {
             return AjaxResult.success(detectionService.countByDataBaseName(dataSourceCode));
         } catch (Exception e) {
             log.error("统计检测任务失败,{}",e.getMessage(),e);
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    @RequestMapping("/countEtlTaskByDataSourceCode")
+    @ResponseBody
+    public AjaxResult countEtlTaskByDataSourceCode(String dataSourceCode) {
+        try {
+            return AjaxResult.success(timingService.countByDataSourceName(dataSourceCode));
+        } catch (Exception e) {
+            log.error("统计ETL任务失败,{}",e.getMessage(),e);
             return AjaxResult.error(e.getMessage());
         }
     }

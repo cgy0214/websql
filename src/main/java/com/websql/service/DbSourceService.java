@@ -41,6 +41,8 @@ public interface DbSourceService {
     void delUserLog();
 
     Integer selectDbByName(String dbName);
+    
+    Integer selectDbByIdentifier(String sourceIdentifier);
 
     AjaxResult findTableField(String database);
 

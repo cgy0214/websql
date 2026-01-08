@@ -270,9 +270,32 @@ public class DbSourceServiceImpl implements DbSourceService {
     }
 
     @Override
+    public Integer selectDbByIdentifier(String sourceIdentifier) {
+        return dbSourceRepository.findDataSourceByIdentifier(sourceIdentifier);
+    }
+
+    @Override
     public void addDbSource(DataSourceModel model, Long teamId) {
         if (selectDbByName(model.getDbName()) > 0) {
             throw new RuntimeException("数据源名称已经存在,请换一个!");
+        }
+        if (ObjectUtil.isEmpty(model.getSourceIdentifier())) {
+            String generatedIdentifier = DataSourceFactory.getDbTypeByJdbcUrl(model.getDbUrl(), model.getDriverClass()).name();
+            String dataBaseNameByJdbcUrl = DataSourceFactory.getDataBaseNameByJdbcUrl(model.getDbUrl());
+            String tempIdentifier = dataBaseNameByJdbcUrl == null ? generatedIdentifier : generatedIdentifier + "_" + dataBaseNameByJdbcUrl;
+            int counter = 1;
+            while (selectDbByIdentifier(tempIdentifier + "_" + counter) > 0) {
+                counter++;
+            }
+            tempIdentifier = tempIdentifier + "_" + counter;
+            model.setSourceIdentifier(tempIdentifier);
+        } else {
+            if (!validateSourceIdentifier(model.getSourceIdentifier())) {
+                throw new RuntimeException("数据源标识格式不正确，只允许字母、数字和下划线，最大长度为50个字符！");
+            }
+            if (selectDbByIdentifier(model.getSourceIdentifier()) > 0) {
+                throw new RuntimeException("数据源标识已经存在,请换一个!");
+            }
         }
         try {
             DataSourceFactory.saveDataSource(model);
@@ -292,7 +315,17 @@ public class DbSourceServiceImpl implements DbSourceService {
         //兼容系统初始化时获取不到teamId问题
         Long tid = teamId == null ? StpUtils.getCurrentActiveTeam().getId() : teamId;
         teamSourceService.updateTeamResources(Collections.singletonList(tid.toString()), Collections.singletonList(save.getId()), "DATASOURCE");
+    }
 
+    /**
+     * 验证数据源标识格式
+     */
+    private boolean validateSourceIdentifier(String sourceIdentifier) {
+        if (ObjectUtil.isEmpty(sourceIdentifier) || sourceIdentifier.length() > 50) {
+            return false;
+        }
+        String regex = "^[a-zA-Z0-9_]+$";
+        return sourceIdentifier.matches(regex);
     }
 
     @Override
