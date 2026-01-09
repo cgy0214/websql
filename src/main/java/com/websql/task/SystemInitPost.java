@@ -9,12 +9,10 @@ import com.websql.model.DataSourceModel;
 import com.websql.model.SysDetectionModel;
 import com.websql.model.SysSetup;
 import com.websql.model.TimingVo;
-import com.websql.service.DbSourceService;
-import com.websql.service.LoginService;
-import com.websql.service.SseEmitterService;
-import com.websql.service.TimingService;
+import com.websql.service.*;
 import com.websql.util.CacheUtils;
 import com.websql.util.PasswordUtil;
+import com.websql.util.SpringContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -149,8 +147,8 @@ public class SystemInitPost {
      * 初始化数据源
      */
     public int initDataSource() {
-        List<DataSourceModel> dblist = dbSourceService.reloadDataSourceList();
-        for (DataSourceModel model : dblist) {
+        List<DataSourceModel> initDataSourceList = dbSourceService.reloadDataSourceList();
+        for (DataSourceModel model : initDataSourceList) {
             if (ObjectUtil.isNotEmpty(model.getDbPassword())) {
                 String encrypt = PasswordUtil.decrypt(model.getDbPassword());
                 model.setDbPassword(encrypt);
@@ -160,9 +158,11 @@ public class SystemInitPost {
                 model.setDbAccount(encrypt);
             }
         }
-        log.info("Initializing {} DataSource...",dblist.size());
-        DataSourceFactory.initDataSource(dblist);
-        return dblist.size();
+        log.info("Initializing Underway {} DataSource", initDataSourceList.size());
+        DriverCustomService driverCustomService = SpringContextHolder.getBean(DriverCustomService.class);
+        driverCustomService.loadDriverCustomAll();
+        DataSourceFactory.initDataSource(initDataSourceList);
+        return initDataSourceList.size();
     }
 
 }

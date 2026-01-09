@@ -6,6 +6,8 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.stat.DruidDataSourceStatManager;
 import com.alibaba.druid.util.JdbcUtils;
 import com.websql.model.DataSourceModel;
+import com.websql.service.DriverCustomService;
+import com.websql.util.SpringContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 
@@ -28,12 +30,15 @@ public class DataSourceFactory {
     private static final ConcurrentHashMap<String, DruidDataSource> DATA_SOURCE_MAP = new ConcurrentHashMap<String, DruidDataSource>(1);
 
     /**
-     * 根据jdbc参数获得数据源连接池dbcp，并放入ConcurrentHashMap
+     * 初始化数据源连接池
+     *
+     * @param dataSourceModels 数据源配置
      */
     @Primary
     public static void initDataSource(List<DataSourceModel> dataSourceModels) {
-        DruidDataSource ds = null;
+        DruidDataSource ds;
         int index = 0;
+        DriverCustomService driverCustomService = SpringContextHolder.getBean(DriverCustomService.class);
         for (DataSourceModel config : dataSourceModels) {
             removeDataSource(config.getDbName());
             ds = new DruidDataSource();
@@ -49,6 +54,9 @@ public class DataSourceFactory {
             ds.setConnectionErrorRetryAttempts(1);
             ds.setNotFullTimeoutRetryCount(0);
             ds.setTimeBetweenConnectErrorMillis(30000);
+            if (ObjectUtil.notEqual(config.getDriverTypeName(), "内置")) {
+                ds.setDriverClassLoader(driverCustomService.getCustomClassLoader());
+            }
             try {
                 //druid不支持某些数据库防火墙功能
                 DbType dbTypeRaw = getDbTypeByJdbcUrl(config.getDbUrl().trim(), config.getDriverClass().trim());
@@ -68,10 +76,12 @@ public class DataSourceFactory {
                 index++;
             } catch (SQLException e) {
                 log.error("数据源初始化失败:{},错误信息：{}", config.getDbName(), e.getMessage());
-                DruidDataSourceStatManager.removeDataSource(ds);
+                if (ObjectUtil.isNotNull(ds)) {
+                    DruidDataSourceStatManager.removeDataSource(ds);
+                }
             }
         }
-        log.info("Successful initialization  " + index + " DbSources ");
+        log.info("initialization {} dataSource Successful", index);
     }
 
 
@@ -80,6 +90,7 @@ public class DataSourceFactory {
      */
     public static void saveDataSource(DataSourceModel config) throws SQLException {
         if (config != null) {
+            DriverCustomService driverCustomService = SpringContextHolder.getBean(DriverCustomService.class);
             DruidDataSource ds = new DruidDataSource();
             ds.setDriverClassName(config.getDriverClass().trim());
             ds.setUsername(config.getDbAccount().trim());
@@ -92,6 +103,8 @@ public class DataSourceFactory {
             ds.setBreakAfterAcquireFailure(true);
             ds.setConnectionErrorRetryAttempts(0);
             ds.setFailFast(true);
+            //todo 修改兼容自定义数据源
+            ds.setDriverClassLoader(driverCustomService.getCustomClassLoader());
             try {
                 ds.init();
                 DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
@@ -232,6 +245,7 @@ public class DataSourceFactory {
 
     /**
      * 根据jdbcUrl获取数据库名称
+     *
      * @param jdbcUrl url
      * @return
      */

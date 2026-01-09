@@ -82,10 +82,20 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Resource
     private TimingService timingService;
 
+    @Resource
+    private SysDriverConfigRepository sysDriverConfigRepository;
+
 
     @Override
     public List<DataSourceModel> reloadDataSourceList() {
-        return dbSourceRepository.reloadDataSourceList();
+        List<DataSourceModel> dataSourceModels = dbSourceRepository.reloadDataSourceList();
+        List<SysDriverConfig> list = sysDriverConfigRepository.findAll();
+        Map<String, String> typeNameMap = list.stream().collect(Collectors.toMap(SysDriverConfig::getDriverClass, SysDriverConfig::getTypeName, (k1, k2) -> k2));
+        dataSourceModels.forEach(dataSourceModel -> {
+            String typeName = typeNameMap.get(dataSourceModel.getDriverClass());
+            dataSourceModel.setDriverTypeName(typeName);
+        });
+        return dataSourceModels;
     }
 
     @Override

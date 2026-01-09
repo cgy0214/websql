@@ -163,22 +163,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.dameng</groupId>
-            <artifactId>Dm8JdbcDriver18</artifactId>
-            <version>${DmDriver8.version}</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/libs/DmJdbcDriver18.jar</systemPath>
-        </dependency>
-
-        <dependency>
-            <groupId>com.oscarjdbc</groupId>
-            <artifactId>oscarJDBC16</artifactId>
-            <version>${oscar.version}</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/libs/OscarJDBC16.jar</systemPath>
-        </dependency>
-
-        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>

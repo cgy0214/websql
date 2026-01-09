@@ -50,4 +50,6 @@ public class DataSourceModel extends Pages {
     @Column(length = 64)
     private String sourceIdentifier;
 
+    @Transient
+    private String driverTypeName;
 }

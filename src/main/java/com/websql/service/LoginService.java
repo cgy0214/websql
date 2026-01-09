@@ -47,17 +47,7 @@ public interface LoginService {
 
     AjaxResult unlockLoginUser(String code);
 
-    Result<SysDriverConfig> selectDriverConfigList(SysDriverConfig sysDriverConfig);
-
-    AjaxResult deleteDriverConfig(Long id);
-
-    List<Map<String, String>> findDriverConfigListSelect(String id);
-
-    Boolean saveOrUpdateDriverConfig(SysDriverConfig sysDriverConfig);
-
     List<Map<String, String>> queryUsersAllBySelect();
-
-    List<SysDriverConfig> findDriverConfigList(String id);
 
     SysUser findUserById(Long id);
 }
