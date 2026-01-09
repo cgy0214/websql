@@ -69,47 +69,6 @@
         };
     }
 
-    // /**
-    //  * post请求
-    //  * @param url
-    //  * @param data
-    //  * @param callback
-    //  */
-    // function post(url, data, callback) {
-    //     layui.use(function () {
-    //         const $ = layui.jquery;
-    //         const layer = layui.layer;
-    //         let loadIndex;
-    //         $.ajax({
-    //             type: "post",
-    //             url: url,
-    //             async: true,
-    //             data: data == null ? null : JSON.stringify(data),
-    //             dataType: "json",
-    //             contentType: "application/json",
-    //             beforeSend: function () {
-    //                 loadIndex = layer.load(0);
-    //             },
-    //             complete: function () {
-    //                 layer.close(loadIndex);
-    //             },
-    //             success: function (result) {
-    //                 if (typeof (callback) === "function") {
-    //                     callback(result);
-    //                 } else {
-    //                     layer.msg(result.msg, {icon: 1});
-    //                 }
-    //             },
-    //             error: function () {
-    //                 if (typeof (callback) === "function") {
-    //                     callback(false);
-    //                 } else {
-    //                     layer.msg("系统繁忙!", {icon: 2});
-    //                 }
-    //             }
-    //         });
-    //     });
-    // }
     /**
      * 该方法进行优化 优化前端精度丢失问题i
      * @param url

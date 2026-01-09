@@ -654,7 +654,7 @@
                     , page: {prev: '上一页', next: '下一页', groups: 6}
                     , defaultContextmenu: false
                     , pagebar: '#table-page-pageBar'
-                    , text: {none: '查询返回0条数据'}
+                    , text: {none: '查询结果为0条数据'}
                     , size: viewStore.get(tableSizeKey, 'sm')
                 });
                 table.resize(elId);
@@ -927,13 +927,13 @@
          */
         document.onkeydown = function (event) {
             var e = event || window.event || arguments.callee.caller.arguments[0];
-            if (e && e.keyCode == 119) {
+            if (e && e.keyCode === 119) {
                 $("#execute").trigger('click');
             }
-            if (e && e.keyCode == 118) {
+            if (e && e.keyCode === 118) {
                 $("#newSqlOpen").trigger('click');
             }
-            if (e && e.keyCode == 120) {
+            if (e && e.keyCode === 120) {
                 $("#saveSqlText").trigger('click');
             }
         };
@@ -986,7 +986,6 @@
             content: [$("#settingTable").html()].join(''),
             className: 'setting-dropdown-tabs',
             style: 'width: 300px; height: 180px; box-shadow: 1px 1px 30px rgb(0 0 0 / 12%);border-radius:10px;padding:10px;',
-            //shade: 0.3,
             ready: function () {
                 settingView();
             }

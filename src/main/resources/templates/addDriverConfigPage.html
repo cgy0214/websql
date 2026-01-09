@@ -29,21 +29,21 @@
                        th:value="${object.driverClass}"
                        lay-affix="clear"
                        placeholder="请输入驱动类名" class="layui-input">
-                <i style="color: #b0b5b1de;">示例:dm.jdbc.driver.DmDrive</i>
+                <i style="color: #b0b5b1de;">jdbc驱动加载类名,例:dm.jdbc.driver.DmDrive</i>
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">连接模板</label>
             <div class="layui-input-block">
-                <input type="text" name="url" id="url" lay-verify="required" lay-affix="clear" th:value="${object.url}"
+                <input type="text" name="url" id="url" lay-affix="clear" th:value="${object.url}"
                        placeholder="请输入连接模板地址" autocomplete="off" class="layui-input">
-                <i style="color: #b0b5b1de;">新增数据源参考,示例:jdbc:mysql://127.0.0.1:3306/databaseName</i>
+                <i style="color: #b0b5b1de;">新增数据源时参考,例:jdbc:mysql://127.0.0.1:3306/databaseName</i>
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">驱动描述</label>
             <div class="layui-input-block">
-                <input type="text" name="capacity" id="capacity" lay-verify="required" autocomplete="off"
+                <input type="text" name="capacity" id="capacity" autocomplete="off"
                        lay-affix="clear"
                        th:value="${object.capacity}"
                        placeholder="请输入驱动描述" class="layui-input">
@@ -52,25 +52,38 @@
         <div class="layui-form-item">
             <label class="layui-form-label">有效性</label>
             <div class="layui-input-block">
-                <input type="text" name="dbCheckUrl" id="dbCheckUrl" lay-verify="required"
+                <input type="text" name="dbCheckUrl" id="dbCheckUrl"
                        placeholder="请输入SQL验证有效性"
                        th:value="${object.dbCheckUrl}"
                        lay-affix="clear"
                        autocomplete="off" class="layui-input">
-                <i style="color: #b0b5b1de;">例如:select 1</i>
+                <i style="color: #b0b5b1de;">请按照当前数据库类型填写,例:select 1</i>
             </div>
         </div>
+
+        <div class="layui-form-item">
+                <label class="layui-form-label">图标</label>
+                <div class="layui-input-block">
+                    <input type="text" name="image" id="image"
+                           placeholder="请输入图片base64"
+                           th:value="${object.image}"
+                           lay-affix="clear"
+                           autocomplete="off" class="layui-input">
+                    <i style="color: #b0b5b1de;">base64,32*32,例data:image/png;base64,iVBORw</i>
+                </div>
+        </div>
+
         <div class="layui-form-item">
             <div class="layui-inline">
                 <label class="layui-form-label">驱动类型</label>
                 <div class="layui-input-block">
-                    <input type="text" name="typeName" id="typeName" placeholder="请输入数据库登录账号" readonly
+                    <input type="text" name="typeName" id="typeName" placeholder="" disabled
                            th:value="${object.typeName}=='内置' ? '内置':'自定义' "
-                           lay-affix="clear"
                            autocomplete="off" class="layui-input">
                 </div>
             </div>
         </div>
+
         <div class="page-footer">
             <div class="btn-list">
                 <div class="btnlist">

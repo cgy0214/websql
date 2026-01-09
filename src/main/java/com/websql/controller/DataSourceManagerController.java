@@ -42,9 +42,6 @@ public class DataSourceManagerController {
     private DbSourceService dbSourceService;
 
     @Resource
-    private LoginService loginService;
-
-    @Resource
     private DetectionService detectionService;
 
     @Resource
@@ -65,6 +62,7 @@ public class DataSourceManagerController {
         SysDriverConfig sysDriverConfig = new SysDriverConfig();
         modelAndView.addObject("id", id);
         if (ObjectUtil.equal("-1", id)) {
+            sysDriverConfig.setTypeName("自定义");
             sysDriverConfig.setName("Custom");
             sysDriverConfig.setCapacity("自定义数据源，需在【系统管理-驱动管理中】添加驱动配置。");
         }
@@ -105,13 +103,8 @@ public class DataSourceManagerController {
         PreparedStatement pre = null;
         ResultSet rs = null;
         try {
-            DriverCustomService driverCustomService = SpringContextHolder.getBean(DriverCustomService.class);
-             conn = driverCustomService.getDriverConnection(model);
-            //todo 兼容自定义数据源
-            //conn = DriverManager.getConnection(model.getDbUrl().trim(),
-            //        model.getDbAccount().trim(), model.getDbPassword().trim());
+            conn = driverCustomService.getDriverConnection(model);
             DbType jdbcType = DataSourceFactory.getDbTypeByJdbcUrl(model.getDbUrl().trim(), model.getDriverClass());
-            //odps特殊，提交实例运行
             if (jdbcType.equals(DbType.odps)) {
                 if (ObjectUtil.isEmpty(conn.getMetaData().getDatabaseProductName())) {
                     return AjaxResult.error("连接失败,获取odps描述为空!");
@@ -126,13 +119,13 @@ public class DataSourceManagerController {
                 return AjaxResult.error("连接失败,返回结果集为空!");
             }
         } catch (Exception e) {
+            log.error("检查链接失败,{}", e.getMessage(), e);
             if (e.getMessage().contains("No suitable driver")) {
                 return AjaxResult.error("连接失败,请检查【系统-驱动管理】是否已导入驱动! <br>" + e.getMessage());
             }
             if (e.getMessage().contains("The driver has not received any packets from the server")) {
                 return AjaxResult.error("连接失败,请检查与数据库网络是否联通! \n<br>" + e.getMessage());
             }
-            log.error("检查链接失败,{}", e.getMessage(), e);
             return AjaxResult.error("连接失败,错误信息:" + e.getMessage());
         } finally {
             JdbcUtils.releaseConn(rs, pre, conn);

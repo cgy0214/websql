@@ -29,6 +29,9 @@ public class DataSourceFactory {
 
     private static final ConcurrentHashMap<String, DruidDataSource> DATA_SOURCE_MAP = new ConcurrentHashMap<String, DruidDataSource>(1);
 
+    //todo 数据源唯一标识方案待大数据版本开发实现。
+    private static final ConcurrentHashMap<String, String> DATA_KEY_IDENTIFIER_MAP = new ConcurrentHashMap<String, String>(0);
+
     /**
      * 初始化数据源连接池
      *
@@ -86,112 +89,90 @@ public class DataSourceFactory {
 
 
     /**
-     * 插入数据源连接池到缓存
+     * 保存数据源连接池
+     *
+     * @param config 数据源对象
+     * @throws SQLException
      */
     public static void saveDataSource(DataSourceModel config) throws SQLException {
-        if (config != null) {
+        if (ObjectUtil.isNull(config)) {
+            throw new RuntimeException("数据源对象为空,无法创建连接池");
+        }
+        DruidDataSource ds = new DruidDataSource();
+        ds.setDriverClassName(config.getDriverClass().trim());
+        ds.setUsername(config.getDbAccount().trim());
+        ds.setPassword(config.getDbPassword().trim());
+        ds.setUrl(config.getDbUrl().trim());
+        ds.setInitialSize(config.getInitialSize());
+        ds.setMaxActive(config.getMaxActive());
+        ds.setMaxWait(config.getMaxWait());
+        ds.setValidationQuery(config.getDbCheckUrl());
+        ds.setBreakAfterAcquireFailure(true);
+        ds.setConnectionErrorRetryAttempts(0);
+        ds.setFailFast(true);
+        if (ObjectUtil.notEqual("内置", config.getDriverTypeName())) {
             DriverCustomService driverCustomService = SpringContextHolder.getBean(DriverCustomService.class);
-            DruidDataSource ds = new DruidDataSource();
-            ds.setDriverClassName(config.getDriverClass().trim());
-            ds.setUsername(config.getDbAccount().trim());
-            ds.setPassword(config.getDbPassword().trim());
-            ds.setUrl(config.getDbUrl().trim());
-            ds.setInitialSize(config.getInitialSize());
-            ds.setMaxActive(config.getMaxActive());
-            ds.setMaxWait(config.getMaxWait());
-            ds.setValidationQuery(config.getDbCheckUrl());
-            ds.setBreakAfterAcquireFailure(true);
-            ds.setConnectionErrorRetryAttempts(0);
-            ds.setFailFast(true);
-            //todo 修改兼容自定义数据源
             ds.setDriverClassLoader(driverCustomService.getCustomClassLoader());
-            try {
-                ds.init();
-                DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
-            } catch (Exception e) {
-                DruidDataSourceStatManager.removeDataSource(ds);
-                throw new RuntimeException(e);
-            }
+        }
+        try {
+            ds.init();
+            DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
+        } catch (Exception e) {
+            DruidDataSourceStatManager.removeDataSource(ds);
+            throw new RuntimeException(e);
         }
     }
 
+    /**
+     * 获得连接池
+     */
+    private static DruidDataSource getDataSource(String sourceKey) {
+        return DATA_SOURCE_MAP.get(sourceKey.trim());
+    }
 
     /**
      * 从缓存里删除指定的数据源连接池
      */
     public static void removeDataSource(String sourceKey) {
-        DruidDataSource ds = DATA_SOURCE_MAP.get(sourceKey.trim());
-        if (ds == null) {
-            return;
-        }
-        //shutdownDataSource(ds);
+        DruidDataSource dataSource = getDataSource(sourceKey);
         DATA_SOURCE_MAP.remove(sourceKey.trim());
-        DruidDataSourceStatManager.removeDataSource(ds);
+        DruidDataSourceStatManager.removeDataSource(dataSource);
         log.info(" Delete DataSource {} Successful.", sourceKey);
     }
 
 
     /**
-     * 修改数据源连接池到缓存,未实现修改方法
-     */
-
-    public static void updateDataSource(DataSourceModel config) throws Exception {
-        if (config != null) {
-            //先将原有数据源连接池从缓存中删除
-            removeDataSource(config.getDbName());
-            DruidDataSource ds = new DruidDataSource();
-            ds.setDriverClassName(config.getDriverClass().trim());
-            ds.setUsername(config.getDbAccount().trim());
-            ds.setPassword(config.getDbPassword().trim());
-            ds.setUrl(config.getDbUrl().trim());
-            ds.setInitialSize(config.getInitialSize());
-            ds.setMaxActive(config.getMaxActive());
-            ds.setMaxWait(config.getMaxWait());
-            ds.setValidationQuery("select 1");
-            ds.setConnectionErrorRetryAttempts(1);
-            ds.setNotFullTimeoutRetryCount(-1);
-            ds.setBreakAfterAcquireFailure(true);
-            ds.setConnectionErrorRetryAttempts(0);
-            DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
-        }
-        log.info("Successful Update  DbSources ");
-    }
-
-
-    /**
-     * 获得连接池
-     */
-
-    public static DruidDataSource getDataSource(String sourceKey) {
-        return DATA_SOURCE_MAP.get(sourceKey.trim());
-    }
-
-    /**
-     * 获取连接
+     * 获得数据库连接
      *
-     * @param source
+     * @param sourceKey 数据源key
      * @return
      */
-    public static Connection getConnection(DruidDataSource source) {
-        Connection con = null;
-        if (source != null) {
-            try {
-                con = source.getConnection();
-            } catch (Exception e) {
-                log.error(e.getMessage());
+    public static Connection getConnectionBySourceKey(String sourceKey) {
+        DruidDataSource dataSource = getDataSource(sourceKey);
+        if (dataSource == null) {
+            String errorMsg = String.format("%s: 连接销毁, 未获取到数据源", sourceKey);
+            log.error("{},需在参数设置中重新建立连接。", errorMsg);
+            throw new IllegalStateException(errorMsg);
+        }
+        try {
+            Connection connection = dataSource.getConnection();
+            if (connection == null) {
+                log.warn("从数据源 {} 获取连接失败，返回了 null,连接池会尝试重新连接.", sourceKey);
+                throw new SQLException("无法从数据源获取有效连接: " + sourceKey);
             }
-            return con;
-        }
-        return con;
-    }
-
-    protected static void shutdownDataSource(DruidDataSource source) {
-        if (source != null) {
-            source.close();
+            return connection;
+        } catch (SQLException e) {
+            log.error("从数据源 {} 获取连接时发生异常: {}", sourceKey, e.getMessage(), e);
+            throw new RuntimeException("获取数据库连接失败: " + sourceKey, e);
         }
     }
 
-
+    /**
+     * 获取数据库类型
+     *
+     * @param sourceKey 数据源key
+     * @return
+     */
     public static String getDbType(String sourceKey) {
         DruidDataSource druidDataSource = DATA_SOURCE_MAP.get(sourceKey);
         if (ObjectUtil.isNotNull(druidDataSource)) {
@@ -200,6 +181,13 @@ public class DataSourceFactory {
         return null;
     }
 
+    /**
+     * 获取数据库类型
+     *
+     * @param jdbcUrl   jdbcUrl
+     * @param className 类名
+     * @return
+     */
     public static DbType getDbTypeByJdbcUrl(String jdbcUrl, String className) {
         DbType dbType = JdbcUtils.getDbTypeRaw(jdbcUrl, className);
         if (ObjectUtil.isNotEmpty(dbType)) {
@@ -216,7 +204,7 @@ public class DataSourceFactory {
     /**
      * 获取数据库名称
      *
-     * @param sourceKey
+     * @param sourceKey 数据源key
      * @return
      */
     public static String getDataBaseName(String sourceKey) {
@@ -231,6 +219,12 @@ public class DataSourceFactory {
         return null;
     }
 
+    /**
+     * 获取数据库产品名称
+     *
+     * @param sourceKey 数据源key
+     * @return
+     */
     public static String getDataBaseProductName(String sourceKey) {
         try {
             DruidDataSource dataSource = getDataSource(sourceKey);
@@ -244,7 +238,7 @@ public class DataSourceFactory {
     }
 
     /**
-     * 根据jdbcUrl获取数据库名称
+     * 根据jdbcUrl获取数据库实例名称
      *
      * @param jdbcUrl url
      * @return

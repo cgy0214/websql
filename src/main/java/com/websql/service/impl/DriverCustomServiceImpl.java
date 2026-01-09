@@ -102,9 +102,24 @@ public class DriverCustomServiceImpl implements DriverCustomService {
 
     @Override
     public Connection getDriverConnection(DataSourceModel model) throws SQLException {
-        Connection conn = DriverManager.getConnection(model.getDbUrl().trim(),
-                model.getDbAccount().trim(), model.getDbPassword().trim());
-        return conn;
+        try {
+            if (ObjectUtil.equal(model.getDriverTypeName(), "内置")) {
+                return DriverManager.getConnection(model.getDbUrl().trim(),
+                        model.getDbAccount().trim(), model.getDbPassword().trim());
+            }
+            Class<?> driverClass = customClassLoader.loadClass(model.getDriverClass());
+            Driver driver = (Driver) driverClass.getDeclaredConstructor().newInstance();
+            if (driver.acceptsURL(model.getDbUrl().trim())) {
+                return driver.connect(model.getDbUrl().trim(),
+                        new java.util.Properties() {{
+                            put("user", model.getDbAccount().trim());
+                            put("password", model.getDbPassword().trim());
+                        }});
+            }
+        } catch (Exception e) {
+            throw new SQLException("Failed to create connection", e);
+        }
+        throw new SQLException("No suitable driver found for " + model.getDbUrl());
     }
 
     @Override
@@ -186,10 +201,11 @@ public class DriverCustomServiceImpl implements DriverCustomService {
             Class<?> driverClass = customClassLoader.loadClass(sysDriverConfig.getDriverClass());
             DriverManager.registerDriver((Driver) driverClass.getDeclaredConstructor().newInstance());
             sysDriverConfigRepository.save(sysDriverConfig);
+            return AjaxResult.success("新增成功");
         } catch (Exception e) {
             log.error("id:{},名称:{},新增自定义驱动失败:{}", sysDriverConfig.getId(), sysDriverConfig.getName(), e.getMessage(), e);
+            return AjaxResult.error("新增失败," + e.getMessage());
         }
-        return AjaxResult.success("新增成功");
     }
 
 
