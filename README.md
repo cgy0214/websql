@@ -24,7 +24,7 @@
 
 ---
 
-## 🔧 webSql 介绍
+## 🔧 webSql 核心介绍
 
 **webSql** 支持动态配置 `多数据源`、`权限控制`、在线 `执行SQL`、`AI` Text2Sql、常用 `SQL文本实时获取`、`导出、打印` 结果集、可控的 `日志记录`、团队 `数据隔离`、`危险` SQL限制运行、生产环境 `数据` 同步、`OpenAPI`、ETL抽取、元数据查询、SQL生成、定时 `监测数据趋势` 告警功能；众多功能集一身的 `SQL在线执行工具`。
 
@@ -84,38 +84,6 @@ WebSql 主要功能模块：
 
 ---
 
-## 👨‍💻 参与开发
-
-1. 克隆项目：
-   ```bash
-   git clone https://gitee.com/boy_0214/websql.git
-   ```
-   
-   ```
-   jdk8+ 环境
-   maven 仓库使用阿里云or腾讯仓库
-   ```
-   
-2. 启动项目：
-   - 运行 `Application.java`
-   - 基于 `dev` 开发完成后提交至PR `dev` 分支
-
-3. 提交代码：
-   - 自测完成后，Gitee提交PR至 `dev` 分支
-
-4. 编译打包：
-   ```bash
-   mvn clean package
-   ```
-   部署文件位于 `target/websql.jar`
-
-5. 构建Docker镜像：
-   ```bash
-   docker build -f dockerfile --tag websql/websql:4.x --tag your-repo/websql:latest .
-   docker push
-   ```
-
----
 
 ## 🚀 应用部署
 
@@ -159,6 +127,31 @@ docker logs websql
 > 配置较低，可能会出现不稳定情况。
 
 ---
+
+
+## 👨‍💻 参与贡献
+
+欢迎参与开发，欢迎提issue、pr，项目地址：[https://gitee.com/boy_0214/websql](https://gitee.com/boy)
+
+📚 [开发文档](https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7676296&doc_id=3405209)
+
+
+---
+
+## 🚀 未来规划
+
+- **聚焦大数据开发平台基础架构**  
+  优化核心框架，提升稳定性与扩展性，支撑更高效的海量数据开发流程。
+
+- **构建异构数据集成与处理平台**  
+  实现多源、多类型数据的无缝接入与统一处理，打破传统困境，提升数据融合能力。
+
+- **整合轻量级数据可视化平台**  
+  提供简洁、直观的数据展示与交互功能，助力快速洞察数据价值。
+
+始终秉持 **“简约而不简单”** 的理念，聚焦大数据开发领域，追求功能简洁、体验流畅、易用可靠。
+
+欢迎参与贡献，共同打造一个实用, 高效的开源数据产品。
 
 ## 💬 交流群
 
