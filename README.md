@@ -90,10 +90,15 @@ WebSql 主要功能模块：
    ```bash
    git clone https://gitee.com/boy_0214/websql.git
    ```
-
+   
+   ```
+   jdk8+ 环境
+   maven 仓库使用阿里云or腾讯仓库
+   ```
+   
 2. 启动项目：
-   - 运行 `WebplsqlApplication.java`
-   - 基于 `master` 开发完成后提交至 `dev` 分支
+   - 运行 `Application.java`
+   - 基于 `dev` 开发完成后提交至PR `dev` 分支
 
 3. 提交代码：
    - 自测完成后，Gitee提交PR至 `dev` 分支
@@ -106,7 +111,7 @@ WebSql 主要功能模块：
 
 5. 构建Docker镜像：
    ```bash
-   docker build -f dockerfile --tag cgycms/websql:3.x --tag cgycms/websql:latest .
+   docker build -f dockerfile --tag websql/websql:4.x --tag your-repo/websql:latest .
    docker push
    ```
 
@@ -133,7 +138,7 @@ nohup java -jar websql.jar >> web.log &
 
 ```bash
 # 拉取镜像（如果pull失败，可以加群寻找国内镜像地址）
-docker pull cgycms/websql:latest
+docker pull registry.cn-beijing.aliyuncs.com/cgycms/websql:latest
 
 # 运行容器
 docker run -di --name websql -p 80:80 cgycms/websql:latest
