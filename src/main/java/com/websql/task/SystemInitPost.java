@@ -159,8 +159,11 @@ public class SystemInitPost {
             }
         }
         log.info("Initializing Underway {} DataSource", initDataSourceList.size());
-        DriverCustomService driverCustomService = SpringContextHolder.getBean(DriverCustomService.class);
-        driverCustomService.loadDriverCustomAll();
+        boolean isDriver = initDataSourceList.stream().anyMatch(s -> s.getDriverTypeName().equals("自定义"));
+        if (isDriver) {
+            DriverCustomService driverCustomService = SpringContextHolder.getBean(DriverCustomService.class);
+            driverCustomService.loadDriverCustomAll();
+        }
         DataSourceFactory.initDataSource(initDataSourceList);
         return initDataSourceList.size();
     }

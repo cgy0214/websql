@@ -41,6 +41,7 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -90,10 +91,13 @@ public class DbSourceServiceImpl implements DbSourceService {
     public List<DataSourceModel> reloadDataSourceList() {
         List<DataSourceModel> dataSourceModels = dbSourceRepository.reloadDataSourceList();
         List<SysDriverConfig> list = sysDriverConfigRepository.findAll();
-        Map<String, String> typeNameMap = list.stream().collect(Collectors.toMap(SysDriverConfig::getDriverClass, SysDriverConfig::getTypeName, (k1, k2) -> k2));
+        Map<String, SysDriverConfig> driverConfigMap = list.stream().collect(Collectors.toMap(SysDriverConfig::getDriverClass, Function.identity(), (k1, k2) -> k2));
         dataSourceModels.forEach(dataSourceModel -> {
-            String typeName = typeNameMap.get(dataSourceModel.getDriverClass());
-            dataSourceModel.setDriverTypeName(typeName);
+            SysDriverConfig type = driverConfigMap.get(dataSourceModel.getDriverClass());
+            if (ObjectUtil.isNotNull(type)) {
+                dataSourceModel.setDriverTypeName(type.getTypeName());
+                dataSourceModel.setDruidFilterType(type.getDruidFilterType());
+            }
         });
         return dataSourceModels;
     }

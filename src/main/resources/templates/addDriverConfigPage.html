@@ -62,6 +62,18 @@
         </div>
 
         <div class="layui-form-item">
+            <label class="layui-form-label">防火墙</label>
+            <div class="layui-input-block">
+                <input type="text" name="druidFilterType" id="druidFilterType"
+                       placeholder="请输入Druid防火墙支持类型"
+                       th:value="${object.druidFilterType}"
+                       lay-affix="clear"
+                       autocomplete="off" class="layui-input">
+                <i style="color: #b0b5b1de;">如果您不知道如何配置,请设置空。支持参数:stat,wall...</i>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
                 <label class="layui-form-label">图标</label>
                 <div class="layui-input-block">
                     <input type="text" name="image" id="image"

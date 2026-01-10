@@ -53,4 +53,9 @@ public class SysDriverConfig extends Pages {
 
     @Column(columnDefinition = "TEXT")
     private String capacity;
+
+    /**
+     * 是否支持druid防火墙支持类型stat,wall
+     */
+    private String druidFilterType;
 }

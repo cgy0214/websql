@@ -61,23 +61,27 @@ public class DataSourceFactory {
                 ds.setDriverClassLoader(driverCustomService.getCustomClassLoader());
             }
             try {
-                //druid不支持某些数据库防火墙功能
-                DbType dbTypeRaw = getDbTypeByJdbcUrl(config.getDbUrl().trim(), config.getDriverClass().trim());
-                if (dbTypeRaw.equals(DbType.dm)
-                        || dbTypeRaw.equals(DbType.kingbase)
-                        || dbTypeRaw.equals(DbType.oscar)
-                        || dbTypeRaw.equals(DbType.odps)
-                        || dbTypeRaw.equals(DbType.clickhouse)) {
-                    //ds.setFilters("stat");
+                if (ObjectUtil.isNull(config.getDruidFilterType())) {
+                    //druid不支持某些数据库防火墙功能
+                    DbType dbTypeRaw = getDbTypeByJdbcUrl(config.getDbUrl().trim(), config.getDriverClass().trim());
+                    if (dbTypeRaw.equals(DbType.dm)
+                            || dbTypeRaw.equals(DbType.kingbase)
+                            || dbTypeRaw.equals(DbType.oscar)
+                            || dbTypeRaw.equals(DbType.odps)
+                            || dbTypeRaw.equals(DbType.clickhouse)) {
+                        //ds.setFilters("stat");
+                    } else {
+                        ds.setFilters("stat,wall");
+                    }
                 } else {
-                    ds.setFilters("stat,wall");
+                    ds.setFilters(config.getDruidFilterType() == null ? "" : config.getDruidFilterType());
                 }
                 ds.setConnectionProperties("druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000");
                 ds.setAsyncInit(true);
                 ds.init();
                 DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
                 index++;
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 log.error("数据源初始化失败:{},错误信息：{}", config.getDbName(), e.getMessage());
                 if (ObjectUtil.isNotNull(ds)) {
                     DruidDataSourceStatManager.removeDataSource(ds);
@@ -135,7 +139,7 @@ public class DataSourceFactory {
      */
     public static void removeDataSource(String sourceKey) {
         DruidDataSource dataSource = getDataSource(sourceKey);
-        if(ObjectUtil.isNotNull(dataSource)){
+        if (ObjectUtil.isNotNull(dataSource)) {
             DATA_SOURCE_MAP.remove(sourceKey.trim());
             DruidDataSourceStatManager.removeDataSource(dataSource);
             log.info(" Delete DataSource {} Successful.", sourceKey);

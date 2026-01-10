@@ -52,4 +52,7 @@ public class DataSourceModel extends Pages {
 
     @Transient
     private String driverTypeName;
+
+    @Transient
+    private String druidFilterType;
 }

@@ -114,7 +114,15 @@ public class SettingConfigController {
         if (ObjectUtil.isNotNull(id)) {
             List<Map<String, String>> driverConfigListSelect = driverCustomService.findDriverConfigListSelect(String.valueOf(id));
             if (!driverConfigListSelect.isEmpty()) {
-                modelAndView.addObject("object", driverConfigListSelect.get(0));
+                Map<String, String> params = driverConfigListSelect.get(0);
+                //兼容老数据模型
+                if (!params.containsKey("druidFilterType")) {
+                    params.put("druidFilterType", "");
+                }
+                if (params.containsKey("image")) {
+                    params.put("image", "");
+                }
+                modelAndView.addObject("object", params);
             }
         }
         return modelAndView;
