@@ -250,8 +250,15 @@
      * 跳转至帮助文档
      * @param url
      */
-    function openHelpPage(url) {
-        window.open(url, '_blank');
+    function helpToolbarConfig(url) {
+        return {
+            title: '帮助文档',
+            layEvent: 'LAYTABLE_TIPS',
+            icon: 'layui-icon-tips',
+            onClick: function (obj) {
+                window.open(url, '_blank')
+            }
+        };
     }
 
     /*]]>*/

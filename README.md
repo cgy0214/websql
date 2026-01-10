@@ -8,7 +8,7 @@
     <a href="https://maven.apache.org"><img src="https://img.shields.io/badge/maven-3.5+-e4ec27.svg"></a>
     <a href="https://gitee.com/boy_0214/websql/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL3.0-blue.svg"></a>
     <a href="https://websql.cgygeo.com"><img src="https://img.shields.io/badge/demo-%E6%BC%94%E7%A4%BA%E7%8E%AF%E5%A2%83-8A2BE2.svg"></a>
-    <a href="https://gitee.com/boy_0214/websql/wikis/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><img src="https://img.shields.io/badge/wiki-%E5%B8%AE%E5%8A%A9%E6%96%87%E6%A1%A3-16b777.svg"></a>
+    <a href="https://gitee.com/boy_0214/websql/wikis/pages"><img src="https://img.shields.io/badge/wiki-%E5%B8%AE%E5%8A%A9%E6%96%87%E6%A1%A3-16b777.svg"></a>
     <a href="https://eazydevelop.eazytec-cloud.com/templates/dev-template-1683b6-1763602123?q=4K4b_1VnlTK_2bnN9Y"><img src="https://img.shields.io/badge/EazyDevelop-%E4%B8%80%E9%94%AE%E9%83%A8%E7%BD%B2-orange.svg"></a>
 </p>
 
@@ -79,7 +79,7 @@ WebSql 主要功能模块：
 - **团队管理** —— 不同团队之间，数据完全隔离，更细致的权限控制
 - **监测管理** —— 不同团队自定义SQL，定时执行数据监测，达到阈值自定义告警通知
 - **参数设置** —— 参数设置中可以操作更多细致化控制
-- **OpenAPI** —— 支持HTTP调用系统接口形式执行SQL动作 [<a href='https://gitee.com/boy_0214/websql/wikis/openapi'>查看示例</a>]
+- **OpenAPI** —— 支持HTTP调用系统接口形式执行SQL动作 [<a href='https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7884992&doc_id=3405209'>查看示例</a>]
 - **开箱即用** —— 提供jar、docker镜像，内置H2数据库，一条命令即可启动，真正的开箱即用
 
 ---
@@ -114,7 +114,7 @@ WebSql 主要功能模块：
 
 ## 🚀 应用部署
 
-[多种部署方式推荐](https://gitee.com/boy_0214/websql/wikis/%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C#%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F)
+[多种部署方式推荐](https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7654654&doc_id=3405209#-%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F)
 
 ### JAR部署
 

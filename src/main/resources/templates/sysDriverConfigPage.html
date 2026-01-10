@@ -66,14 +66,7 @@
             elem: '#dataTable',
             url: ctx + 'settingManager/driverConfigList',
             toolbar: true,
-            defaultToolbar: ['filter', 'exports', 'print',{
-                title: '帮助文档',
-                layEvent: 'LAYTABLE_TIPS',
-                icon: 'layui-icon-tips',
-                onClick: function(obj) {
-                    openHelpPage('https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16587865&doc_id=3405209')
-                }
-            }],
+            defaultToolbar: ['filter', 'exports', 'print', helpToolbarConfig('https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16587865&doc_id=3405209')],
             page: true,
             height: '525',
             cols: [

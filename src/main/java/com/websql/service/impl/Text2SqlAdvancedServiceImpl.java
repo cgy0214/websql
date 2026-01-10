@@ -179,7 +179,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
                     new AiStreamingResponseHandler(emitter, chatMemory,prompt.length())
             );
         } else {
-            log.error("请检查是否配置了OpenAI API Key,wiki: https://gitee.com/boy_0214/websql/wikis/%E5%BC%80%E5%8F%91%E6%89%8B%E5%86%8C");
+            log.error("请检查是否配置了OpenAI API Key,wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7676296&doc_id=3405209#-openai-%E6%A8%A1%E5%9E%8B%E9%85%8D%E7%BD%AE");
             sseEmitterService.sendToUser(userId, "请检查是否配置AI相关参数，请参考LOG Wiki配置！");
             sseEmitterService.closeConnection(userId);
         }
