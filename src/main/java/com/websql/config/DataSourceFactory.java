@@ -135,9 +135,11 @@ public class DataSourceFactory {
      */
     public static void removeDataSource(String sourceKey) {
         DruidDataSource dataSource = getDataSource(sourceKey);
-        DATA_SOURCE_MAP.remove(sourceKey.trim());
-        DruidDataSourceStatManager.removeDataSource(dataSource);
-        log.info(" Delete DataSource {} Successful.", sourceKey);
+        if(ObjectUtil.isNotNull(dataSource)){
+            DATA_SOURCE_MAP.remove(sourceKey.trim());
+            DruidDataSourceStatManager.removeDataSource(dataSource);
+            log.info(" Delete DataSource {} Successful.", sourceKey);
+        }
     }
 
 
@@ -174,7 +176,7 @@ public class DataSourceFactory {
      * @return
      */
     public static String getDbType(String sourceKey) {
-        DruidDataSource druidDataSource = DATA_SOURCE_MAP.get(sourceKey);
+        DruidDataSource druidDataSource = getDataSource(sourceKey);
         if (ObjectUtil.isNotNull(druidDataSource)) {
             return getDbTypeByJdbcUrl(druidDataSource.getRawJdbcUrl(), "").name();
         }

@@ -12,7 +12,6 @@ import com.websql.model.Result;
 import com.websql.model.SysDriverConfig;
 import com.websql.service.*;
 import com.websql.util.PasswordUtil;
-import com.websql.util.SpringContextHolder;
 import com.websql.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -58,7 +57,7 @@ public class DataSourceManagerController {
 
     @RequestMapping("/addSourcePage")
     public ModelAndView addSourcePage(@RequestParam(required = false) String id) {
-        ModelAndView modelAndView = new ModelAndView("addSourcePage");
+        ModelAndView modelAndView = new ModelAndView("addDataSourcePage");
         SysDriverConfig sysDriverConfig = new SysDriverConfig();
         modelAndView.addObject("id", id);
         if (ObjectUtil.equal("-1", id)) {

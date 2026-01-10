@@ -22,8 +22,9 @@
                        placeholder="数据源名称" class="layui-input">
             </div>
             <div class="layui-input-inline" style="width: 40%;">
-                <input type="text" name="sourceIdentifier" id="sourceIdentifier" autocomplete="off" lay-affix="clear"
-                       placeholder="数据源标识" class="layui-input" onblur="validateSourceIdentifier()">
+                <input type="text" name="sourceIdentifier" id="sourceIdentifier" lay-affix="clear" autocomplete="new-password"
+                       placeholder="数据源标识" class="layui-input" onblur="validateSourceIdentifier()"
+                >
             </div>
         </div>
         <div class="layui-form-item">
@@ -56,8 +57,7 @@
                 <label class="layui-form-label">数据库密码</label>
                 <div class="layui-input-inline">
                     <input type="password" name="dbPassword" id="dbPassword" placeholder="数据库登录密码"
-                           lay-affix="eye"
-                           autocomplete="off" class="layui-input">
+                           lay-affix="eye"  autocomplete="new-password" class="layui-input">
                 </div>
             </div>
             <div class="layui-inline">
