@@ -1,5 +1,6 @@
 package com.websql.service.impl;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
@@ -11,6 +12,7 @@ import com.websql.model.SysDriverConfig;
 import com.websql.service.DriverCustomService;
 import com.websql.util.CacheUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -44,7 +46,8 @@ public class DriverCustomServiceImpl implements DriverCustomService {
     @Resource
     private SysDriverConfigRepository sysDriverConfigRepository;
 
-    String PATH = "C:\\Users\\Administrator\\Desktop\\test";
+    @Value("${export.driver.path}")
+    private String driverPath;
 
 
     @Override
@@ -57,7 +60,14 @@ public class DriverCustomServiceImpl implements DriverCustomService {
         SysDriverConfig param = new SysDriverConfig();
         param.setTypeName("自定义");
         List<SysDriverConfig> list = sysDriverConfigRepository.findAll(Example.of(param));
-        loadJarsFromDir(PATH);
+        if (list.isEmpty()) {
+            return;
+        }
+        loadJarsFromDir();
+        if (ObjectUtil.isNull(customClassLoader)) {
+            log.warn("load custom driver error,No Driver Jar ClassLoader");
+            return;
+        }
         int count = 0;
         for (SysDriverConfig sysDriverConfig : list) {
             try {
@@ -68,21 +78,27 @@ public class DriverCustomServiceImpl implements DriverCustomService {
                 log.error("id:{},名称:{},加载自定义驱动失败:{}", sysDriverConfig.getId(), sysDriverConfig.getName(), e.getMessage(), e);
             }
         }
-        log.info("load Custom Driver {} Success.", count);
+        log.info("load custom Driver {} Success", count);
     }
 
     /**
      * 加载指定目录中的所有JAR文件
      */
-    public void loadJarsFromDir(String dirPath) {
+    public void loadJarsFromDir() {
+        String dirPath = driverPath;
+        if (ObjectUtil.isEmpty(dirPath)) {
+            dirPath = System.getProperty("user.dir") + FileUtil.FILE_SEPARATOR + "data" + FileUtil.FILE_SEPARATOR + "driverLibs";
+        }
         File dir = new File(dirPath);
         if (!dir.exists() || !dir.isDirectory()) {
-            throw new IllegalArgumentException("Invalid directory: " + dirPath);
+            dir.mkdir();
+            log.error("load custom Driver error,,No in directory " + dirPath);
+            return;
         }
-
         File[] files = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".jar"));
         if (files == null || files.length == 0) {
-            throw new IllegalStateException("No JAR files found in directory: " + dirPath);
+            log.error("load custom Driver error,No JAR files found in directory: " + dirPath);
+            return;
         }
         List<URL> urls = new ArrayList<>();
         for (File file : files) {
@@ -196,8 +212,11 @@ public class DriverCustomServiceImpl implements DriverCustomService {
         if (ObjectUtil.equal(sysDriverConfig.getTypeName(), "内置")) {
             return AjaxResult.error("内置驱动配置不允许修改!");
         }
-        loadJarsFromDir(PATH);
+        loadJarsFromDir();
         try {
+            if (ObjectUtil.isNull(customClassLoader)) {
+                return AjaxResult.error("新增失败,没有找到对应驱动,请检查驱动目录是否存在或查看帮助文档!");
+            }
             Class<?> driverClass = customClassLoader.loadClass(sysDriverConfig.getDriverClass());
             DriverManager.registerDriver((Driver) driverClass.getDeclaredConstructor().newInstance());
             sysDriverConfigRepository.save(sysDriverConfig);
