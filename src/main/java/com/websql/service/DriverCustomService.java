@@ -1,9 +1,6 @@
 package com.websql.service;
 
-import com.websql.model.AjaxResult;
-import com.websql.model.DataSourceModel;
-import com.websql.model.Result;
-import com.websql.model.SysDriverConfig;
+import com.websql.model.*;
 
 import java.net.URLClassLoader;
 import java.sql.Connection;
@@ -31,5 +28,7 @@ public interface DriverCustomService {
     List<SysDriverConfig> findDriverConfigList(String id);
 
     Connection getDriverConnection(DataSourceModel model) throws SQLException;
+
+    String downloadDriver(DriverDependencyQo qo);
 
 }

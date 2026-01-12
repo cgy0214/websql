@@ -5,10 +5,7 @@ import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.websql.dao.SysDriverConfigRepository;
-import com.websql.model.AjaxResult;
-import com.websql.model.DataSourceModel;
-import com.websql.model.Result;
-import com.websql.model.SysDriverConfig;
+import com.websql.model.*;
 import com.websql.service.DriverCustomService;
 import com.websql.util.CacheUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -18,13 +15,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.Predicate;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -237,5 +243,71 @@ public class DriverCustomServiceImpl implements DriverCustomService {
         return sysDriverConfigRepository.findAll();
     }
 
+    @Override
+    public String downloadDriver(DriverDependencyQo driverDependencyQo) {
+        if (ObjectUtil.isNotNull(driverDependencyQo.getType()) && ObjectUtil.equal(driverDependencyQo.getType(), "maven")) {
+            try {
+                DriverDependencyQo xmlModel = parseDependency(driverDependencyQo.getXmlContent());
+                driverDependencyQo.setArtifactId(xmlModel.getArtifactId());
+                driverDependencyQo.setGroupId(xmlModel.getGroupId());
+                driverDependencyQo.setVersion(xmlModel.getVersion());
+                driverDependencyQo.setCentral("https://repo1.maven.org/maven2");
+            } catch (Exception e) {
+                log.error("解析maven坐标失败:{}", e.getMessage(), e);
+                throw new RuntimeException("解析坐标失败:" + e.getMessage());
+            }
+        } else {
+            if (ObjectUtil.isEmpty(driverDependencyQo.getCentral())) {
+                throw new RuntimeException("下载地址不能为空!");
+            }
+        }
+        try {
+            return downloadJar(driverDependencyQo, driverPath);
+        } catch (IOException e) {
+            log.error("下载驱动失败:{}", e.getMessage(), e);
+            throw new RuntimeException("下载驱动失败" + e.getMessage());
+        }
+    }
+
+    private static String downloadJar(DriverDependencyQo dependencyQo, String targetDir) throws IOException {
+        String downloadUrl = dependencyQo.getCentral();
+        String targetPath = targetDir;
+        if (ObjectUtil.isNotNull(dependencyQo.getType()) && ObjectUtil.equal(dependencyQo.getType(), "maven")) {
+            String groupPath = dependencyQo.getGroupId().replace('.', '/');
+            String jarName = dependencyQo.getArtifactId() + "-" + dependencyQo.getVersion() + ".jar";
+            String relativePath = String.format("%s/%s/%s/%s", groupPath, dependencyQo.getArtifactId(), dependencyQo.getVersion(), jarName);
+            downloadUrl = downloadUrl + "/" + relativePath;
+            targetPath = Paths.get(targetDir, jarName).toString();
+        }
+        log.info("下载驱动开始: {},\n 保存路径:{}", downloadUrl, targetPath);
+        Files.createDirectories(Paths.get(targetDir));
+        try (BufferedInputStream in = new BufferedInputStream(new URL(downloadUrl).openStream());
+             FileOutputStream out = new FileOutputStream(targetPath)) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        }
+        log.info("下载驱动完成: {}", targetPath);
+        return targetPath;
+    }
+
+
+    private static DriverDependencyQo parseDependency(String xmlContent) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new org.xml.sax.InputSource(
+                new java.io.StringReader(xmlContent)));
+        Element root = document.getDocumentElement();
+        String groupId = getElementText(root, "groupId");
+        String artifactId = getElementText(root, "artifactId");
+        String version = getElementText(root, "version");
+        return new DriverDependencyQo(groupId, artifactId, version);
+    }
+
+    private static String getElementText(Element parent, String tagName) {
+        return parent.getElementsByTagName(tagName).item(0).getTextContent();
+    }
 
 }
