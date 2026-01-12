@@ -271,6 +271,18 @@ public class SettingConfigController {
         return driverCustomService.saveOrUpdateDriverConfig(sysDriverConfig);
     }
 
+    @RequestMapping("/downloadDriver")
+    @ResponseBody
+    public AjaxResult downloadDriver(@RequestBody DriverDependencyQo qo) {
+        try {
+            String result = driverCustomService.downloadDriver(qo);
+            return AjaxResult.success();
+        } catch (Exception e) {
+            log.error("失败", e);
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
 
     @RequestMapping("/queryTeamList")
     @ResponseBody

@@ -24,7 +24,6 @@ public interface DriverCustomService {
 
     AjaxResult saveOrUpdateDriverConfig(SysDriverConfig sysDriverConfig);
 
-
     List<SysDriverConfig> findDriverConfigList(String id);
 
     Connection getDriverConnection(DataSourceModel model) throws SQLException;

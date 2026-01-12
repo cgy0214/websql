@@ -262,10 +262,14 @@ public class DriverCustomServiceImpl implements DriverCustomService {
             }
         }
         try {
-            return downloadJar(driverDependencyQo, driverPath);
+            String pathLibs = driverPath;
+            if (ObjectUtil.isEmpty(pathLibs)) {
+                pathLibs = System.getProperty("user.dir") + FileUtil.FILE_SEPARATOR + "data" + FileUtil.FILE_SEPARATOR + "driverLibs";
+            }
+            return downloadJar(driverDependencyQo, pathLibs);
         } catch (IOException e) {
             log.error("下载驱动失败:{}", e.getMessage(), e);
-            throw new RuntimeException("下载驱动失败" + e.getMessage());
+            throw new RuntimeException("下载驱动失败:" + e.getMessage());
         }
     }
 
