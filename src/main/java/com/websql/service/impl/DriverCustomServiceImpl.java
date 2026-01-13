@@ -55,6 +55,9 @@ public class DriverCustomServiceImpl implements DriverCustomService {
     @Value("${export.driver.path}")
     private String driverPath;
 
+    @Value("${export.driver.central}")
+    private String central;
+
 
     @Override
     public void systemLoadConfigDriver() {
@@ -251,7 +254,7 @@ public class DriverCustomServiceImpl implements DriverCustomService {
                 driverDependencyQo.setArtifactId(xmlModel.getArtifactId());
                 driverDependencyQo.setGroupId(xmlModel.getGroupId());
                 driverDependencyQo.setVersion(xmlModel.getVersion());
-                driverDependencyQo.setCentral("https://repo1.maven.org/maven2");
+                driverDependencyQo.setCentral(central);
             } catch (Exception e) {
                 log.error("解析maven坐标失败:{}", e.getMessage(), e);
                 throw new RuntimeException("解析坐标失败:" + e.getMessage());
@@ -276,6 +279,9 @@ public class DriverCustomServiceImpl implements DriverCustomService {
     private static String downloadJar(DriverDependencyQo dependencyQo, String targetDir) throws IOException {
         String downloadUrl = dependencyQo.getCentral();
         String targetPath = targetDir;
+        if(!FileUtil.exist(targetDir)){
+            FileUtil.mkdir(targetDir);
+        }
         if (ObjectUtil.isNotNull(dependencyQo.getType()) && ObjectUtil.equal(dependencyQo.getType(), "maven")) {
             String groupPath = dependencyQo.getGroupId().replace('.', '/');
             String jarName = dependencyQo.getArtifactId() + "-" + dependencyQo.getVersion() + ".jar";
