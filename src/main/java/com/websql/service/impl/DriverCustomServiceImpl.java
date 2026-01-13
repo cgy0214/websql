@@ -288,6 +288,8 @@ public class DriverCustomServiceImpl implements DriverCustomService {
             String relativePath = String.format("%s/%s/%s/%s", groupPath, dependencyQo.getArtifactId(), dependencyQo.getVersion(), jarName);
             downloadUrl = downloadUrl + "/" + relativePath;
             targetPath = Paths.get(targetDir, jarName).toString();
+        }else{
+            targetPath = Paths.get(targetDir, FileUtil.getName(dependencyQo.getCentral())).toString();
         }
         log.info("下载驱动开始: {},\n 保存路径:{}", downloadUrl, targetPath);
         Files.createDirectories(Paths.get(targetDir));
