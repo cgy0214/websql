@@ -85,7 +85,7 @@
                     layer.confirm('您确定要删除吗?', {icon: 3}, function () {
                         post(ctx + "settingManager/deleteTeam/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
+                                if(res.code === 200) $(".search-btn").click();
                             });
                         })
                     }, function () {
@@ -98,7 +98,8 @@
             const field = data.field;
             table.reloadData('dataTable', {
                 scrollPos: true,
-                where: field
+                where: field,
+                page: {curr: 1}
             });
             return false;
         });

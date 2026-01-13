@@ -24,4 +24,12 @@ public interface DbSqlTextRepository extends JpaSpecificationExecutor<DbSqlText>
 
     @Query(value = "select * from sql_text where team_id = ?1",nativeQuery = true)
     List<DbSqlText> queryListByTeamId(Long id);
+    
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM DbSqlText WHERE dataSourceCode = ?1")
+    void deleteByDataSourceCode(String dataSourceCode);
+    
+    @Query("SELECT COUNT(*) FROM DbSqlText WHERE dataSourceCode = ?1")
+    int countByDataSourceCode(String dataSourceCode);
 }

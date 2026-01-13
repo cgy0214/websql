@@ -11,14 +11,14 @@
     <div class="layui-panel">
         <div style="margin: 15px;">
             <div class="layui-form-item">
-                <label class="layui-form-label">名称:</label>
+                <label class="layui-form-label">片段名称:</label>
                 <div class="layui-input-inline">
                     <input type="text" name="title" id="title" placeholder="请输入名称" class="layui-input"
                            lay-affix="clear">
                 </div>
-                <label class="layui-form-label">文本内容:</label>
+                <label class="layui-form-label">数据源名称:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="sqlText" id="sqlText" placeholder="请输入文本内容" class="layui-input"
+                    <input type="text" name="dataSourceName" id="dataSourceName" placeholder="请输入数据源名称" class="layui-input"
                            lay-affix="clear">
                 </div>
                 <div class="layui-input-normal">
@@ -64,10 +64,19 @@
             height: '525',
             cols: [
                 [
-                    {field: 'id', title: 'id', sort: true, fixed: true},
-                    {field: 'title', title: '名称', sort: true, fixed: true},
+                    {field: 'id', title: '主键', sort: true, fixed: true},
+                    {field: 'title', title: '片段名称', sort: true, fixed: true,templet: function(d) {
+                            return '<span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText(\'' + d.title + '\')">' + d.title + '</span>';
+                        }},
+                    {field: 'dataSourceName', title: '数据源名称', sort: true, fixed: true,templet: function(d) {
+                            let dataSourceName = d.dataSourceName || '';
+                            if (dataSourceName === 'null' || dataSourceName === null) {
+                                dataSourceName = '';
+                            }
+                            return '<span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText(\'' + dataSourceName + '\')">' + dataSourceName + '</span>';
+                        }},
                     {field: 'sqlCreateUser', title: '创建人', sort: true, fixed: true},
-                    {field: 'sqlCreateDate', title: '保存时间', sort: true, fixed: true},
+                    {field: 'sqlCreateDate', title: '创建时间', sort: true, fixed: true},
                     {fixed: 'right', title: '操作', width: 134, minWidth: 125, toolbar: '#toolbarTable'}
                 ]
             ],
@@ -87,7 +96,7 @@
                     layer.confirm('您确定要删除吗?', {icon: 3}, function () {
                         post(ctx + "sqlManager/deleteSqlText/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
+                                if(res.code === 200) $(".search-btn").click();
                             });
                         })
                     }, function () {
@@ -100,7 +109,8 @@
             const field = data.field;
             table.reloadData('dataTable', {
                 scrollPos: true,
-                where: field
+                where: field,
+                page: {curr: 1}
             });
             return false;
         });

@@ -66,7 +66,7 @@
             elem: '#dataTable',
             url: ctx + 'settingManager/driverConfigList',
             toolbar: true,
-            defaultToolbar: ['filter', 'exports', 'print'],
+            defaultToolbar: ['filter', 'exports', 'print', helpToolbarConfig('https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16587865&doc_id=3405209')],
             page: true,
             height: '525',
             cols: [
@@ -100,7 +100,7 @@
                     layer.confirm('您确认要删除此驱动吗?', {icon: 3}, function () {
                         post(ctx + "settingManager/deleteDriverConfig/" + data.id, null, (res) => {
                             layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                $(".search-btn").click();
+                                if (res.code === 200) $(".search-btn").click();
                             });
                         })
                     }, function () {
@@ -113,10 +113,13 @@
             const field = data.field;
             table.reloadData('dataTable', {
                 scrollPos: true,
-                where: field
+                where: field,
+                page: {curr: 1}
             });
             return false;
         });
+
     });
+
 </script>
 </html>

@@ -262,6 +262,9 @@
                 //默认选中的数据源需要单独赋值，不会走onSelect
                 activeDataSource = activeData == null ? null : activeData[0].code;
                 editorHintSettings();
+                if (activeDataSource) {
+                    sqlTextSelect(activeDataSource);
+                }
             },
             onselect: function (data) {
                 activeDataSource = data;
@@ -269,6 +272,7 @@
                 if(aiViewId != null){
                     layer.close(aiViewId);
                 }
+                sqlTextSelect(data);
             }
         });
 
@@ -409,10 +413,10 @@
         /**
          * 展示sql保存记录
          */
-        function sqlTextSelect() {
+        function sqlTextSelect(dataSourceCode) {
             select.render({
                 elem: "#sqlTexts",
-                url: ctx + 'sqlManager/querySqlTextSelect',
+                url: ctx + 'sqlManager/querySqlTextSelect?dataSourceCode=' + encodeURIComponent(dataSourceCode),
                 select: 10000,
                 title: 'SQL片段',
                 format: function (data) {
@@ -437,8 +441,12 @@
          * 保存SQL文本
          */
         form.on('submit(saveSqlText)', function (data) {
+            if (activeDataSource === "" || activeDataSource == null) {
+                message("请先选择数据源~", false);
+                return false;
+            }
             let sqlContent = editor.getValue().trim();
-            if (sqlContent == "" || sqlContent == null) {
+            if (sqlContent === "" || sqlContent == null) {
                 message("请输入SQL语句后保存~", false);
                 return false;
             }
@@ -447,13 +455,13 @@
                 skin: 'layui-layer-win10',
                 shade: 0.3,
                 area: '520px',
-                title: '*保存SQL文本',
+                title: '*SQL片段',
                 closeBtn: 0,
                 formType: 0,
                 anim: 'slideDown',
                 shadeClose: true,
                 success: function () {
-                    $(".layui-layer-content .layui-layer-input").toggleClass("layui-input").attr('placeHolder', '请起个名字吧...');
+                    $(".layui-layer-content .layui-layer-input").toggleClass("layui-input").attr('placeHolder', '请起个名字.');
                 }
             };
             layer.prompt(openConfig, function (data, index) {
@@ -462,9 +470,33 @@
                     return false;
                 }
                 layer.close(index);
-                post(ctx + "sqlManager/saveSqlText", {'sqlText': Base64.encode(sqlContent), 'title': data}, (res) => {
-                    layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, (res) => {
-                        sqlTextSelect();
+                // 获取当前选中的数据源信息
+                let dataSourceInfo = null;
+                if (activeDataSource) {
+                    // 从数据源下拉框中获取数据源名称
+                    const selectedOption = $('#dbtype option[value="' + activeDataSource + '"]');
+                    if (selectedOption.length > 0) {
+                        dataSourceInfo = {
+                            code: activeDataSource,
+                            name: selectedOption.text()
+                        };
+                    }
+                }
+                
+                const params = {
+                    'sqlText': Base64.encode(sqlContent), 
+                    'title': data
+                };
+                
+                // 如果有数据源信息，添加到参数中
+                if (dataSourceInfo) {
+                    params.dataSourceCode = dataSourceInfo.code;
+                    params.dataSourceName = dataSourceInfo.name;
+                }
+                
+                post(ctx + "sqlManager/saveSqlText", params, (res) => {
+                    layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                        if(res.code === 200) sqlTextSelect();
                     });
                 })
             });
@@ -622,7 +654,7 @@
                     , page: {prev: '上一页', next: '下一页', groups: 6}
                     , defaultContextmenu: false
                     , pagebar: '#table-page-pageBar'
-                    , text: {none: '查询返回0条数据'}
+                    , text: {none: '查询结果为0条数据'}
                     , size: viewStore.get(tableSizeKey, 'sm')
                 });
                 table.resize(elId);
@@ -895,13 +927,13 @@
          */
         document.onkeydown = function (event) {
             var e = event || window.event || arguments.callee.caller.arguments[0];
-            if (e && e.keyCode == 119) {
+            if (e && e.keyCode === 119) {
                 $("#execute").trigger('click');
             }
-            if (e && e.keyCode == 118) {
+            if (e && e.keyCode === 118) {
                 $("#newSqlOpen").trigger('click');
             }
-            if (e && e.keyCode == 120) {
+            if (e && e.keyCode === 120) {
                 $("#saveSqlText").trigger('click');
             }
         };
@@ -954,7 +986,6 @@
             content: [$("#settingTable").html()].join(''),
             className: 'setting-dropdown-tabs',
             style: 'width: 300px; height: 180px; box-shadow: 1px 1px 30px rgb(0 0 0 / 12%);border-radius:10px;padding:10px;',
-            //shade: 0.3,
             ready: function () {
                 settingView();
             }

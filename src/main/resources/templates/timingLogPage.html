@@ -16,7 +16,7 @@
                     <input type="text" name="taskName" id="taskName" placeholder="请输入作业名称" lay-affix="clear"
                            class="layui-input">
                 </div>
-                <label class="layui-form-label">作业状态:</label>
+                <label class="layui-form-label">执行结果:</label>
                 <div class="layui-input-inline">
                     <select name="taskState" lay-filter="taskState">
                         <option value=""></option>
@@ -69,7 +69,9 @@
                 [
                     {field: 'id', title: 'id', sort: true, fixed: true},
                     {field: 'taskId', title: '作业任务ID', sort: true, fixed: true},
-                    {field: 'taskName', title: '作业名称', sort: true, fixed: true},
+                    {field: 'taskName', title: '作业名称', sort: true, fixed: true,templet: function(d) {
+                            return '<span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText(\'' + d.taskName + '\')">' + d.taskName + '</span>';
+                        }},
                     {field: 'taskState', title: '执行结果', sort: true, fixed: true},
                     {field: 'co1', title: '执行时长', sort: true, fixed: true, templet: '<div> {{= d.co1 }}ms </div>'},
                     {field: 'executeDate', title: '执行时间', sort: true, fixed: true},
@@ -103,7 +105,8 @@
             const field = data.field;
             table.reloadData('dataTable', {
                 scrollPos: true,
-                where: field
+                where: field,
+                page: {curr: 1}
             });
             return false;
         });

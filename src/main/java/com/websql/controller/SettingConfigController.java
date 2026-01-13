@@ -9,10 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.websql.model.*;
-import com.websql.service.DbSourceService;
-import com.websql.service.LoginService;
-import com.websql.service.MessageTemplateService;
-import com.websql.service.TeamSourceService;
+import com.websql.service.*;
 import com.websql.task.ExamineVersionFactory;
 import com.websql.task.SystemInitPost;
 import com.websql.util.CacheUtils;
@@ -67,6 +64,8 @@ public class SettingConfigController {
     @Autowired
     private MessageTemplateService messageTemplateService;
 
+    @Autowired
+    private DriverCustomService driverCustomService;
 
     @RequestMapping("/userRolePage")
     public String userRolePage() {
@@ -113,9 +112,17 @@ public class SettingConfigController {
         ModelAndView modelAndView = new ModelAndView("addDriverConfigPage");
         modelAndView.addObject("object", new SysDriverConfig());
         if (ObjectUtil.isNotNull(id)) {
-            List<Map<String, String>> driverConfigListSelect = loginService.findDriverConfigListSelect(String.valueOf(id));
+            List<Map<String, String>> driverConfigListSelect = driverCustomService.findDriverConfigListSelect(String.valueOf(id));
             if (!driverConfigListSelect.isEmpty()) {
-                modelAndView.addObject("object", driverConfigListSelect.get(0));
+                Map<String, String> params = driverConfigListSelect.get(0);
+                //兼容老数据模型
+                if (!params.containsKey("druidFilterType")) {
+                    params.put("druidFilterType", "");
+                }
+                if (params.containsKey("image")) {
+                    params.put("image", "");
+                }
+                modelAndView.addObject("object", params);
             }
         }
         return modelAndView;
@@ -246,7 +253,7 @@ public class SettingConfigController {
     @RequestMapping("/driverConfigList")
     @ResponseBody
     public AjaxResult driverConfigList(SysDriverConfig sysDriverConfig) {
-        return AjaxResult.success(loginService.selectDriverConfigList(sysDriverConfig));
+        return AjaxResult.success(driverCustomService.selectDriverConfigList(sysDriverConfig));
     }
 
     @RequestMapping("/deleteDriverConfig/{id}")
@@ -255,13 +262,25 @@ public class SettingConfigController {
         if (ObjectUtil.isNull(id)) {
             return AjaxResult.error("必填参数不能为空!");
         }
-        return loginService.deleteDriverConfig(id);
+        return driverCustomService.deleteDriverConfig(id);
     }
 
     @RequestMapping("/saveOrUpdateDriverConfig")
     @ResponseBody
     public AjaxResult saveOrUpdateDriverConfig(@RequestBody SysDriverConfig sysDriverConfig) {
-        return AjaxResult.success(loginService.saveOrUpdateDriverConfig(sysDriverConfig));
+        return driverCustomService.saveOrUpdateDriverConfig(sysDriverConfig);
+    }
+
+    @RequestMapping("/downloadDriver")
+    @ResponseBody
+    public AjaxResult downloadDriver(@RequestBody DriverDependencyQo qo) {
+        try {
+            String result = driverCustomService.downloadDriver(qo);
+            return AjaxResult.success();
+        } catch (Exception e) {
+            log.error("失败", e);
+            return AjaxResult.error(e.getMessage());
+        }
     }
 
 
@@ -360,7 +379,7 @@ public class SettingConfigController {
         try {
             Files.write(tempFile, JSONUtil.toJsonStr(resultList).getBytes());
         } catch (IOException e) {
-            log.error("导出失败,{}",e.getMessage(),e);
+            log.error("导出失败,{}", e.getMessage(), e);
         }
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(tempFile));
         HttpHeaders headers = new HttpHeaders();
@@ -392,7 +411,7 @@ public class SettingConfigController {
         try {
             Files.write(tempFile, JSONUtil.toJsonStr(resultList).getBytes());
         } catch (IOException e) {
-            log.error("导出失败,{}",e.getMessage(),e);
+            log.error("导出失败,{}", e.getMessage(), e);
         }
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(tempFile));
         HttpHeaders headers = new HttpHeaders();
@@ -435,7 +454,7 @@ public class SettingConfigController {
         try {
             Files.write(tempFile, JSONUtil.toJsonStr(resultList).getBytes());
         } catch (IOException e) {
-            log.error("导出失败,{}",e.getMessage(),e);
+            log.error("导出失败,{}", e.getMessage(), e);
         }
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(tempFile));
         HttpHeaders headers = new HttpHeaders();
@@ -496,7 +515,7 @@ public class SettingConfigController {
             }
             return flag ? AjaxResult.success("共导入" + dataSourceJson.size() + "条数据!") : AjaxResult.error(message.toString());
         } catch (Exception e) {
-           log.error("导入失败,{}",e.getMessage(),e);
+            log.error("导入失败,{}", e.getMessage(), e);
             return AjaxResult.error("导入失败!" + e.getMessage());
         }
     }
@@ -533,7 +552,7 @@ public class SettingConfigController {
             }
             return AjaxResult.success("共导入" + dataSourceJson.size() + "条数据!");
         } catch (Exception e) {
-            log.error("导入失败,{}",e.getMessage(),e);
+            log.error("导入失败,{}", e.getMessage(), e);
             return AjaxResult.error("导入失败!" + e.getMessage());
         }
     }
@@ -574,7 +593,7 @@ public class SettingConfigController {
             }
             return AjaxResult.success("共导入" + dataSourceJson.size() + "条数据!");
         } catch (Exception e) {
-            log.error("导入团队信息失败,{}",e.getMessage(),e);
+            log.error("导入团队信息失败,{}", e.getMessage(), e);
             return AjaxResult.error("导入失败!" + e.getMessage());
         }
     }

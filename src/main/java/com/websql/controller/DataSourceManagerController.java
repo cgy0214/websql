@@ -1,6 +1,7 @@
 package com.websql.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.druid.DbType;
 import com.websql.config.DataSourceFactory;
@@ -9,9 +10,7 @@ import com.websql.model.AjaxResult;
 import com.websql.model.DataSourceModel;
 import com.websql.model.Result;
 import com.websql.model.SysDriverConfig;
-import com.websql.service.DbSourceService;
-import com.websql.service.LoginService;
-import com.websql.service.TeamSourceService;
+import com.websql.service.*;
 import com.websql.util.PasswordUtil;
 import com.websql.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +20,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
@@ -43,10 +41,13 @@ public class DataSourceManagerController {
     private DbSourceService dbSourceService;
 
     @Resource
-    private LoginService loginService;
+    private DetectionService detectionService;
 
     @Resource
-    private TeamSourceService teamSourceService;
+    private TimingService timingService;
+
+    @Resource
+    private DriverCustomService driverCustomService;
 
 
     @RequestMapping("/page")
@@ -56,15 +57,16 @@ public class DataSourceManagerController {
 
     @RequestMapping("/addSourcePage")
     public ModelAndView addSourcePage(@RequestParam(required = false) String id) {
-        ModelAndView modelAndView = new ModelAndView("addSourcePage");
+        ModelAndView modelAndView = new ModelAndView("addDataSourcePage");
         SysDriverConfig sysDriverConfig = new SysDriverConfig();
         modelAndView.addObject("id", id);
         if (ObjectUtil.equal("-1", id)) {
+            sysDriverConfig.setTypeName("自定义");
             sysDriverConfig.setName("Custom");
-            sysDriverConfig.setCapacity("自定义数据源，需要自行引入数据源JDBC驱动。");
+            sysDriverConfig.setCapacity("自定义数据源，需在【系统管理-驱动管理中】添加驱动配置。");
         }
         if (ObjectUtil.isNotEmpty(id) && ObjectUtil.notEqual("-1", id)) {
-            List<SysDriverConfig> driverConfigList = loginService.findDriverConfigList(id);
+            List<SysDriverConfig> driverConfigList = driverCustomService.findDriverConfigList(id);
             if (!driverConfigList.isEmpty()) {
                 sysDriverConfig = driverConfigList.get(0);
             }
@@ -100,10 +102,8 @@ public class DataSourceManagerController {
         PreparedStatement pre = null;
         ResultSet rs = null;
         try {
-            conn = DriverManager.getConnection(model.getDbUrl().trim(),
-                    model.getDbAccount().trim(), model.getDbPassword().trim());
+            conn = driverCustomService.getDriverConnection(model);
             DbType jdbcType = DataSourceFactory.getDbTypeByJdbcUrl(model.getDbUrl().trim(), model.getDriverClass());
-            //odps特殊，提交实例运行
             if (jdbcType.equals(DbType.odps)) {
                 if (ObjectUtil.isEmpty(conn.getMetaData().getDatabaseProductName())) {
                     return AjaxResult.error("连接失败,获取odps描述为空!");
@@ -118,7 +118,13 @@ public class DataSourceManagerController {
                 return AjaxResult.error("连接失败,返回结果集为空!");
             }
         } catch (Exception e) {
-            log.error("检查链接失败,{}",e.getMessage(),e);
+            log.error("检查链接失败,{}", e.getMessage(), e);
+            if (e.getMessage().contains("No suitable driver")) {
+                return AjaxResult.error("连接失败,请检查【系统-驱动管理】是否已导入驱动! <br>" + e.getMessage());
+            }
+            if (e.getMessage().contains("The driver has not received any packets from the server")) {
+                return AjaxResult.error("连接失败,请检查与数据库网络是否联通! \n<br>" + e.getMessage());
+            }
             return AjaxResult.error("连接失败,错误信息:" + e.getMessage());
         } finally {
             JdbcUtils.releaseConn(rs, pre, conn);
@@ -146,8 +152,15 @@ public class DataSourceManagerController {
             dbSourceService.addDbSource(model, null);
             return AjaxResult.success();
         } catch (Exception e) {
-            log.error("新增数据源失败,{}",e.getMessage(),e);
-            return AjaxResult.error(e.getMessage());
+            log.error("新增数据源失败,{}", e.getMessage(), e);
+            if (e.getMessage().contains("No suitable driver")) {
+                return AjaxResult.error("连接失败,请检查【系统-驱动管理】是否已导入驱动! <br>" + e.getMessage());
+            }
+            if (e.getMessage().contains("The driver has not received any packets from the server")) {
+                return AjaxResult.error("连接失败,请检查与数据库网络是否联通! <br>" + e.getMessage());
+            }
+            log.error("检查链接失败,{}", e.getMessage(), e);
+            return AjaxResult.error("连接失败,错误信息:" + e.getMessage());
         }
     }
 
@@ -158,13 +171,18 @@ public class DataSourceManagerController {
      */
     @RequestMapping("/deleteDataSource/{id}")
     @ResponseBody
-    public AjaxResult deleteDataSource(@PathVariable String id) {
+    public AjaxResult deleteDataSource(@PathVariable Long id, @RequestParam(required = false, defaultValue = "0") Integer etlCount) {
         try {
-            dbSourceService.deleteDataBaseSource(Long.valueOf(id));
-            return AjaxResult.success();
+            DataSourceModel dataSourceModel = dbSourceService.selectDbById(id);
+            dbSourceService.deleteDataBaseSource(id);
+            String operator = StpUtils.getCurrentUserName();
+            String dbName = dataSourceModel.getDbName();
+            log.info("数据源删除操作: 时间={}, 操作人={}, 数据源名称={}, 关联ETL任务数={}",
+                    DateUtil.now(), operator, dbName, etlCount);
+            return AjaxResult.success("删除成功!");
         } catch (Exception e) {
-            log.error("删除数据源失败,{}",e.getMessage(),e);
-            return AjaxResult.error(e.getMessage());
+            log.error("删除失败:{}", e.getMessage(), e);
+            return AjaxResult.error("删除失败:" + e.getMessage());
         }
     }
 
@@ -185,7 +203,7 @@ public class DataSourceManagerController {
     @RequestMapping("/findDriverConfigList")
     @ResponseBody
     public AjaxResult findDriverConfigList(@RequestParam(required = false) String id) {
-        return AjaxResult.success(loginService.findDriverConfigList(id));
+        return AjaxResult.success(driverCustomService.findDriverConfigList(id));
     }
 
     @RequestMapping("/updateDataSourceName")
@@ -206,7 +224,7 @@ public class DataSourceManagerController {
             log.info("Successful update  DbSources ");
             return AjaxResult.success();
         } catch (Exception e) {
-            log.error("修改数据源失败,{}",e.getMessage(),e);
+            log.error("修改数据源失败,{}", e.getMessage(), e);
             return AjaxResult.error(e.getMessage());
         }
     }
@@ -230,6 +248,28 @@ public class DataSourceManagerController {
             dataSourceModelResult.setDbAccount(encrypt);
         }
         return AjaxResult.success(dataSourceModelResult);
+    }
+
+    @RequestMapping("/countDetectionTaskByDataSourceCode")
+    @ResponseBody
+    public AjaxResult countDetectionTaskByDataSourceCode(String dataSourceCode) {
+        try {
+            return AjaxResult.success(detectionService.countByDataBaseName(dataSourceCode));
+        } catch (Exception e) {
+            log.error("统计检测任务失败,{}", e.getMessage(), e);
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    @RequestMapping("/countEtlTaskByDataSourceCode")
+    @ResponseBody
+    public AjaxResult countEtlTaskByDataSourceCode(String dataSourceCode) {
+        try {
+            return AjaxResult.success(timingService.countByDataSourceName(dataSourceCode));
+        } catch (Exception e) {
+            log.error("统计ETL任务失败,{}", e.getMessage(), e);
+            return AjaxResult.error(e.getMessage());
+        }
     }
 
 }

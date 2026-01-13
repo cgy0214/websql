@@ -20,6 +20,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,22 +57,6 @@ public class SqlManagerController {
     }
 
     /**
-     * 查询sql文本下拉框
-     *
-     * @param model
-     * @return
-     */
-    @RequestMapping("/querySqlTextSelect")
-    @ResponseBody
-    public Map sqlTextList(DataSourceModel model) {
-        List<Map<String, String>> resultData = dbSourceService.sqlTextList(model);
-        Map result = new HashMap(2);
-        result.put("code", 0);
-        result.put("data", resultData);
-        return result;
-    }
-
-    /**
      * sql文本列表
      *
      * @param model
@@ -96,7 +81,7 @@ public class SqlManagerController {
         try {
             dbSourceService.saveSqlText(model);
         } catch (Exception e) {
-            log.error("保存SQL信息失败,{}",e.getMessage(),e);
+            log.error("保存SQL信息失败,{}", e.getMessage(), e);
             return AjaxResult.error(e.getMessage());
         }
         return AjaxResult.success();
@@ -116,7 +101,7 @@ public class SqlManagerController {
             dbSourceService.deleteSqlText(id);
             return AjaxResult.success();
         } catch (Exception e) {
-            log.error("删除失败,{}",e.getMessage(),e);
+            log.error("删除失败,{}", e.getMessage(), e);
             return AjaxResult.error(e.getMessage());
         }
     }
@@ -128,9 +113,35 @@ public class SqlManagerController {
             dbSourceService.sqlTextDeleteAll();
             return AjaxResult.success();
         } catch (Exception e) {
-            log.error("删除全部失败,{}",e.getMessage(),e);
+            log.error("删除全部失败,{}", e.getMessage(), e);
             return AjaxResult.error(e.getMessage());
         }
+    }
+
+    @RequestMapping("/countSqlTextByDataSourceCode")
+    @ResponseBody
+    public AjaxResult countSqlTextByDataSourceCode(@RequestParam String dataSourceCode) {
+        try {
+            int count = dbSourceService.countSqlTextByDataSourceCode(dataSourceCode);
+            return AjaxResult.success(count);
+        } catch (Exception e) {
+            log.error("查询数据源关联SQL数量失败,{}", e.getMessage(), e);
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    @RequestMapping("/querySqlTextSelect")
+    @ResponseBody
+    public Map sqlTextListByDataSource(DataSourceModel model, @RequestParam(required = false) String dataSourceCode) {
+        Map result = new HashMap(2);
+        result.put("code", 0);
+        result.put("data", new ArrayList<>());
+        if (ObjectUtil.isEmpty(dataSourceCode)) {
+            return result;
+        }
+        List<Map<String, String>> resultData = dbSourceService.sqlTextListByDataSource(model, dataSourceCode);
+        result.put("data", resultData);
+        return result;
     }
 
 

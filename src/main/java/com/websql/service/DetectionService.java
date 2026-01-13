@@ -34,4 +34,23 @@ public interface DetectionService {
     void deleteLog(Long id);
 
     void deleteLogAll();
+
+    /**
+     * 根据数据源名称统计检测任务数量
+     * @param dataBaseName 数据源名称
+     * @return 检测任务数量
+     */
+    int countByDataBaseName(String dataBaseName);
+
+    /**
+     * 根据数据源名称删除检测任务
+     * @param dataBaseName 数据源名称
+     */
+    void deleteByDataBaseName(String dataBaseName);
+
+    /**
+     * 根据任务ID删除关联的日志记录
+     * @param taskId 任务ID
+     */
+    void deleteLogsByTaskId(Long taskId);
 }

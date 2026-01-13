@@ -55,6 +55,7 @@ public class TimingServiceImpl implements TimingService {
     @Override
     public void delTiming(Long id) {
         timingRepository.deleteById(id);
+        jobLogsRepository.deleteByTaskId(id);
     }
 
 
@@ -146,5 +147,25 @@ public class TimingServiceImpl implements TimingService {
     @Override
     public TimingVo queryTimingJobById(Long id) {
         return timingRepository.findById(id).get();
+    }
+
+    @Override
+    public void deleteByDataBaseName(String dataBaseName) {
+        Long teamId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
+        Specification<TimingVo> spec = (root, query, cb) -> {
+            Predicate teamPredicate = cb.equal(root.get("teamId"), teamId);
+            Predicate syncNamePredicate = cb.equal(root.get("syncName"), dataBaseName);
+            Predicate timingNamePredicate = cb.equal(root.get("timingName"), dataBaseName);
+            return cb.and(teamPredicate, cb.or(syncNamePredicate, timingNamePredicate));
+        };
+        List<TimingVo> matchedRecords = timingRepository.findAll(spec);
+        for (TimingVo timingVo : matchedRecords) {
+            delTiming(timingVo.getId());
+        }
+    }
+
+    @Override
+    public int countByDataSourceName(String dataSourceName) {
+        return timingRepository.countByDataSourceName(dataSourceName);
     }
 }

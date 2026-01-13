@@ -1,4 +1,4 @@
-<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v4.0.3</h1>
+<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v4.0.4</h1>
 <h4 align="center">网页SQL管理工具，SQL执行、Text2Sql、ETL同步、动态数据源、SQL管理等功能 ——— 简约而不简单</h4>
 
 <p align="center">
@@ -8,7 +8,7 @@
     <a href="https://maven.apache.org"><img src="https://img.shields.io/badge/maven-3.5+-e4ec27.svg"></a>
     <a href="https://gitee.com/boy_0214/websql/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL3.0-blue.svg"></a>
     <a href="https://websql.cgygeo.com"><img src="https://img.shields.io/badge/demo-%E6%BC%94%E7%A4%BA%E7%8E%AF%E5%A2%83-8A2BE2.svg"></a>
-    <a href="https://gitee.com/boy_0214/websql/wikis/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><img src="https://img.shields.io/badge/wiki-%E5%B8%AE%E5%8A%A9%E6%96%87%E6%A1%A3-16b777.svg"></a>
+    <a href="https://gitee.com/boy_0214/websql/wikis/pages"><img src="https://img.shields.io/badge/wiki-%E5%B8%AE%E5%8A%A9%E6%96%87%E6%A1%A3-16b777.svg"></a>
     <a href="https://eazydevelop.eazytec-cloud.com/templates/dev-template-1683b6-1763602123?q=4K4b_1VnlTK_2bnN9Y"><img src="https://img.shields.io/badge/EazyDevelop-%E4%B8%80%E9%94%AE%E9%83%A8%E7%BD%B2-orange.svg"></a>
 </p>
 
@@ -24,7 +24,7 @@
 
 ---
 
-## 🔧 webSql 介绍
+## 🔧 webSql 核心介绍
 
 **webSql** 支持动态配置 `多数据源`、`权限控制`、在线 `执行SQL`、`AI` Text2Sql、常用 `SQL文本实时获取`、`导出、打印` 结果集、可控的 `日志记录`、团队 `数据隔离`、`危险` SQL限制运行、生产环境 `数据` 同步、`OpenAPI`、ETL抽取、元数据查询、SQL生成、定时 `监测数据趋势` 告警功能；众多功能集一身的 `SQL在线执行工具`。
 
@@ -79,42 +79,15 @@ WebSql 主要功能模块：
 - **团队管理** —— 不同团队之间，数据完全隔离，更细致的权限控制
 - **监测管理** —— 不同团队自定义SQL，定时执行数据监测，达到阈值自定义告警通知
 - **参数设置** —— 参数设置中可以操作更多细致化控制
-- **OpenAPI** —— 支持HTTP调用系统接口形式执行SQL动作 [<a href='https://gitee.com/boy_0214/websql/wikis/openapi'>查看示例</a>]
+- **OpenAPI** —— 支持HTTP调用系统接口形式执行SQL动作 [<a href='https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7884992&doc_id=3405209'>查看示例</a>]
 - **开箱即用** —— 提供jar、docker镜像，内置H2数据库，一条命令即可启动，真正的开箱即用
 
 ---
 
-## 👨‍💻 参与开发
-
-1. 克隆项目：
-   ```bash
-   git clone https://gitee.com/boy_0214/websql.git
-   ```
-
-2. 启动项目：
-   - 运行 `WebplsqlApplication.java`
-   - 基于 `master` 开发完成后提交至 `dev` 分支
-
-3. 提交代码：
-   - 自测完成后，Gitee提交PR至 `dev` 分支
-
-4. 编译打包：
-   ```bash
-   mvn clean package
-   ```
-   部署文件位于 `target/websql.jar`
-
-5. 构建Docker镜像：
-   ```bash
-   docker build -f dockerfile --tag cgycms/websql:3.x --tag cgycms/websql:latest .
-   docker push
-   ```
-
----
 
 ## 🚀 应用部署
 
-[多种部署方式推荐](https://gitee.com/boy_0214/websql/wikis/%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C#%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F)
+[多种部署方式推荐](https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7654654&doc_id=3405209#-%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F)
 
 ### JAR部署
 
@@ -133,7 +106,7 @@ nohup java -jar websql.jar >> web.log &
 
 ```bash
 # 拉取镜像（如果pull失败，可以加群寻找国内镜像地址）
-docker pull cgycms/websql:latest
+docker pull registry.cn-beijing.aliyuncs.com/cgycms/websql:latest
 
 # 运行容器
 docker run -di --name websql -p 80:80 cgycms/websql:latest
@@ -154,6 +127,31 @@ docker logs websql
 > 配置较低，可能会出现不稳定情况。
 
 ---
+
+
+## 👨‍💻 参与贡献
+
+欢迎参与开发，欢迎提issue、pr，项目地址：[https://gitee.com/boy_0214/websql](https://gitee.com/boy)
+
+📚 [开发文档](https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7676296&doc_id=3405209)
+
+
+---
+
+## 🚀 未来规划
+
+- **聚焦大数据开发平台基础架构**  
+  优化核心框架，提升稳定性与扩展性，支撑更高效的海量数据开发流程。
+
+- **构建异构数据集成与处理平台**  
+  实现多源、多类型数据的无缝接入与统一处理，打破传统困境，提升数据融合能力。
+
+- **整合轻量级数据可视化平台**  
+  提供简洁、直观的数据展示与交互功能，助力快速洞察数据价值。
+
+始终秉持 **“简约而不简单”** 的理念，聚焦大数据开发领域，追求功能简洁、体验流畅、易用可靠。
+
+欢迎参与贡献，共同打造一个实用, 高效的开源数据产品。
 
 ## 💬 交流群
 

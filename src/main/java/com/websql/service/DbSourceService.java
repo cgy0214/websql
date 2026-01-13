@@ -41,6 +41,8 @@ public interface DbSourceService {
     void delUserLog();
 
     Integer selectDbByName(String dbName);
+    
+    Integer selectDbByIdentifier(String sourceIdentifier);
 
     AjaxResult findTableField(String database);
 
@@ -61,6 +63,12 @@ public interface DbSourceService {
     void deleteDataSourceAll();
 
     Map<String, Object> createAsyncExport(ExecuteSql executeSql);
+    
+    void deleteSqlTextByDataSourceCode(String dataSourceCode);
+    
+    int countSqlTextByDataSourceCode(String dataSourceCode);
+    
+    List<Map<String, String>> sqlTextListByDataSource(DataSourceModel model, String dataSourceCode);
 
     SysExportModel exportAsyncData(Long id);
 

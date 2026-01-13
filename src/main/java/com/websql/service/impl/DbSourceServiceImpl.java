@@ -20,7 +20,9 @@ import com.websql.config.SqlParserHandler;
 import com.websql.dao.*;
 import com.websql.model.*;
 import com.websql.service.DbSourceService;
+import com.websql.service.DetectionService;
 import com.websql.service.TeamSourceService;
+import com.websql.service.TimingService;
 import com.websql.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -39,6 +41,7 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -72,12 +75,31 @@ public class DbSourceServiceImpl implements DbSourceService {
     private TeamSourceService teamSourceService;
 
     @Resource
+    private DetectionService detectionService;
+
+    @Resource
     private SysExportLogRepository sysExportLogRepository;
+
+    @Resource
+    private TimingService timingService;
+
+    @Resource
+    private SysDriverConfigRepository sysDriverConfigRepository;
 
 
     @Override
     public List<DataSourceModel> reloadDataSourceList() {
-        return dbSourceRepository.reloadDataSourceList();
+        List<DataSourceModel> dataSourceModels = dbSourceRepository.reloadDataSourceList();
+        List<SysDriverConfig> list = sysDriverConfigRepository.findAll();
+        Map<String, SysDriverConfig> driverConfigMap = list.stream().collect(Collectors.toMap(SysDriverConfig::getDriverClass, Function.identity(), (k1, k2) -> k2));
+        dataSourceModels.forEach(dataSourceModel -> {
+            SysDriverConfig type = driverConfigMap.get(dataSourceModel.getDriverClass());
+            if (ObjectUtil.isNotNull(type)) {
+                dataSourceModel.setDriverTypeName(type.getTypeName());
+                dataSourceModel.setDruidFilterType(type.getDruidFilterType());
+            }
+        });
+        return dataSourceModels;
     }
 
     @Override
@@ -118,10 +140,10 @@ public class DbSourceServiceImpl implements DbSourceService {
         Long teamId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
         Specification<DbSqlText> spec = (root, query, cb) -> {
             Path<String> title = root.get("title");
-            Path<String> sqlText = root.get("sqlText");
-            String sqlText1 = model.getSqlText() == null ? "" : model.getSqlText();
+            Path<String> dataSourceName = root.get("dataSourceName");
+            String sqlText1 = model.getDataSourceName() == null ? "" : model.getDataSourceName();
             String title1 = model.getTitle() == null ? "" : model.getTitle();
-            Predicate p2 = cb.like(sqlText, "%" + sqlText1 + "%");
+            Predicate p2 = cb.like(dataSourceName, "%" + sqlText1 + "%");
             Predicate p3 = cb.like(title, "%" + title1 + "%");
             Predicate p = cb.and(p2, p3, root.get("teamId").in(teamId));
             query.orderBy(cb.desc(root.get("id")));
@@ -140,6 +162,24 @@ public class DbSourceServiceImpl implements DbSourceService {
         dbSourceRepository.deleteById(id);
         DataSourceFactory.removeDataSource(dataSourceModel.getDbName());
         teamSourceService.deleteResourceByResIds(Collections.singletonList(Long.valueOf(id)), "DATASOURCE");
+        try {
+            deleteSqlTextByDataSourceCode(dataSourceModel.getDbName());
+            log.info("成功删除与数据源[{}]关联的SQL文本", dataSourceModel.getDbName());
+        } catch (Exception e) {
+            log.error("删除与数据源[{}]关联的SQL文本失败: {}", dataSourceModel.getDbName(), e.getMessage(), e);
+        }
+        try {
+            detectionService.deleteByDataBaseName(dataSourceModel.getDbName());
+            log.info("成功删除与数据源[{}]关联的检测任务及历史记录", dataSourceModel.getDbName());
+        } catch (Exception e) {
+            log.error("删除与数据源[{}]关联的检测任务失败: {}", dataSourceModel.getDbName(), e.getMessage(), e);
+        }
+        try {
+            timingService.deleteByDataBaseName(dataSourceModel.getDbName());
+            log.info("成功删除与数据源[{}]关联的ETL任务及历史记录", dataSourceModel.getDbName());
+        } catch (Exception e) {
+            log.error("删除与数据源[{}]关联的ETL任务及历史记录: {}", dataSourceModel.getDbName(), e.getMessage(), e);
+        }
     }
 
     @Override
@@ -254,9 +294,32 @@ public class DbSourceServiceImpl implements DbSourceService {
     }
 
     @Override
+    public Integer selectDbByIdentifier(String sourceIdentifier) {
+        return dbSourceRepository.findDataSourceByIdentifier(sourceIdentifier);
+    }
+
+    @Override
     public void addDbSource(DataSourceModel model, Long teamId) {
         if (selectDbByName(model.getDbName()) > 0) {
             throw new RuntimeException("数据源名称已经存在,请换一个!");
+        }
+        if (ObjectUtil.isEmpty(model.getSourceIdentifier())) {
+            String generatedIdentifier = DataSourceFactory.getDbTypeByJdbcUrl(model.getDbUrl(), model.getDriverClass()).name();
+            String dataBaseNameByJdbcUrl = DataSourceFactory.getDataBaseNameByJdbcUrl(model.getDbUrl());
+            String tempIdentifier = dataBaseNameByJdbcUrl == null ? generatedIdentifier : generatedIdentifier + "_" + dataBaseNameByJdbcUrl;
+            int counter = 1;
+            while (selectDbByIdentifier(tempIdentifier + "_" + counter) > 0) {
+                counter++;
+            }
+            tempIdentifier = tempIdentifier + "_" + counter;
+            model.setSourceIdentifier(tempIdentifier);
+        } else {
+            if (!validateSourceIdentifier(model.getSourceIdentifier())) {
+                throw new RuntimeException("数据源标识格式不正确，只允许字母、数字和下划线，最大长度为50个字符！");
+            }
+            if (selectDbByIdentifier(model.getSourceIdentifier()) > 0) {
+                throw new RuntimeException("数据源标识已经存在,请换一个!");
+            }
         }
         try {
             DataSourceFactory.saveDataSource(model);
@@ -276,7 +339,17 @@ public class DbSourceServiceImpl implements DbSourceService {
         //兼容系统初始化时获取不到teamId问题
         Long tid = teamId == null ? StpUtils.getCurrentActiveTeam().getId() : teamId;
         teamSourceService.updateTeamResources(Collections.singletonList(tid.toString()), Collections.singletonList(save.getId()), "DATASOURCE");
+    }
 
+    /**
+     * 验证数据源标识格式
+     */
+    private boolean validateSourceIdentifier(String sourceIdentifier) {
+        if (ObjectUtil.isEmpty(sourceIdentifier) || sourceIdentifier.length() > 50) {
+            return false;
+        }
+        String regex = "^[a-zA-Z0-9_]+$";
+        return sourceIdentifier.matches(regex);
     }
 
     @Override
@@ -434,8 +507,8 @@ public class DbSourceServiceImpl implements DbSourceService {
             if (ObjectUtil.notEqual("1", dataResult.get("code"))) {
                 return AjaxResult.error(dataResult.get("msg").toString());
             }
-            if (ObjectUtil.isNotNull(dataResult.getOrDefault("create_table_sql",dataResult.get("CREATE_TABLE_SQL")))) {
-                resultMap.put("createTableSql", dataResult.getOrDefault("create_table_sql",dataResult.get("CREATE_TABLE_SQL")).toString());
+            if (ObjectUtil.isNotNull(dataResult.getOrDefault("create_table_sql", dataResult.get("CREATE_TABLE_SQL")))) {
+                resultMap.put("createTableSql", dataResult.getOrDefault("create_table_sql", dataResult.get("CREATE_TABLE_SQL")).toString());
             }
             // mysql
             if (ObjectUtil.isNotNull(dataResult.get("Create Table"))) {
@@ -481,6 +554,34 @@ public class DbSourceServiceImpl implements DbSourceService {
                 log.error("删除数据源失败:{},{}", dataSourceModel.getId(), e.getMessage(), e);
             }
         }
+    }
+
+    @Override
+    public void deleteSqlTextByDataSourceCode(String dataSourceCode) {
+        dbSqlTextRepository.deleteByDataSourceCode(dataSourceCode);
+    }
+
+    @Override
+    public int countSqlTextByDataSourceCode(String dataSourceCode) {
+        return dbSqlTextRepository.countByDataSourceCode(dataSourceCode);
+    }
+
+    @Override
+    public List<Map<String, String>> sqlTextListByDataSource(DataSourceModel model, String dataSourceCode) {
+        List<Map<String, String>> sqlTextModelList = new ArrayList<>();
+        Long itemId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
+        List<DbSqlText> all = dbSqlTextRepository.findAll().stream()
+                .filter(s -> s.getTeamId().equals(itemId))
+                .filter(s -> dataSourceCode.equals(s.getDataSourceCode()) || ("DEFAULT-H2".equals(dataSourceCode) && ObjectUtil.isEmpty(s.getDataSourceCode())))
+                .sorted(Comparator.comparing(DbSqlText::getId).reversed())
+                .collect(Collectors.toList());
+        for (DbSqlText dbSqlText : all) {
+            Map<String, String> item = new HashMap<>(2);
+            item.put("code", dbSqlText.getSqlText());
+            item.put("value", dbSqlText.getTitle());
+            sqlTextModelList.add(item);
+        }
+        return sqlTextModelList;
     }
 
     @Override

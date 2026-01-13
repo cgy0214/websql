@@ -9,12 +9,10 @@ import com.websql.model.DataSourceModel;
 import com.websql.model.SysDetectionModel;
 import com.websql.model.SysSetup;
 import com.websql.model.TimingVo;
-import com.websql.service.DbSourceService;
-import com.websql.service.LoginService;
-import com.websql.service.SseEmitterService;
-import com.websql.service.TimingService;
+import com.websql.service.*;
 import com.websql.util.CacheUtils;
 import com.websql.util.PasswordUtil;
+import com.websql.util.SpringContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -149,9 +147,8 @@ public class SystemInitPost {
      * 初始化数据源
      */
     public int initDataSource() {
-        log.info("Initializing DataSource...");
-        List<DataSourceModel> dblist = dbSourceService.reloadDataSourceList();
-        for (DataSourceModel model : dblist) {
+        List<DataSourceModel> initDataSourceList = dbSourceService.reloadDataSourceList();
+        for (DataSourceModel model : initDataSourceList) {
             if (ObjectUtil.isNotEmpty(model.getDbPassword())) {
                 String encrypt = PasswordUtil.decrypt(model.getDbPassword());
                 model.setDbPassword(encrypt);
@@ -161,13 +158,14 @@ public class SystemInitPost {
                 model.setDbAccount(encrypt);
             }
         }
-        if (dblist.size() > 2) {
-            log.info("dataSource Size:{}  Async initDataSource ...", dblist.size());
-            ThreadUtil.execAsync(() -> DataSourceFactory.initDataSource(dblist));
-        } else {
-            DataSourceFactory.initDataSource(dblist);
+        log.info("Initializing Underway {} DataSource", initDataSourceList.size());
+        boolean isDriver = initDataSourceList.stream().anyMatch(s -> s.getDriverTypeName().equals("自定义"));
+        if (isDriver) {
+            DriverCustomService driverCustomService = SpringContextHolder.getBean(DriverCustomService.class);
+            driverCustomService.loadDriverCustomAll();
         }
-        return dblist.size();
+        DataSourceFactory.initDataSource(initDataSourceList);
+        return initDataSourceList.size();
     }
 
 }

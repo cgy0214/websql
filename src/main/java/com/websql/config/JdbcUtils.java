@@ -74,9 +74,7 @@ public class JdbcUtils {
             String colsName;
             Object colsValue;
             while (resultSet.next()) {
-                //update 2020.06.12 感谢Mr.Guo 提出顺序展示问题
                 JSONObject json = new JSONObject(new LinkedHashMap<>(colsLength));
-                //新建数组
                 Map<String, Integer> temp = new HashMap<>(colsLength);
                 for (int i = 0; i < colsLength; i++) {
                     int rowIndex = i + 1;
@@ -92,8 +90,7 @@ public class JdbcUtils {
                 }
                 list.add(json);
             }
-            //add 2023.08.12 0条数据，但展示列头字段 用于前端呈现
-            if (resultSet.getRow() == 0 && list.isEmpty()) {
+            if (list.isEmpty()) {
                 JSONObject json = new JSONObject(new LinkedHashMap<>(colsLength));
                 for (int i = 1; i <= colsLength; i++) {
                     String columnName = metaData.getColumnLabel(i);
@@ -262,15 +259,7 @@ public class JdbcUtils {
     }
 
     public static Connection getConnections(String sourceKey) {
-        DruidDataSource source = DataSourceFactory.getDataSource(sourceKey);
-        if (source == null) {
-            throw new NullPointerException(sourceKey + "：未获取到有效数据源");
-        }
-        Connection connection = DataSourceFactory.getConnection(source);
-        if (connection == null) {
-            throw new NullPointerException(sourceKey + "：未获取到有效连接");
-        }
-        return connection;
+        return DataSourceFactory.getConnectionBySourceKey(sourceKey);
     }
 
     /**

@@ -6,28 +6,40 @@
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
 </head>
 <body>
-<div class="layui-card-header" style="font-size: 15px;color: #999;font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif"><div>[[${data.name}]]  |  [[${data.capacity}]]</div></div>
+<div class="layui-card-header"
+     style="font-size: 15px; color: #999; font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;">
+    [[${data.name}]] | [[${data.capacity}]]
+</div>
 <hr class="layui-border-green">
 <div class="layui-field-box">
     <form class="layui-form" action="" id="addFrom">
+        <input type="hidden" name="driverTypeName" id="driverTypeName" th:value="${data.typeName}"></input>
+
         <div class="layui-form-item">
             <label class="layui-form-label">连接名称</label>
-            <div class="layui-input-block">
+            <div class="layui-input-inline" style="width: 40%;">
                 <input type="text" name="dbName" id="dbName" lay-verify="required" autocomplete="off" lay-affix="clear"
                        placeholder="数据源名称" class="layui-input">
+            </div>
+            <div class="layui-input-inline" style="width: 40%;">
+                <input type="text" name="sourceIdentifier" id="sourceIdentifier" lay-affix="clear" autocomplete="new-password"
+                       placeholder="数据源标识" class="layui-input" onblur="validateSourceIdentifier()"
+                >
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">驱动名称</label>
-            <div class="layui-input-block">
-                <input type="text" name="driverClass" id="driverClass" lay-verify="required" lay-affix="clear" th:value="${data.driverClass}"
+            <div class="layui-input-block" style="width: 80%;">
+                <input type="text" name="driverClass" id="driverClass" lay-verify="required" lay-affix="clear"
+                       th:value="${data.driverClass}"
                        placeholder="驱动名称" autocomplete="off" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">连接地址</label>
-            <div class="layui-input-block">
-                <input type="text" name="dbUrl" id="dbUrl" lay-verify="required" placeholder="连接地址" th:value="${data.url}"
+            <div class="layui-input-block" style="width: 80%;">
+                <input type="text" name="dbUrl" id="dbUrl" lay-verify="required" placeholder="连接地址"
+                       th:value="${data.url}"
                        lay-affix="clear"
                        autocomplete="off" class="layui-input">
             </div>
@@ -45,8 +57,17 @@
                 <label class="layui-form-label">数据库密码</label>
                 <div class="layui-input-inline">
                     <input type="password" name="dbPassword" id="dbPassword" placeholder="数据库登录密码"
-                           lay-affix="eye"
+                           lay-affix="eye"  autocomplete="new-password" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">验证语句</label>
+                <div class="layui-input-inline" style="width: 60%;">
+                    <input type="text" name="dbCheckUrl" id="dbCheckUrl" placeholder="验证语句"
+                           th:value="${data.dbCheckUrl}"
+                           lay-affix="clear"
                            autocomplete="off" class="layui-input">
+                    <input type="hidden" name="dbState" id="dbState" value="有效" class="layui-input">
                 </div>
             </div>
         </div>
@@ -83,26 +104,20 @@
                            autocomplete="off" class="layui-input">
                 </div>
             </div>
-            <div class="layui-inline">
-                <label class="layui-form-label">验证语句</label>
-                <div class="layui-input-inline">
-                    <input type="text" name="dbCheckUrl" id="dbCheckUrl" placeholder="验证语句" th:value="${data.dbCheckUrl}"
-                           lay-affix="clear"
-                           autocomplete="off" class="layui-input">
-                    <input type="hidden" name="dbState" id="dbState" value="有效" class="layui-input">
-                </div>
-            </div>
         </div>
         <div class="page-footer">
             <div class="btn-list">
                 <div class="btnlist">
-                    <button class="layui-btn layui-btn-primary layui-border-red" onclick="goPage('1');return false;">
+                    <button class="layui-btn layui-btn-primary layui-border-red layui-btn-sm"
+                            onclick="goPage('1');return false;">
                         <i class="layui-icon layui-icon-close-fill">&nbsp;</i>返回上一步
                     </button>
-                    <button class="layui-btn layui-btn-primary layui-border-orange" lay-submit lay-filter="testUrl">
+                    <button class="layui-btn layui-btn-primary layui-border-orange layui-btn-sm" lay-submit
+                            lay-filter="testUrl">
                         <i class="layui-icon layui-icon-link">&nbsp;</i>测试连接
                     </button>
-                    <button class="layui-btn layui-btn-primary layui-border-green" lay-submit lay-filter="save" lay-type="saveContinue">
+                    <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-submit
+                            lay-filter="save" lay-type="saveContinue">
                         <i class="layui-icon  layui-icon-add-circle">&nbsp;</i>保存并继续
                     </button>
                 </div>
@@ -126,15 +141,19 @@
             const elem = data.elem;
             const layType = elem.getAttribute("lay-type");
             post(ctx + "dataSourceManager/addDataSource", field, (res) => {
-                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                    if (res.code === 200) {
-                        if (layType === "saveClose") {
-                            refresh();
-                        } else {
-                            location.reload();
+                layer.alert(
+                    res.msg, {icon: res.code === 200 ? 1 : 2},
+                    function (index) {
+                        if (res && res.code === 200) {
+                            if (window.layType === "saveClose") {
+                                refresh();
+                            } else {
+                                location.reload();
+                            }
                         }
+                        layer.close(index);  // 手动关闭弹窗
                     }
-                });
+                );
             })
             return false;
         });
@@ -145,13 +164,34 @@
         form.on('submit(testUrl)', function (data) {
             const field = data.field;
             post(ctx + "dataSourceManager/checkUrl", field, (res) => {
-                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2});
+                layer.alert(res.msg, {icon: res.code === 200 ? 1 : 2});
             })
             return false;
         });
     });
+
     function goPage() {
         window.location.href = ctx + 'dataSourceManager/dataSourceChoice';
+    }
+
+    /**
+     * 验证数据源标识格式
+     */
+    function validateSourceIdentifier() {
+        const sourceIdentifier = document.getElementById('sourceIdentifier').value;
+        if (sourceIdentifier.trim() === '') {
+            return true;
+        }
+        const regex = /^[a-zA-Z0-9_]+$/;
+        if (!regex.test(sourceIdentifier)) {
+            layer.msg('数据源标识格式不正确，只允许字母、数字和下划线', {icon: 2});
+            return false;
+        }
+        if (sourceIdentifier.length > 50) {
+            layer.msg('数据源标识长度不能超过50个字符', {icon: 2});
+            return false;
+        }
+        return true;
     }
 </script>
 </body>

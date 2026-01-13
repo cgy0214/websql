@@ -5,7 +5,7 @@
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/codemirror.css}" media="all"/>
-    <link rel="stylesheet" th:href=@{/static/code/show-hint.css} media="all"/>
+    <link rel="stylesheet" th:href="@{/static/code/show-hint.css}" media="all"/>
     <style>
         .sqlTxt {
             border: 1px solid;
@@ -243,10 +243,10 @@
             }
             data.field.sqlContent = Base64.encode(sqlContent);
             data.field.dataBaseName = activeDataSource;
-            data.field.messageId = activeMessageTemplate;
+            data.field.messageId = activeMessageTemplate === "" ? null : activeMessageTemplate;
             post(ctx + "detectionManager/add", data.field, (res) => {
-                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, (res) => {
-                    location.reload();
+                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                    if(res.code === 200) location.reload();
                 });
             });
             return false;

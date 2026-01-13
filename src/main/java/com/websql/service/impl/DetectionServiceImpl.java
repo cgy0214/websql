@@ -95,6 +95,7 @@ public class DetectionServiceImpl implements DetectionService {
     @Override
     public void deleteById(Long id) {
         detectionRepository.deleteById(id);
+        deleteLogsByTaskId(id);
     }
 
     @Override
@@ -202,5 +203,33 @@ public class DetectionServiceImpl implements DetectionService {
     @Override
     public void deleteLogAll() {
         detectionLogsRepository.deleteAll();
+    }
+
+    @Override
+    public int countByDataBaseName(String dataBaseName) {
+        SysDetectionModel model = new SysDetectionModel();
+        model.setTeamId(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId());
+        model.setDataBaseName(dataBaseName);
+        return (int) detectionRepository.count(Example.of(model));
+    }
+
+    @Override
+    public void deleteByDataBaseName(String dataBaseName) {
+        SysDetectionModel model = new SysDetectionModel();
+        model.setTeamId(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId());
+        model.setDataBaseName(dataBaseName);
+        List<SysDetectionModel> detectionModels = detectionRepository.findAll(Example.of(model));
+        detectionRepository.deleteAll(detectionModels);
+        for (SysDetectionModel detectionModel : detectionModels) {
+            deleteLogsByTaskId(detectionModel.getId());
+        }
+    }
+
+    @Override
+    public void deleteLogsByTaskId(Long taskId) {
+        SysDetectionLogsModel logModel = new SysDetectionLogsModel();
+        logModel.setTeamId(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId());
+        logModel.setTaskId(taskId);
+        detectionLogsRepository.deleteAll(detectionLogsRepository.findAll(Example.of(logModel)));
     }
 }

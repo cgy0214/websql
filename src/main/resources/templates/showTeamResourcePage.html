@@ -17,10 +17,10 @@
 </body>
 <script th:src="@{/static/layui.js}"></script>
 <script th:replace="~{base::ctx}"/>
-<script>
+<script th:inline="javascript">
     layui.use(function () {
         const table = layui.table;
-        let id = [[${id}]];
+        let id =  /*<![CDATA[*/ [[${id}]] /*]]>*/;
 
         table.render({
             elem: '#dataTable',

@@ -25,6 +25,8 @@ public interface TimingService {
 
     void saveLogs(JobLogs logs);
 
+    int countByDataSourceName(String dataSourceName);
+
     Result<JobLogs> jobLogsList(JobLogs model);
 
     void jobLogDelete();
@@ -33,5 +35,7 @@ public interface TimingService {
 
     TimingVo queryTimingJobById(Long id);
 
+
+    void deleteByDataBaseName(String dbName);
 
 }

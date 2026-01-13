@@ -4,57 +4,144 @@
     <title>新增驱动</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <style>
+        .layui-input-block {
+            width: 40%;
+        }
+    </style>
 </head>
 <body>
 <div class="layui-field-box">
     <form class="layui-form" action="" id="addFrom">
-        <div class="layui-inline">
-            <div class="layui-form-item">
-                <label class="layui-form-label">驱动名称</label>
-                <div class="layui-input-block">
-                    <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" lay-affix="clear"
-                           th:value="${object.name}"
-                           placeholder="请输入驱动名称" class="layui-input">
-                    <input type="hidden" name="id" id="id" autocomplete="off" th:value="${object.id}">
-                </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">驱动名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" lay-affix="clear"
+                       th:value="${object.name}"
+                       placeholder="请输入驱动名称" class="layui-input">
+                <input type="hidden" name="id" id="id" autocomplete="off" th:value="${object.id}">
             </div>
         </div>
+
         <div class="layui-form-item">
             <label class="layui-form-label">驱动类名</label>
-            <div class="layui-input-block">
+            <div class="layui-input-block" style="width: 40%;">
                 <input type="text" name="driverClass" id="driverClass" lay-verify="required" autocomplete="off"
                        th:value="${object.driverClass}"
                        lay-affix="clear"
-                       placeholder="请输入驱动类" class="layui-input">
+                       placeholder="请输入驱动类名" class="layui-input">
+                <i style="color: #b0b5b1de;">jdbc驱动加载类名,例:dm.jdbc.driver.DmDrive</i>
             </div>
         </div>
+
         <div class="layui-form-item">
-            <label class="layui-form-label">连接地址</label>
+            <label class="layui-form-label">连接模板</label>
             <div class="layui-input-block">
-                <input type="text" name="url" id="url" lay-verify="required" lay-affix="clear" th:value="${object.url}"
-                       placeholder="请输入连接地址" autocomplete="off" class="layui-input">
+                <input type="text" name="url" id="url" lay-affix="clear" th:value="${object.url}"
+                       placeholder="请输入连接模板地址" autocomplete="off" class="layui-input">
+                <i style="color: #b0b5b1de;">新增数据源时参考,例:jdbc:mysql://127.0.0.1:3306/databaseName</i>
             </div>
         </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">驱动描述</label>
+            <div class="layui-input-block">
+                <input type="text" name="capacity" id="capacity" autocomplete="off"
+                       lay-affix="clear"
+                       th:value="${object.capacity}"
+                       placeholder="请输入驱动描述" class="layui-input">
+            </div>
+        </div>
+
         <div class="layui-form-item">
             <label class="layui-form-label">有效性</label>
             <div class="layui-input-block">
-                <input type="text" name="dbCheckUrl" id="dbCheckUrl" lay-verify="required" placeholder="请输入有效性"
+                <input type="text" name="dbCheckUrl" id="dbCheckUrl"
+                       placeholder="请输入SQL验证有效性"
                        th:value="${object.dbCheckUrl}"
                        lay-affix="clear"
                        autocomplete="off" class="layui-input">
+                <i style="color: #b0b5b1de;">请按照当前数据库类型填写,例:select 1</i>
             </div>
         </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">防火墙</label>
+            <div class="layui-input-block">
+                <input type="text" name="druidFilterType" id="druidFilterType"
+                       placeholder="请输入Druid防火墙支持类型"
+                       th:value="${object.druidFilterType}"
+                       lay-affix="clear"
+                       autocomplete="off" class="layui-input">
+                <i style="color: #b0b5b1de;">如果您不知道如何配置,请设置空。支持参数:stat,wall...</i>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">图标</label>
+            <div class="layui-input-block">
+                <input type="text" name="image" id="image"
+                       placeholder="请输入图片base64"
+                       th:value="${object.image}"
+                       lay-affix="clear"
+                       autocomplete="off" class="layui-input">
+                <i style="color: #b0b5b1de;">base64,32*32,例data:image/png;base64,iVBORw</i>
+            </div>
+        </div>
+
         <div class="layui-form-item">
             <div class="layui-inline">
                 <label class="layui-form-label">驱动类型</label>
                 <div class="layui-input-block">
-                    <input type="text" name="typeName" id="typeName" placeholder="请输入数据库登录账号" readonly
+                    <input type="text" name="typeName" id="typeName" placeholder="" disabled
                            th:value="${object.typeName}=='内置' ? '内置':'自定义' "
-                           lay-affix="clear"
                            autocomplete="off" class="layui-input">
                 </div>
             </div>
         </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">驱动下载</label>
+            <div class="layui-input-block">
+                <select name="downloadType" id="downloadType" lay-verify="required" lay-filter="downloadType">
+                    <option value="">请选择下载方式</option>
+                    <option value="none" selected>已存在无需下载</option>
+                    <option value="maven">maven中央库</option>
+                    <option value="url">url下载</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item" id="mavenGroup" style="display: none;">
+            <label class="layui-form-label">中央仓库坐标</label>
+            <div class="layui-input-block">
+                <input type="text" name="xmlContent" id="xmlContent" lay-affix="clear"
+                       placeholder="请输入Maven坐标，例如：dependency:groupId:artifactId:version"
+                       autocomplete="off" class="layui-input">
+                <i style="color: #b0b5b1de;">例如：dependency标签 </i>
+            </div>
+        </div>
+
+        <div class="layui-form-item" id="urlGroup" style="display: none;">
+            <label class="layui-form-label">URL地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="central" id="central" lay-affix="clear"
+                       placeholder="请输入驱动下载URL"
+                       autocomplete="off" class="layui-input">
+                <i style="color: #b0b5b1de;">例如：https://example.com/driver.jar</i>
+            </div>
+        </div>
+
+        <div class="layui-form-item" id="downloadBtnGroup" style="display: none;">
+            <label class="layui-form-label">操作</label>
+            <div class="layui-input-block">
+                <button type="button" class="layui-btn layui-btn-normal" id="downloadDriverBtn">
+                    <i class="layui-icon layui-icon-download-circle">&nbsp;</i>下载驱动
+                </button>
+            </div>
+        </div>
+
         <div class="page-footer">
             <div class="btn-list">
                 <div class="btnlist">
@@ -84,6 +171,66 @@
         const form = layui.form;
         const $ = layui.jquery;
 
+        const isEditMode = $('#id').val() !== '';
+
+        form.on('select(downloadType)', function(data) {
+            const type = data.value;
+            $('#mavenGroup').hide();
+            $('#urlGroup').hide();
+            $('#downloadBtnGroup').hide();
+            
+            if (type === 'maven') {
+                $('#mavenGroup').show();
+                $('#downloadBtnGroup').show();
+            } else if (type === 'url') {
+                $('#urlGroup').show();
+                $('#downloadBtnGroup').show();
+            }
+        });
+        
+        $('#downloadDriverBtn').click(function() {
+            const downloadType = $('#downloadType').val();
+            let qo = {};
+            
+            if (downloadType === 'maven') {
+                const xmlContent = $('#xmlContent').val().trim();
+                if (!xmlContent) {
+                    layer.msg('请输入中央仓库坐标', {icon: 2});
+                    return;
+                }
+                qo = {
+                    type: 'maven',
+                    xmlContent: xmlContent
+                };
+            } else if (downloadType === 'url') {
+                const central = $('#central').val().trim();
+                if (!central) {
+                    layer.msg('请输入下载URL地址', {icon: 2});
+                    return;
+                }
+                qo = {
+                    type: 'url',
+                    central: central
+                };
+            } else {
+                layer.msg('请选择正确的下载方式', {icon: 2});
+                return;
+            }
+            
+            layer.load(2);
+            post(ctx + "settingManager/downloadDriver", qo, (res) => {
+                layer.closeAll('loading');
+                if (res.code === 200) {
+                    layer.msg('驱动下载成功', {icon: 1});
+                } else {
+                    layer.msg(res.msg || '驱动下载失败', {icon: 2});
+                }
+            }, () => {
+                layer.closeAll('loading');
+                layer.msg('驱动下载请求失败', {icon: 2});
+            });
+        });
+
         /**
          * 保存
          */
@@ -91,6 +238,15 @@
             const field = data.field;
             const elem = data.elem;
             let layType = elem.getAttribute("lay-type");
+            
+            if (!isEditMode) {
+                const downloadType = field.downloadType;
+                if (!downloadType) {
+                    layer.msg('请选择下载方式', {icon: 2});
+                    return false;
+                }
+            }
+            
             post(ctx + "settingManager/saveOrUpdateDriverConfig", field, (res) => {
                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                     if (res.code === 200) {
@@ -101,7 +257,7 @@
                         }
                     }
                 });
-            })
+            });
             return false;
         });
 

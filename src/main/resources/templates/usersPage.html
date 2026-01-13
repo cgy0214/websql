@@ -93,7 +93,9 @@
             }
             post(ctx + "userController/updateUsers", field, (res) => {
                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                    top.location.href = ctx + "logout";
+                    if(res.code === 200) {
+                        top.location.href = ctx + "logout";
+                    }
                 });
             });
             return false;

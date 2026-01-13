@@ -46,5 +46,13 @@ public class DataSourceModel extends Pages {
     private String dbCheckUrl;
     @Transient
     private String connectionName;
+    
+    @Column(length = 64)
+    private String sourceIdentifier;
 
+    @Transient
+    private String driverTypeName;
+
+    @Transient
+    private String druidFilterType;
 }

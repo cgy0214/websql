@@ -97,6 +97,9 @@
             if (text == null || text === '') {
                 return text;
             }
+            if (text === '<br>') {
+                return '\n';
+            }
             for (let i = 0; i < SQL_KEYWORD.length; i++) {
                 const key = SQL_KEYWORD[i];
                 const number = text.toLowerCase().trim().indexOf(key);

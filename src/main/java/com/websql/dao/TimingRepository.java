@@ -20,4 +20,7 @@ public interface TimingRepository extends JpaSpecificationExecutor<TimingVo>, Jp
 
     @Query(value = "select * from sql_timing where team_id = ?1",nativeQuery = true)
     List<TimingVo> queryListByTeamId(Long id);
+
+    @Query(value = "select count(*) from sql_timing where timing_name = ?1 or sync_name = ?1",nativeQuery = true)
+    int countByDataSourceName(String dataSourceName);
 }
