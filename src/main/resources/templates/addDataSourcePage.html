@@ -70,7 +70,18 @@
                     <input type="hidden" name="dbState" id="dbState" value="有效" class="layui-input">
                 </div>
             </div>
+
+            <div class="layui-inline">
+                <label class="layui-form-label">Druid防火墙</label>
+                <div class="layui-input-inline" style="width: 60%;">
+                    <input type="text" name="druidFilterType" id="druidFilterType" placeholder="如：stat,wall"
+                           lay-affix="clear"
+                           th:value="${data.druidFilterType}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
         </div>
+
         <div class="layui-form-item">
             <div class="layui-inline">
                 <label class="layui-form-label">初始连接</label>
@@ -105,6 +116,7 @@
                 </div>
             </div>
         </div>
+
         <div class="page-footer">
             <div class="btn-list">
                 <div class="btnlist">

@@ -44,15 +44,18 @@ public class DataSourceModel extends Pages {
     private int maxWait;
     @Column
     private String dbCheckUrl;
+
     @Transient
     private String connectionName;
+
+    @Transient
+    private String driverTypeName;
     
     @Column(length = 64)
     private String sourceIdentifier;
 
-    @Transient
-    private String driverTypeName;
-
-    @Transient
+    @Column(length = 64)
     private String druidFilterType;
+
+
 }

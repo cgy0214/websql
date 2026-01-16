@@ -43,6 +43,7 @@ public class SqlParserHandler {
         }
         DbType dbType = DbType.of(type);
         List<SqlParserVo> resultList = new ArrayList<>();
+        //todo 需兼容doris
         List<SQLStatement> statements = SQLUtils.parseStatements(sql, dbType);
         for (SQLStatement statement : statements) {
             SchemaStatVisitor visitor = SQLUtils.createSchemaStatVisitor(dbType);

@@ -96,7 +96,9 @@ public class DbSourceServiceImpl implements DbSourceService {
             SysDriverConfig type = driverConfigMap.get(dataSourceModel.getDriverClass());
             if (ObjectUtil.isNotNull(type)) {
                 dataSourceModel.setDriverTypeName(type.getTypeName());
-                dataSourceModel.setDruidFilterType(type.getDruidFilterType());
+                if (ObjectUtil.isEmpty(dataSourceModel.getDruidFilterType())) {
+                    dataSourceModel.setDruidFilterType(type.getDruidFilterType());
+                }
             }
         });
         return dataSourceModels;

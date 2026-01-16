@@ -371,6 +371,8 @@ public class SettingConfigController {
             item.put("maxIdle", dataSourceModel.getMaxIdle());
             item.put("maxWait", dataSourceModel.getMaxWait());
             item.put("teamId", teamMap.get(dataSourceModel.getId()));
+            item.put("druidFilterType", dataSourceModel.getDruidFilterType());
+            item.put("sourceIdentifier", dataSourceModel.getSourceIdentifier());
             item.put("version", examineVersionFactory.getVersionModel().getLocalVersion());
             resultList.add(item);
         }
@@ -498,6 +500,9 @@ public class SettingConfigController {
                 model.setMaxActive(MapUtil.getInt(map, "maxActive"));
                 model.setMaxIdle(MapUtil.getInt(map, "maxIdle"));
                 model.setMaxWait(MapUtil.getInt(map, "maxWait"));
+                model.setSourceIdentifier(MapUtil.getStr(map, "sourceIdentifier"));
+                model.setDruidFilterType(MapUtil.getStr(map, "druidFilterType"));
+                model.setDbPort(MapUtil.getStr(map, "port"));
                 model.setDbState("有效");
                 try {
                     //导入的历史团队id不存在，将赋值给当前选中的团队。

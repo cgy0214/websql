@@ -24,7 +24,7 @@
         <oracle.version>19.3.0.0</oracle.version>
         <sqllite.version>3.42.0.0</sqllite.version>
         <sqlserver.version>4.0</sqlserver.version>
-        <druid.version>1.2.23</druid.version>
+        <druid.version>1.2.27</druid.version>
         <hutool.version>5.8.26</hutool.version>
         <saToken.version>1.39.0</saToken.version>
         <easyCaptcha.version>1.6.2</easyCaptcha.version>
@@ -199,11 +199,11 @@
             <version>${aviator.version}</version>
         </dependency>
 
-        <dependency>
+        <!--<dependency>
             <groupId>ru.yandex.clickhouse</groupId>
             <artifactId>clickhouse-jdbc</artifactId>
             <version>${clickhouse.version}</version>
-        </dependency>
+        </dependency>-->
 
         <dependency>
             <groupId>dev.langchain4j</groupId>
