@@ -9,7 +9,7 @@
     </parent>
     <groupId>com.websql</groupId>
     <artifactId>websql</artifactId>
-    <version>4.0.4</version>
+    <version>4.0.5</version>
     <name>webSql</name>
     <packaging>jar</packaging>
     <description>webSql project for Spring Boot</description>
@@ -40,6 +40,8 @@
         <aviator.version>5.4.3</aviator.version>
         <clickhouse.version>0.2.6</clickhouse.version>
         <langchain.version>0.29.1</langchain.version>
+        <commons-lang.version>3.20.0</commons-lang.version>
+        <oracle-nls.version>21.1.0.0</oracle-nls.version>
     </properties>
 
     <dependencies>
@@ -95,7 +97,7 @@
         <dependency>
             <groupId>com.oracle.database.nls</groupId>
             <artifactId>orai18n</artifactId>
-            <version>21.1.0.0</version>
+            <version>${oracle-nls.version}</version>
         </dependency>
 
         <dependency>
@@ -199,11 +201,11 @@
             <version>${aviator.version}</version>
         </dependency>
 
-        <!--<dependency>
+        <dependency>
             <groupId>ru.yandex.clickhouse</groupId>
             <artifactId>clickhouse-jdbc</artifactId>
             <version>${clickhouse.version}</version>
-        </dependency>-->
+        </dependency>
 
         <dependency>
             <groupId>dev.langchain4j</groupId>
@@ -211,13 +213,17 @@
             <version>${langchain.version}</version>
         </dependency>
 
-        <!-- 如果需要使用 OpenAI 相关功能 -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
             <version>${langchain.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang.version}</version>
+        </dependency>
 
     </dependencies>
 

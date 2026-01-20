@@ -46,8 +46,8 @@ public class DataSourceFactory {
             removeDataSource(config.getDbName());
             ds = new DruidDataSource();
             ds.setDriverClassName(config.getDriverClass().trim());
-            ds.setUsername(config.getDbAccount().trim());
-            ds.setPassword(config.getDbPassword().trim());
+            ds.setUsername(config.getDbAccount() == null ? "" : config.getDbAccount().trim());
+            ds.setPassword(config.getDbPassword() == null ? "" : config.getDbPassword().trim());
             ds.setUrl(config.getDbUrl().trim());
             ds.setInitialSize(config.getInitialSize());
             ds.setMaxActive(config.getMaxActive());
