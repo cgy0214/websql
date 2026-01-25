@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>任务实例</title>
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
+    <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+</head>
+<body>
+<form class="layui-form">
+    <div class="layui-panel">
+        <div style="margin: 15px;">
+            <div class="layui-form-item">
+                <label class="layui-form-label">任务名称:</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="taskName" id="taskName" placeholder="请输入任务名称" class="layui-input"
+                           lay-affix="clear">
+                </div>
+                <label class="layui-form-label">实例状态:</label>
+                <div class="layui-input-inline">
+                    <select name="instanceStatus" id="instanceStatus">
+                        <option value="">全部</option>
+                        <option value="运行中">运行中</option>
+                        <option value="成功">成功</option>
+                        <option value="失败">失败</option>
+                    </select>
+                </div>
+                <div class="layui-input-normal">
+                    <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit id="search"
+                            lay-filter="table-search">
+                        <i class="layui-icon layui-icon-search"> </i>查 询
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-panel" style="margin-top: 15px;">
+        <div class="layui-form nowrap">
+            <table class="layui-hide" id="dataTable" lay-filter="dataTable"></table>
+        </div>
+    </div>
+</form>
+</body>
+<script th:src="@{/static/layui.js}"></script>
+<script th:replace="~{base::ctx}"></script>
+<script type="text/html" id="toolbarTable">
+    <div class="layui-clear-space">
+        <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
+        <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
+    </div>
+</script>
+<script>
+    layui.use(function () {
+        const layer = layui.layer;
+        const form = layui.form;
+        const $ = layui.jquery;
+        const table = layui.table;
+
+        table.render({
+            elem: '#dataTable',
+            url: ctx + 'bigdataManager/instanceList',
+            toolbar: true,
+            defaultToolbar: ['filter', 'exports', 'print'],
+            page: true,
+            height: '525',
+            cols: [
+                [
+                    {field: 'id', title: '主键', sort: true, fixed: true, width: 100},
+                    {field: 'taskId', title: '任务ID', sort: true, width: 100},
+                    {field: 'taskName', title: '任务名称', sort: true, width: 200},
+                    {field: 'instanceStatus', title: '实例状态', sort: true, width: 120, templet: function(d) {
+                            if (d.instanceStatus === '成功') {
+                                return '<span style="color: green;">' + d.instanceStatus + '</span>';
+                            } else if (d.instanceStatus === '失败') {
+                                return '<span style="color: red;">' + d.instanceStatus + '</span>';
+                            } else if (d.instanceStatus === '运行中') {
+                                return '<span style="color: blue;">' + d.instanceStatus + '</span>';
+                            }
+                            return d.instanceStatus;
+                        }},
+                    {field: 'startTime', title: '开始时间', sort: true, width: 180},
+                    {field: 'endTime', title: '结束时间', sort: true, width: 180},
+                    {field: 'executeTime', title: '执行时长(ms)', sort: true, width: 150},
+                    {field: 'createUser', title: '创建人', sort: true, width: 120},
+                    {field: 'createTime', title: '创建时间', sort: true, width: 180},
+                    {fixed: 'right', title: '操作', width: 150, toolbar: '#toolbarTable'}
+                ]
+            ],
+            parseData: res => parseData(res)
+        });
+
+        table.on('tool(dataTable)', function (obj) {
+            var data = obj.data;
+            switch (obj.event) {
+                case 'view':
+                    layer.open({
+                        type: 1,
+                        title: '查看实例',
+                        area: ['800px', '600px'],
+                        content: '<div style="padding: 20px;"><table class="layui-table"><tr><td>任务ID：</td><td>' + data.taskId + '</td></tr><tr><td>任务名称：</td><td>' + data.taskName + '</td></tr><tr><td>实例状态：</td><td>' + data.instanceStatus + '</td></tr><tr><td>开始时间：</td><td>' + data.startTime + '</td></tr><tr><td>结束时间：</td><td>' + data.endTime + '</td></tr><tr><td>执行时长(ms)：</td><td>' + data.executeTime + '</td></tr><tr><td>执行结果：</td><td><pre>' + (data.executeResult || '') + '</pre></td></tr><tr><td>错误信息：</td><td><pre>' + (data.errorMessage || '') + '</pre></td></tr><tr><td>创建人：</td><td>' + data.createUser + '</td></tr><tr><td>创建时间：</td><td>' + data.createTime + '</td></tr></table></div>'
+                    });
+                    break;
+                case 'delete':
+                    layer.confirm('您确定要删除该实例吗?', {
+                        icon: 3,
+                        title: '确认删除',
+                        btn: ['确认删除', '取消'],
+                        yes: function(index) {
+                            post(ctx + "bigdataManager/deleteInstance/" + data.id, null, (res) => {
+                                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                                    if (res.code === 200) {
+                                        obj.del();
+                                    }
+                                });
+                            });
+                            layer.close(index);
+                        }
+                    });
+                    break;
+            }
+        });
+
+        form.on('submit(table-search)', function (data) {
+            const field = data.field;
+            table.reloadData('dataTable', {
+                scrollPos: true,
+                where: field,
+                page: {curr: 1}
+            });
+            return false;
+        });
+    });
+</script>
+</html>

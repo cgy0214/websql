@@ -112,6 +112,32 @@
                             "target": "_self"
                         }
                     ]
+                },
+                {
+                    "title": "枢易方舟",
+                    "href": "",
+                    "icon": "layui-icon layui-icon-engine",
+                    "target": "_self",
+                    "child": [
+                        {
+                            "title": "数据开发",
+                            "href": "bigdataManager/dataDevPage",
+                            "icon": "layui-icon",
+                            "target": "_self"
+                        },
+                        {
+                            "title": "任务管理",
+                            "href": "bigdataManager/taskManagePage",
+                            "icon": "layui-icon",
+                            "target": "_self"
+                        },
+                        {
+                            "title": "任务实例",
+                            "href": "bigdataManager/taskInstancePage",
+                            "icon": "layui-icon",
+                            "target": "_self"
+                        }
+                    ]
                 }
             ]
         },

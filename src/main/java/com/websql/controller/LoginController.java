@@ -52,6 +52,9 @@ public class LoginController implements ErrorController {
     @Autowired
     private ExamineVersionFactory examineVersionFactory;
 
+    @Autowired
+    private com.websql.dao.SysUserLogRepository sysUserLogRepository;
+
     @RequestMapping(value = {"/", "login", "index"}, method = RequestMethod.GET)
     public ModelAndView loginPage() {
         ModelAndView mav = new ModelAndView("login");
@@ -110,9 +113,12 @@ public class LoginController implements ErrorController {
             return AjaxResult.error("账号或密码不能为空!");
         }
         Boolean captchaEnabled = EnvBeanUtil.getBoolean("login-captcha-enabled");
-        if (captchaEnabled && (ObjectUtil.isEmpty(code) || !CaptchaUtil.ver(code.trim().toLowerCase(), request))) {
-            CaptchaUtil.clear(request);
-            return AjaxResult.error("验证码不正确!");
+        if (captchaEnabled) {
+            Integer failCount = sysUserLogRepository.findLastLoginFail(userName.trim().toLowerCase());
+            if (failCount > 0 && (ObjectUtil.isEmpty(code) || !CaptchaUtil.ver(code.trim().toLowerCase(), request))) {
+                CaptchaUtil.clear(request);
+                return AjaxResult.error("验证码不正确!");
+            }
         }
         if (DateUtil.date().getTime() - timestamp > Integer.parseInt(EnvBeanUtil.getString("login-captcha-timeout"))) {
             return AjaxResult.error("请求超时,请刷新页面重新登录!");

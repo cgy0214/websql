@@ -63,11 +63,15 @@
         const layer = layui.layer;
         const form = layui.form;
         const $ = layui.jquery;
+        let loginFailed = false;
         //init
         $(".copyright").html("©" + loginCopyright);
         if (!captchaEnabled) {
             $(".captcha").css("display", "none");
             $("input[name='captcha']").remove();
+        } else {
+            $(".captcha").css("display", "none");
+            $("input[name='captcha']").removeAttr("lay-verify");
         }
         form.on('submit(login)', function (data) {
             if (!loginEnabled) {
@@ -77,9 +81,22 @@
             data.field.timestamp = new Date().getTime();
             let param = Base64.encode(JSON.stringify(data.field));
             post(ctx + "login", param, (res) => {
-                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                    location.href = ctx;
-                });
+                if (res.code === 200) {
+                    layer.msg(res.msg, {icon: 1}, () => {
+                        location.href = ctx;
+                    });
+                } else {
+                    layer.msg(res.msg, {icon: 2});
+                    if (captchaEnabled && !loginFailed) {
+                        loginFailed = true;
+                        $(".captcha").css("display", "block");
+                        $("input[name='captcha']").attr("lay-verify", "required");
+                        form.render();
+                        refreshCode();
+                    } else if (captchaEnabled) {
+                        refreshCode();
+                    }
+                }
             })
             return false;
         });

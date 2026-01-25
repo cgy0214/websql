@@ -479,12 +479,25 @@ public class LoginServiceImpl implements LoginService {
             role6.setRemark("系统演示功能");
             sysRoleRepository.save(role6);
 
+            SysRole role7 = new SysRole();
+            role7.setRole("bigdata-admin");
+            role7.setDescription("枢易方舟管理角色");
+            role7.setRoleId(7L);
+            role7.setRemark("管理枢易方舟功能");
+            sysRoleRepository.save(role7);
+
             //初始化人员角色
             SysUserRole sysUserRole1 = new SysUserRole();
             sysUserRole1.setUserId(user.getUserId());
             sysUserRole1.setRole(role1.getRole());
             sysUserRole1.setRoleId(role1.getRoleId());
             sysUserRoleRepository.save(sysUserRole1);
+
+            SysUserRole sysUserRole2 = new SysUserRole();
+            sysUserRole2.setUserId(user.getUserId());
+            sysUserRole2.setRole(role7.getRole());
+            sysUserRole2.setRoleId(role7.getRoleId());
+            sysUserRoleRepository.save(sysUserRole2);
 
             //初始化团队信息
             TeamSourceModel teamSourceModel = new TeamSourceModel();

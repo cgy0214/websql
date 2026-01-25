@@ -64,6 +64,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                     .notMatch("/error")
                     .notMatch("/openApiManager/**")
                     .notMatch("/unlockLoginUser")
+                    .notMatch("/favicon.ico")
                     .check(r -> StpUtil.checkLogin());
 
             // DEMO 用户权限限制 - 只能访问特定路径
