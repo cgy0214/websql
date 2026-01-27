@@ -4,11 +4,39 @@
     <title>数据开发</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <style>
+        /* 自定义小尺寸导航 */
+        .layui-nav-small .layui-nav-item {
+            height: 35px !important;
+            line-height: 35px !important;
+            margin: 0 5px;
+        }
+
+        .layui-nav-small .layui-nav-item a {
+            padding: 0 10px !important;
+            height: 35px !important;
+            line-height: 35px !important;
+            font-size: 16px !important;
+        }
+
+        /* 图标样式调整 */
+        .layui-nav-small .layui-icon {
+            font-size: 18px !important;
+        }
+    </style>
 </head>
 <body>
-<div class="layui-card-header"
-     style="font-size: 15px; color: #999; font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;">
-    枢易方舟 - 数据开发
+<div class="layui-card-header" style="padding:0">
+        <ul class="layui-nav layui-bg-cyan layui-nav-small" lay-filter="left-icons">
+            <li class="layui-nav-item"><a href="javascript:;" title="模板" class="layui-icon layui-icon-template"></a></li>
+            <li class="layui-nav-item"><a href="javascript:;" title="发布" class="layui-icon layui-icon-release"></a></li>
+            <li class="layui-nav-item"><a href="javascript:;" title="图表" class="layui-icon layui-icon-chart-screen"></a></li>
+            <li class="layui-nav-item"><a href="javascript:;" title="表单" class="layui-icon layui-icon-form"></a></li>
+            <li class="layui-nav-item"><a href="javascript:;" title="播放" class="layui-icon layui-icon-play"></a></li>
+            <li class="layui-nav-item"><a href="javascript:;" title="搜索" class="layui-icon layui-icon-search"></a></li>
+            <li class="layui-nav-item"><a href="javascript:;" title="编辑" class="layui-icon layui-icon-edit"></a></li>
+            <li class="layui-nav-item"><a href="javascript:;" title="下载" class="layui-icon layui-icon-download-circle"></a></li>
+        </ul>
 </div>
 <hr class="layui-border-green">
 <div class="layui-field-box">
@@ -90,10 +118,10 @@
 <script th:src="@{/static/lay-config.js}"></script>
 <script th:replace="~{base::ctx}"></script>
 <script>
-    layui.use(['layer', 'form'], function () {
+    layui.use(['element','layer', 'form'], function () {
         const layer = layui.layer;
         const form = layui.form;
-
+        const element = layui.element;
         form.on('submit(save)', function (data) {
             const field = data.field;
             post(ctx + "bigdataManager/saveTask", field, (res) => {
