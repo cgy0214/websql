@@ -24,7 +24,7 @@
             font-size: 18px !important;
         }
 
-        </* 移除选中效果 */
+        /* 移除选中效果 */
         .layui-nav-small .layui-this {
             background-color: transparent !important;
         }
@@ -33,6 +33,7 @@
             width: 99%;
             height: calc(100vh - 50px);
         }
+
         #monaco-editor {
             width: 100%;
             height: 100%;
@@ -44,14 +45,17 @@
 </head>
 <body>
 <div class="layui-card-header" style="padding:0">
-        <ul class="layui-nav layui-bg-gray layui-nav-small" lay-filter="left-icons">
-            <li class="layui-nav-item"><a href="javascript:;" title="保存" class="layui-icon layui-icon-play"></a></li>
-            <li class="layui-nav-item"><a href="javascript:;" title="定时" class="layui-icon layui-icon-time"></a></li>
-            <li class="layui-nav-item"><a href="javascript:;" title="发布" class="layui-icon layui-icon-release"></a></li>
-            <li class="layui-nav-item"><a href="javascript:;" title="任务" class="layui-icon layui-icon-list"></a></li>
-            <li class="layui-nav-item"><a href="javascript:;" title="模板" class="layui-icon layui-icon-template"></a></li>
-            <li class="layui-nav-item"><a href="javascript:;" title="帮助" class="layui-icon layui-icon-about"></a></li>
-        </ul>
+    <ul class="layui-nav layui-bg-gray layui-nav-small" lay-filter="left-icons">
+        <li class="layui-nav-item"><a href="javascript:;" title="运行" class="layui-icon layui-icon-play"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="保存" class="layui-icon layui-icon-file"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="格式化" class="layui-icon layui-icon-fonts-code"></a>
+        </li>
+        <li class="layui-nav-item"><a href="javascript:;" title="定时" class="layui-icon layui-icon-time"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="发布" class="layui-icon layui-icon-release"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="任务" class="layui-icon layui-icon-list"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="模板" class="layui-icon layui-icon-template"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="帮助" class="layui-icon layui-icon-about"></a></li>
+    </ul>
 </div>
 <div>
     <div class="monaco-wrapper">
@@ -59,13 +63,87 @@
     </div>
 </div>
 
+
+<!-- 保存 -->
+<div id="save-layer-wrapper" style="display: none;">
+    <div style="padding:10px;">
+        <form class="layui-form" action="" id="dataDevForm">
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">任务名称</label>
+                <div class="layui-input-inline" style="width: 50%;">
+                    <input type="text" name="taskName" id="taskName" lay-verify="required" autocomplete="off" lay-affix="clear"
+                           placeholder="请输入任务名称" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">任务类型</label>
+                <div class="layui-input-inline" style="width: 50%;">
+                    <select name="taskType" id="taskType" lay-verify="required">
+                        <option value="">请选择任务类型</option>
+                        <option value="SQL">SQL任务</option>
+                        <option value="ETL">ETL任务</option>
+                        <option value="PYTHON">Python任务</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">任务定时</label>
+                <div class="layui-input-inline" style="width: 50%;">
+                    <input type="text" name="cronName" id="cronName" lay-verify="required" autocomplete="off" lay-affix="clear"
+                           placeholder="请输入定时时间" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">任务编码</label>
+                <div class="layui-input-inline" style="width: 50%;">
+                    <input type="text" name="taskCode" id="taskCode" autocomplete="off" lay-affix="clear"
+                           placeholder="请输入任务编码" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">任务描述</label>
+                <div class="layui-input-block" style="width: 75%;">
+                    <textarea name="description" id="description" placeholder="请输入任务描述" class="layui-textarea"></textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">任务状态</label>
+                <div class="layui-input-inline" style="width: 40%;">
+                    <select name="status" id="status">
+                        <option value="启用">启用</option>
+                        <option value="停用">停用</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="page-footer">
+                <div class="btn-list">
+                    <div class="btnlist">
+                        <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-submit
+                                lay-filter="save">
+                            <i class="layui-icon layui-icon-ok">&nbsp;</i>保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script th:src="@{/static/code/sql-formatter.min.cjs}"></script>
+<script th:src="@{/static/monaco/min/vs/loader.js}"></script>
 <script th:src="@{/static/layui.js}"></script>
 <script th:src="@{/static/lay-config.js}"></script>
 <script th:replace="~{base::ctx}"></script>
 <script th:src="@{/static/monaco/min/vs/loader.js}"></script>
 <script>
 
-    layui.use(['element','layer', 'form'], function () {
+    layui.use(['element', 'layer', 'form'], function () {
         const layer = layui.layer;
         const form = layui.form;
         const element = layui.element;
@@ -96,10 +174,13 @@
                 'vs': '/static/monaco/min/vs'
             }
         });
-        require(['vs/editor/editor.main'], function() {
+
+        require(['vs/editor/editor.main'], function () {
             initEditor();
         });
+
         let editor = null;
+
         function initEditor() {
             editor = monaco.editor.create(document.getElementById('monaco-editor'), {
                 value: `-- SQL 编辑器示例
@@ -128,27 +209,34 @@
             });
         }
 
-        $('.layui-nav-small .layui-nav-item a').on('click', function(e) {
+        $('.layui-nav-small .layui-nav-item a').on('click', function (e) {
             $('.layui-nav-small .layui-nav-item').removeClass('layui-this');
 
             const title = $(this).attr('title');
-            switch(title) {
+            switch (title) {
+                case '运行':
+                    executeSQL();
+                    break;
                 case '保存':
-                    saveSQL();
+                    saveData();
+                    break;
+                case '格式化':
+                    formatSQL();
                     break;
                 case '定时':
                     layer.msg('定时功能开发中...');
-                    executeSQL();
                     break;
                 case '发布':
                     layer.msg('发布功能开发中...');
-                    formatSQL();
                     break;
                 case '任务':
                     layer.msg('任务管理功能开发中...');
                     break;
                 case '模板':
                     layer.msg('模板功能开发中...');
+                    break;
+                case '帮助':
+                    showHelp();
                     break;
             }
         });
@@ -165,28 +253,22 @@
                 layui.layer.msg('编辑器未初始化');
                 return;
             }
+            try {
+                const formatted = window.sqlFormatter.format(editor.getValue(), {
+                    language: 'sql',
+                    indent: '    ',
+                    uppercase: true,
+                    linesBetweenQueries: 2
+                });
+                editor.setValue(formatted);
+            } catch (error) {
+                console.error('格式化失败:', error);
+            }
+        }
 
-            // 获取当前选中的文本或整个文档
-            const selection = editor.getSelection();
-            const model = editor.getModel();
-            const text = selection.isEmpty() ?
-                model.getValue() :
-                model.getValueInRange(selection);
-
-            // 简单的格式化逻辑
-            const formatted = text
-                .replace(/\b(SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|CREATE|TABLE|VALUES|SET)\b/gi, '\n$1')
-                .replace(/,(\s*)/g, ',\n    ')
-                .trim();
-
-            editor.executeEdits('', [{
-                range: selection.isEmpty() ?
-                    model.getFullModelRange() :
-                    selection,
-                text: formatted
-            }]);
-
-            layui.layer.msg('格式化完成');
+        function showHelp() {
+            const helpConfig = helpToolbarConfig('https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16922011&doc_id=3405209');
+            helpConfig.onClick();
         }
 
         function saveSQL() {
@@ -201,6 +283,27 @@
             URL.revokeObjectURL(url);
             layui.layer.msg('保存成功');
         }
+
+        /**
+         * 初始化保存页面,如果已保存无需展示，否则创建任务
+         */
+        function viewSavePage(){
+
+            let id = null;
+            const title = id == null ? '新建开发任务' : '修改保存任务';
+            layer.open({
+                type: 1,
+                area: ['600px', '500px'],
+                title: title,
+                shade: 0.6,
+                shadeClose: false,
+                maxmin: false,
+                closeBtn:0,
+                anim: 0,
+                content: $('#save-layer-wrapper'),
+            });
+        }
+        viewSavePage();
     });
 
 </script>
