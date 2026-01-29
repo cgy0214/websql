@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 
@@ -24,8 +25,10 @@ public class BigDataManagerController {
 
     @RequestMapping("/dataDevPage")
     @SaCheckRole("bigdata-admin")
-    public String dataDevPage() {
-        return "bigdataDataDevPage";
+    public ModelAndView dataDevPage(Long id) {
+        ModelAndView modelAndView = new ModelAndView("bigdataDataDevPage");
+        modelAndView.addObject("id",id);
+        return modelAndView;
     }
 
     @RequestMapping("/taskManagePage")

@@ -68,6 +68,7 @@
 <div id="save-layer-wrapper" style="display: none;">
     <div style="padding:10px;">
         <form class="layui-form" action="" id="dataDevForm">
+            <input type="hidden" th:value="${id}" name="taskId" id="taskId"  class="layui-input">
 
             <div class="layui-form-item">
                 <label class="layui-form-label">任务名称</label>
@@ -84,7 +85,6 @@
                         <option value="">请选择任务类型</option>
                         <option value="SQL">SQL任务</option>
                         <option value="ETL">ETL任务</option>
-                        <option value="PYTHON">Python任务</option>
                     </select>
                 </div>
             </div>
@@ -94,14 +94,6 @@
                 <div class="layui-input-inline" style="width: 50%;">
                     <input type="text" name="cronName" id="cronName" lay-verify="required" autocomplete="off" lay-affix="clear"
                            placeholder="请输入定时时间" class="layui-input">
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">任务编码</label>
-                <div class="layui-input-inline" style="width: 50%;">
-                    <input type="text" name="taskCode" id="taskCode" autocomplete="off" lay-affix="clear"
-                           placeholder="请输入任务编码" class="layui-input">
                 </div>
             </div>
 
@@ -148,6 +140,7 @@
         const form = layui.form;
         const element = layui.element;
         const $ = layui.jquery;
+        const taskId = $("#taskId").val();
 
         form.on('submit(save)', function (data) {
             const field = data.field;
@@ -288,9 +281,7 @@
          * 初始化保存页面,如果已保存无需展示，否则创建任务
          */
         function viewSavePage(){
-
-            let id = null;
-            const title = id == null ? '新建开发任务' : '修改保存任务';
+            const title = taskId === "" ? '新建开发任务' : '修改保存任务';
             layer.open({
                 type: 1,
                 area: ['600px', '500px'],
@@ -303,7 +294,11 @@
                 content: $('#save-layer-wrapper'),
             });
         }
-        viewSavePage();
+        // 初始化保存页面
+        if(taskId ===""){
+            viewSavePage();
+        }
+
     });
 
 </script>

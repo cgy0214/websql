@@ -102,9 +102,13 @@
                 case 'edit':
                     layer.open({
                         type: 2,
-                        title: '编辑任务',
+                        title: '编辑'+data.taskName+"任务",
                         area: ['800px', '600px'],
-                        content: ctx + 'bigdataManager/dataDevPage?id=' + data.id
+                        content: ctx + 'bigdataManager/dataDevPage?id=' + data.id,
+                        maxmin: true,
+                        success: function(layero, index){
+                            layer.full(index); // 最大化
+                        }
                     });
                     break;
                 case 'delete':
