@@ -192,15 +192,15 @@
 <div class="layui-card-header" style="padding:0">
     <ul class="layui-nav layui-bg-gray layui-nav-small" lay-filter="left-icons">
         <li class="layui-nav-item"><a href="javascript:;" title="运行" class="layui-icon layui-icon-play"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="保存" class="layui-icon layui-icon-file"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="保存SQL" class="layui-icon layui-icon-file"></a></li>
         <li class="layui-nav-item"><a href="javascript:;" title="格式化" class="layui-icon layui-icon-fonts-code"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="定时设置" class="layui-icon layui-icon-time"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="发布任务" class="layui-icon layui-icon-release"></a></li>
         <li class="layui-nav-item"><a href="javascript:;" title="下载" class="layui-icon layui-icon-download-circle"></a></li>
         <li class="layui-nav-item"><a href="javascript:;" title="任务实例" class="layui-icon layui-icon-chart-screen"></a></li>
         <li class="layui-nav-item"><a href="javascript:;" title="参照模板" class="layui-icon layui-icon-template"></a></li>
         <li class="layui-nav-item"><a href="javascript:;" title="帮助" class="layui-icon layui-icon-about"></a></li>
-        <li>
-            <div id="viewTaskName"></div>
+        <li class="layui-nav-item">
+            <a href="javascript:;" title="修改任务" class="layui-icon layui-icon-edit" id="viewTaskName"></a>
         </li>
     </ul>
 </div>
@@ -214,23 +214,18 @@
 <div id="save-layer-wrapper" style="display: none;">
     <div style="padding:10px;">
         <form class="layui-form" action="" id="typeForm">
-            <input type="hidden" name="taskId" id="taskId">
-            <input type="hidden" name="hiddenTaskName" id="hiddenTaskName">
-            <input type="hidden" name="cron" id="cron">
-            <input type="hidden" name="sqlContent" id="sqlContent">
-
             <!-- 类型 -->
             <div class="layui-row layui-col-space8" id="tabsHeader">
                 <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
                     <input type="radio" name="viewType" value="addSql" lay-skin="none" checked lay-filter="viewType">
-                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 100px">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
                         <div class="lay-skin-checkcard-avatar">
                             <i class="layui-icon layui-icon-add-1" style="font-size: 30px"></i>
                         </div>
                         <div class="lay-skin-checkcard-detail">
                             <div class="lay-skin-checkcard-header">新建</div>
                             <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
-                                我要创建新任务,SQL脚本类型任务。
+                                SQL脚本类型任务
                             </div>
                         </div>
                     </div>
@@ -238,42 +233,42 @@
 
                 <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
                     <input type="radio" name="viewType" value="update" lay-skin="none" lay-filter="viewType">
-                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 100px">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
                         <div class="lay-skin-checkcard-avatar">
                             <span class="layui-icon layui-icon-edit" style="font-size: 30px"></span>
                         </div>
                         <div class="lay-skin-checkcard-detail">
                             <div class="lay-skin-checkcard-header">修改</div>
                             <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
-                                已存在任务,我要进行修改任务。
+                                SQL脚本类型任务
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
                     <input type="radio" name="viewType" value="addEtl" lay-skin="none" disabled lay-filter="viewType">
-                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 100px">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
                         <div class="lay-skin-checkcard-avatar">
                             <i class="layui-icon layui-icon-table" style="font-size: 30px"></i>
                         </div>
                         <div class="lay-skin-checkcard-detail">
                             <div class="lay-skin-checkcard-header">新建</div>
                             <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
-                                我要创建新任务,ETL可视化任务
+                                ETL可视化类型任务
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
                     <input type="radio" name="viewType" value="addRefer" lay-skin="none" lay-filter="viewType">
-                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 100px">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
                         <div class="lay-skin-checkcard-avatar">
                             <i class="layui-icon layui-icon-star-fill" style="font-size: 30px"></i>
                         </div>
                         <div class="lay-skin-checkcard-detail">
                             <div class="lay-skin-checkcard-header">示例</div>
                             <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
-                                数据宽表处理示例 &nbsp;&nbsp; Mysql & Postgres IN Doris
+                                数据宽表处理示例
                             </div>
                         </div>
                     </div>
@@ -283,6 +278,7 @@
         <!-- 新增 -->
         <div id="addView" style="display: none;">
             <form class="layui-form" action="" id="addForm">
+                <input type="hidden" name="id" id="updateId"/>
                 <hr class="layui-border-green">
                 <div class="layui-form-item">
                     <label class="layui-form-label">任务名称</label>
@@ -293,18 +289,10 @@
                 </div>
 
                 <div class="layui-form-item">
-                    <label class="layui-form-label">任务类型</label>
+                    <label class="layui-form-label">定时任务</label>
                     <div class="layui-input-inline" style="width: 50%;">
-                        <input type="text" name="taskType" id="taskType" lay-verify="required" autocomplete="off"
-                               value="SQL任务" readonly placeholder="SQL任务" class="layui-input">
-                    </div>
-                </div>
-
-                <div class="layui-form-item">
-                    <label class="layui-form-label">任务定时</label>
-                    <div class="layui-input-inline" style="width: 50%;">
-                        <input type="text" name="cronName" id="cronName" lay-verify="required" autocomplete="off"
-                               lay-affix="clear" placeholder="请输入定时时间" class="layui-input">
+                        <input type="text" name="cron" id="cron" lay-verify="required" autocomplete="off"
+                               lay-affix="clear" placeholder="请输入cron表达式" class="layui-input">
                     </div>
                 </div>
 
@@ -319,10 +307,15 @@
                 <div class="layui-form-item">
                     <label class="layui-form-label">任务状态</label>
                     <div class="layui-input-inline" style="width: 40%;">
-                        <select name="status" id="status">
-                            <option value="启用">启用</option>
-                            <option value="停用">停用</option>
-                        </select>
+                        <input type="text" name="status" id="status"  value="草稿" lay-verify="required" autocomplete="off" class="layui-input" readonly>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务类型</label>
+                    <div class="layui-input-inline" style="width: 50%;">
+                        <input type="text" name="taskType" id="taskType" lay-verify="required" autocomplete="off"
+                               value="SQL任务" readonly placeholder="SQL任务" class="layui-input">
                     </div>
                 </div>
 
@@ -364,7 +357,7 @@
         <div id="addReferView" style="display: none;">
             <hr class="layui-border-green">
             <div class="layui-form-item">
-                暂无数据
+                Mysql & Postgres IN Doris
             </div>
         </div>
     </div>
@@ -400,13 +393,9 @@
             appState.sqlContent = [[${data.sqlContent != null ? data.sqlContent : ''}]];
             appState.userName = [[${userName != null ? userName : ''}]];
 
+            $('#taskId').val(appState.taskId);
             // 设置视图显示
             $('#viewTaskName').html(appState.taskName || '未命名任务');
-            $('#taskId').val(appState.taskId);
-            $('#hiddenTaskName').val(appState.taskName);
-            $('#cron').val(appState.cron);
-            $('#sqlContent').val(appState.sqlContent);
-
             // 默认显示新增视图
             $('#addView').show();
         }
@@ -514,9 +503,10 @@
                 const title = $(this).attr('title');
                 const actions = {
                     '运行': executeSQL,
-                    '保存': saveData,
+                    '保存SQL': saveData,
                     '格式化': formatSQL,
-                    '定时设置': () => layer.msg('定时功能开发中...'),
+                    '修改任务': showUpdateTaskPage,
+                    '发布任务': () => layer.msg('任务管理功能开发中...'),
                     '下载': downloadSQL,
                     '任务实例': () => layer.msg('任务管理功能开发中...'),
                     '参照模板': () => layer.msg('模板功能开发中...'),
@@ -583,7 +573,7 @@
                 id: appState.taskId,
                 sqlContent: appState.editor.getValue()
             };
-            post(ctx + "bigdataManager/saveTask", formData, (res) => {
+            post(ctx + "bigdataManager/saveTaskContent", formData, (res) => {
                 if (res.code === 200) {
                     appState.hasUnsavedChanges = false;
                     appState.taskId = res.data.id;
@@ -597,6 +587,9 @@
         // 显示保存页面
         function showSavePage() {
             if (!appState.taskId) {
+                $("#typeForm").show();
+                $("#taskName").val(appState.taskName);
+                $("#taskId").val(appState.taskId);
                 layer.open({
                     type: 1,
                     area: ['800px', '600px'],
@@ -607,6 +600,33 @@
                     closeBtn:0,
                     anim: 0,
                     content: $('#save-layer-wrapper')
+                });
+            }
+        }
+
+        // 显示更新任务页面
+        function showUpdateTaskPage(){
+            if (appState.taskId) {
+                //隐藏固定新增视图
+                $("#typeForm").hide();
+                $('#addView').show();
+                post(ctx + "bigdataManager/getTask/"+appState.taskId, null, (res) => {
+                    if (res.code === 200) {
+                        const data = res.data;
+                        $('#description').val(data.description);
+                        $('#updateId').val(data.id);
+                        $('#cron').val(data.cron);
+                        $('#taskName').val(data.taskName).attr("readonly", true);
+                        $('#status').val(data.status).attr("readonly", true);
+                        layer.open({
+                        type: 1,
+                        area: ['800px', '600px'],
+                        title: '修改任务配置',
+                        shade: 0.6,
+                        anim: 0,
+                        content: $('#save-layer-wrapper')
+                    })
+                    }
                 });
             }
         }

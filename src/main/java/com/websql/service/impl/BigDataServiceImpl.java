@@ -70,6 +70,7 @@ public class BigDataServiceImpl implements BigDataService {
             updateModel.setUpdateTime(currentTime);
             updateModel.setUpdateUser(currentUser);
             updateModel.setCron(model.getCron());
+            updateModel.setDescription(model.getDescription());
             bigDataTaskRepository.saveAndFlush(updateModel);
         } else {
             if (ObjectUtil.isEmpty(model.getTaskName())) {
@@ -149,4 +150,21 @@ public class BigDataServiceImpl implements BigDataService {
                 })
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public BigDataTaskModel saveTaskContent(BigDataTaskModel model) {
+        BigDataTaskModel updateModel = bigDataTaskRepository.findById(model.getId()).orElse(null);
+        if (ObjectUtil.isNull(updateModel)) {
+            throw new RuntimeException("任务不存在,请刷新再试!");
+        }
+        String currentUser = StpUtils.getCurrentUserName();
+        String currentTime = DateUtil.now();
+        updateModel.setSqlContent(model.getSqlContent());
+        updateModel.setUpdateTime(currentTime);
+        updateModel.setUpdateUser(currentUser);
+        bigDataTaskRepository.saveAndFlush(updateModel);
+        return updateModel;
+    }
+
+
 }

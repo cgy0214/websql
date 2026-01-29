@@ -139,4 +139,16 @@ public class BigDataManagerController {
         result.put("data", bigDataService.findDataList());
         return result;
     }
+
+    @RequestMapping("/saveTaskContent")
+    @ResponseBody
+    @SaCheckRole("bigdata-admin")
+    public AjaxResult saveTaskContent(@RequestBody BigDataTaskModel model) {
+        try {
+            BigDataTaskModel bigDataTaskModel = bigDataService.saveTaskContent(model);
+            return AjaxResult.success(bigDataTaskModel);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
 }

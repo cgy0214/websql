@@ -20,9 +20,8 @@
                 <div class="layui-input-inline">
                     <select name="taskType" id="taskType">
                         <option value="">全部</option>
-                        <option value="SQL">SQL任务</option>
+                        <option value="SQL任务">SQL任务</option>
                         <option value="ETL">ETL任务</option>
-                        <option value="PYTHON">Python任务</option>
                     </select>
                 </div>
                 <div class="layui-input-normal">
@@ -45,8 +44,9 @@
 <script th:replace="~{base::ctx}"></script>
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
-        <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
         <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="edit">发布</a>
+        <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="edit">实例</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
@@ -67,10 +67,12 @@
             cols: [
                 [
                     {field: 'id', title: '主键', sort: true, fixed: true, width: 100},
-                    {field: 'taskName', title: '任务名称', sort: true, fixed: true, width: 200},
+                    {field: 'taskName', title: '任务名称', sort: true, fixed: true, width: 260, templet: function (d) {
+                            return '<a href="#" lay-event="view" class="layui-table-link">' + d.taskName + '</a>'
+                        }
+                    },
+                    {field: 'cron', title: '任务定时', sort: true, width: 200},
                     {field: 'taskType', title: '任务类型', sort: true, width: 120},
-                    {field: 'taskCode', title: '任务编码', sort: true, width: 150},
-                    {field: 'dataSource', title: '数据源', sort: true, width: 150},
                     {field: 'status', title: '状态', sort: true, width: 100, templet: function(d) {
                             if (d.status === '启用') {
                                 return '<span style="color: green;">' + d.status + '</span>';
@@ -82,7 +84,7 @@
                     {field: 'createUser', title: '创建人', sort: true, width: 120},
                     {field: 'createTime', title: '创建时间', sort: true, width: 180},
                     {field: 'updateTime', title: '更新时间', sort: true, width: 180},
-                    {fixed: 'right', title: '操作', width: 220, toolbar: '#toolbarTable'}
+                    {fixed: 'right', title: '操作', toolbar: '#toolbarTable'}
                 ]
             ],
             parseData: res => parseData(res)
@@ -96,7 +98,7 @@
                         type: 1,
                         title: '查看任务',
                         area: ['800px', '600px'],
-                        content: '<div style="padding: 20px;"><table class="layui-table"><tr><td>任务名称：</td><td>' + data.taskName + '</td></tr><tr><td>任务类型：</td><td>' + data.taskType + '</td></tr><tr><td>任务编码：</td><td>' + data.taskCode + '</td></tr><tr><td>数据源：</td><td>' + data.dataSource + '</td></tr><tr><td>任务描述：</td><td>' + (data.description || '') + '</td></tr><tr><td>SQL内容：</td><td><pre>' + (data.sqlContent || '') + '</pre></td></tr><tr><td>状态：</td><td>' + data.status + '</td></tr><tr><td>创建人：</td><td>' + data.createUser + '</td></tr><tr><td>创建时间：</td><td>' + data.createTime + '</td></tr></table></div>'
+                        content: '<div style="padding: 20px;"><table class="layui-table"><tr><td>任务名称：</td><td>' + data.taskName + '</td></tr><tr><td>任务类型：</td><td>' + data.taskType + '</td></tr><tr><td>任务描述：</td><td>' + (data.description || '') + '</td></tr><tr><td>状态：</td><td>' + data.status + '</td></tr><tr><td>创建人：</td><td>' + data.createUser + '</td></tr><tr><td>创建时间：</td><td>' + data.createTime + '</td></tr></table></div>'
                     });
                     break;
                 case 'edit':

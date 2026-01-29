@@ -24,4 +24,6 @@ public interface BigDataService {
     void deleteInstance(Long id);
 
     List<Map<String, String>> findDataList();
+
+    BigDataTaskModel saveTaskContent(BigDataTaskModel model);
 }
