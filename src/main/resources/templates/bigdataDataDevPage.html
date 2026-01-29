@@ -25,7 +25,7 @@
         }
 
         /* 移除选中效果 */
-        .layui-nav-small .layui-this {
+        .layui-nav-small layui-this {
             background-color: transparent !important;
         }
 
@@ -41,6 +41,151 @@
             border-radius: 4px;
         }
 
+        /* 卡片风格多选组件 */
+        .layui-form-checkbox > .lay-skin-checkcard,
+        .layui-form-radio > .lay-skin-checkcard {
+            display: flex;
+            padding: 12px;
+            white-space: normal;
+            border-radius: 10px;
+            border: 1px solid #e5e5e5;
+            color: #000;
+            background-color: #fff;
+        }
+
+        .layui-form-checkbox > .lay-skin-checkcard > *,
+        .layui-form-radio > .lay-skin-checkcard > * {
+            vertical-align: top;
+        }
+
+        .layui-form-checkbox:hover > .lay-skin-checkcard,
+        .layui-form-radio:hover > .lay-skin-checkcard {
+            border-color: #16b777;
+        }
+
+        .layui-form-checked > .lay-skin-checkcard,
+        .layui-form-radioed[lay-skin="none"] > .lay-skin-checkcard {
+            color: #000;
+            border-color: #16b777;
+            background-color: rgb(22 183 119 / 10%) !important;
+        }
+
+        .layui-checkbox-disabled > .lay-skin-checkcard,
+        .layui-radio-disabled > .lay-skin-checkcard {
+            box-shadow: none;
+            border-color: #e5e5e5 !important;
+            background-color: #eee !important;
+        }
+
+        .lay-skin-checkcard-avatar {
+            padding-right: 8px;
+        }
+
+        .lay-skin-checkcard-detail {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .lay-skin-checkcard-header {
+            font-weight: 500;
+            font-size: 16px;
+            white-space: nowrap;
+            margin-bottom: 4px;
+        }
+
+        .lay-skin-checkcard-description {
+            font-size: 13px;
+            color: #5f5f5f;
+        }
+
+        .layui-disabled .lay-skin-checkcard-description {
+            color: #c2c2c2 !important;
+        }
+
+        .layui-form-checked > .lay-check-dot:after,
+        .layui-form-radioed > .lay-check-dot:after {
+            position: absolute;
+            content: "";
+            top: 2px;
+            right: 2px;
+            width: 0;
+            height: 0;
+            display: inline-block;
+            vertical-align: middle;
+            border-width: 10px;
+            border-style: dashed;
+            border-color: transparent;
+            border-top-left-radius: 0;
+            border-top-right-radius: 6px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 6px;
+            border-top-color: #16b777;
+            border-top-style: solid;
+            border-right-color: #16b777;
+            border-right-style: solid;
+            overflow: hidden;
+        }
+
+        .layui-checkbox-disabled > .lay-check-dot:after,
+        .layui-radio-disabled > .lay-check-dot:after {
+            border-top-color: #d2d2d2;
+            border-right-color: #d2d2d2;
+        }
+
+        .layui-form-checked > .lay-check-dot-2:before,
+        .layui-form-radioed > .lay-check-dot-2:before {
+            position: absolute;
+            font-family: "layui-icon";
+            content: "\e605";
+            color: #fff;
+            bottom: 4px;
+            right: 3px;
+            font-size: 9px;
+            z-index: 12;
+        }
+
+        .layui-form-checked > .lay-check-dot-2:after,
+        .layui-form-radioed > .lay-check-dot-2:after {
+            position: absolute;
+            content: "";
+            bottom: 2px;
+            right: 2px;
+            width: 0;
+            height: 0;
+            display: inline-block;
+            vertical-align: middle;
+            border-width: 10px;
+            border-style: dashed;
+            border-color: transparent;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 6px;
+            border-bottom-left-radius: 0;
+            border-right-color: #16b777;
+            border-right-style: solid;
+            border-bottom-color: #16b777;
+            border-bottom-style: solid;
+            overflow: hidden;
+        }
+
+        .layui-checkbox-disabled > .lay-check-dot-2:before,
+        .layui-radio-disabled > .lay-check-dot-2:before {
+            color: #eee !important;
+        }
+
+        .layui-checkbox-disabled > .lay-check-dot-2:after,
+        .layui-radio-disabled > .lay-check-dot-2:after {
+            border-bottom-color: #d2d2d2;
+            border-right-color: #d2d2d2;
+        }
+
+        .lay-ellipsis-multi-line {
+            overflow: hidden;
+            word-break: break-all;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+        }
     </style>
 </head>
 <body>
@@ -48,13 +193,15 @@
     <ul class="layui-nav layui-bg-gray layui-nav-small" lay-filter="left-icons">
         <li class="layui-nav-item"><a href="javascript:;" title="运行" class="layui-icon layui-icon-play"></a></li>
         <li class="layui-nav-item"><a href="javascript:;" title="保存" class="layui-icon layui-icon-file"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="格式化" class="layui-icon layui-icon-fonts-code"></a>
-        </li>
-        <li class="layui-nav-item"><a href="javascript:;" title="定时" class="layui-icon layui-icon-time"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="发布" class="layui-icon layui-icon-release"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="任务" class="layui-icon layui-icon-list"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="模板" class="layui-icon layui-icon-template"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="格式化" class="layui-icon layui-icon-fonts-code"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="定时设置" class="layui-icon layui-icon-time"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="下载" class="layui-icon layui-icon-download-circle"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="任务实例" class="layui-icon layui-icon-chart-screen"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="参照模板" class="layui-icon layui-icon-template"></a></li>
         <li class="layui-nav-item"><a href="javascript:;" title="帮助" class="layui-icon layui-icon-about"></a></li>
+        <li>
+            <div id="viewTaskName"></div>
+        </li>
     </ul>
 </div>
 <div>
@@ -63,244 +210,428 @@
     </div>
 </div>
 
-
-<!-- 保存 -->
+<!-- 保存弹窗 -->
 <div id="save-layer-wrapper" style="display: none;">
     <div style="padding:10px;">
-        <form class="layui-form" action="" id="dataDevForm">
-            <input type="hidden" th:value="${id}" name="taskId" id="taskId"  class="layui-input">
+        <form class="layui-form" action="" id="typeForm">
+            <input type="hidden" name="taskId" id="taskId">
+            <input type="hidden" name="hiddenTaskName" id="hiddenTaskName">
+            <input type="hidden" name="cron" id="cron">
+            <input type="hidden" name="sqlContent" id="sqlContent">
 
-            <div class="layui-form-item">
-                <label class="layui-form-label">任务名称</label>
-                <div class="layui-input-inline" style="width: 50%;">
-                    <input type="text" name="taskName" id="taskName" lay-verify="required" autocomplete="off" lay-affix="clear"
-                           placeholder="请输入任务名称" class="layui-input">
+            <!-- 类型 -->
+            <div class="layui-row layui-col-space8" id="tabsHeader">
+                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+                    <input type="radio" name="viewType" value="addSql" lay-skin="none" checked lay-filter="viewType">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 100px">
+                        <div class="lay-skin-checkcard-avatar">
+                            <i class="layui-icon layui-icon-add-1" style="font-size: 30px"></i>
+                        </div>
+                        <div class="lay-skin-checkcard-detail">
+                            <div class="lay-skin-checkcard-header">新建</div>
+                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
+                                我要创建新任务,SQL脚本类型任务。
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="layui-form-item">
-                <label class="layui-form-label">任务类型</label>
-                <div class="layui-input-inline" style="width: 50%;">
-                    <select name="taskType" id="taskType" lay-verify="required">
-                        <option value="">请选择任务类型</option>
-                        <option value="SQL">SQL任务</option>
-                        <option value="ETL">ETL任务</option>
-                    </select>
+                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+                    <input type="radio" name="viewType" value="update" lay-skin="none" lay-filter="viewType">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 100px">
+                        <div class="lay-skin-checkcard-avatar">
+                            <span class="layui-icon layui-icon-edit" style="font-size: 30px"></span>
+                        </div>
+                        <div class="lay-skin-checkcard-detail">
+                            <div class="lay-skin-checkcard-header">修改</div>
+                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
+                                已存在任务,我要进行修改任务。
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">任务定时</label>
-                <div class="layui-input-inline" style="width: 50%;">
-                    <input type="text" name="cronName" id="cronName" lay-verify="required" autocomplete="off" lay-affix="clear"
-                           placeholder="请输入定时时间" class="layui-input">
+                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+                    <input type="radio" name="viewType" value="addEtl" lay-skin="none" disabled lay-filter="viewType">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 100px">
+                        <div class="lay-skin-checkcard-avatar">
+                            <i class="layui-icon layui-icon-table" style="font-size: 30px"></i>
+                        </div>
+                        <div class="lay-skin-checkcard-detail">
+                            <div class="lay-skin-checkcard-header">新建</div>
+                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
+                                我要创建新任务,ETL可视化任务
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">任务描述</label>
-                <div class="layui-input-block" style="width: 75%;">
-                    <textarea name="description" id="description" placeholder="请输入任务描述" class="layui-textarea"></textarea>
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">任务状态</label>
-                <div class="layui-input-inline" style="width: 40%;">
-                    <select name="status" id="status">
-                        <option value="启用">启用</option>
-                        <option value="停用">停用</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="page-footer">
-                <div class="btn-list">
-                    <div class="btnlist">
-                        <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-submit
-                                lay-filter="save">
-                            <i class="layui-icon layui-icon-ok">&nbsp;</i>保存
-                        </button>
+                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+                    <input type="radio" name="viewType" value="addRefer" lay-skin="none" lay-filter="viewType">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 100px">
+                        <div class="lay-skin-checkcard-avatar">
+                            <i class="layui-icon layui-icon-star-fill" style="font-size: 30px"></i>
+                        </div>
+                        <div class="lay-skin-checkcard-detail">
+                            <div class="lay-skin-checkcard-header">示例</div>
+                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
+                                数据宽表处理示例 &nbsp;&nbsp; Mysql & Postgres IN Doris
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </form>
+        <!-- 新增 -->
+        <div id="addView" style="display: none;">
+            <form class="layui-form" action="" id="addForm">
+                <hr class="layui-border-green">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务名称</label>
+                    <div class="layui-input-inline" style="width: 50%;">
+                        <input type="text" name="taskName" id="taskName" lay-verify="required" autocomplete="off"
+                               lay-affix="clear" placeholder="请输入任务名称" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务类型</label>
+                    <div class="layui-input-inline" style="width: 50%;">
+                        <input type="text" name="taskType" id="taskType" lay-verify="required" autocomplete="off"
+                               value="SQL任务" readonly placeholder="SQL任务" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务定时</label>
+                    <div class="layui-input-inline" style="width: 50%;">
+                        <input type="text" name="cronName" id="cronName" lay-verify="required" autocomplete="off"
+                               lay-affix="clear" placeholder="请输入定时时间" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务描述</label>
+                    <div class="layui-input-block" style="width: 75%;">
+                    <textarea name="description" id="description" placeholder="请输入任务描述"
+                              class="layui-textarea"></textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务状态</label>
+                    <div class="layui-input-inline" style="width: 40%;">
+                        <select name="status" id="status">
+                            <option value="启用">启用</option>
+                            <option value="停用">停用</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="page-footer">
+                    <div class="btn-list">
+                        <div class="btnlist">
+                            <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-submit
+                                    lay-filter="save">
+                                <i class="layui-icon layui-icon-ok">&nbsp;</i>保存
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 修改 -->
+        <div id="updateView" style="display: none;">
+            <hr class="layui-border-green">
+            <form class="layui-form" action="" id="updateForm">
+                <div class="layui-form-item">
+                    <select name="taskOption" id="taskOption" lay-filter="taskOption" lay-search=""
+                            lay-affix="clear"></select>
+                </div>
+                <div class="page-footer">
+                    <div class="btn-list">
+                        <div class="btnlist">
+                            <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-submit
+                                    lay-filter="update">
+                                <i class="layui-icon layui-icon-ok">&nbsp;</i>开始编辑
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 示例 -->
+        <div id="addReferView" style="display: none;">
+            <hr class="layui-border-green">
+            <div class="layui-form-item">
+                暂无数据
+            </div>
+        </div>
     </div>
 </div>
+
 <script th:src="@{/static/code/sql-formatter.min.cjs}"></script>
 <script th:src="@{/static/monaco/min/vs/loader.js}"></script>
 <script th:src="@{/static/layui.js}"></script>
 <script th:src="@{/static/lay-config.js}"></script>
 <script th:replace="~{base::ctx}"></script>
-<script th:src="@{/static/monaco/min/vs/loader.js}"></script>
-<script>
+<script type="text/javascript" th:inline="javascript" th:fragment="ctx">
 
-    layui.use(['element', 'layer', 'form'], function () {
+    layui.use(['element', 'layer', 'form', 'laySelect'], function () {
         const layer = layui.layer;
         const form = layui.form;
-        const element = layui.element;
-        const $ = layui.jquery;
-        const taskId = $("#taskId").val();
+        const $ = layui.$;
+        const select = layui.laySelect;
 
-        form.on('submit(save)', function (data) {
-            const field = data.field;
-            post(ctx + "bigdataManager/saveTask", field, (res) => {
-                layer.alert(res.msg, {icon: res.code === 200 ? 1 : 2});
-            })
-            return false;
+        // 应用状态管理
+        const appState = {
+            hasUnsavedChanges: false,
+            taskId: null,
+            taskName: null,
+            editor: null,
+            userName:null
+        };
+
+        // 初始化应用状态
+        function initAppState() {
+            appState.taskId = [[${data.id != null ? data.id : ''}]];
+            appState.taskName = [[${data.taskName != null ? data.taskName : ''}]];
+            appState.cron = [[${data.cron != null ? data.cron : ''}]];
+            appState.sqlContent = [[${data.sqlContent != null ? data.sqlContent : ''}]];
+            appState.userName = [[${userName != null ? userName : ''}]];
+
+            // 设置视图显示
+            $('#viewTaskName').html(appState.taskName || '未命名任务');
+            $('#taskId').val(appState.taskId);
+            $('#hiddenTaskName').val(appState.taskName);
+            $('#cron').val(appState.cron);
+            $('#sqlContent').val(appState.sqlContent);
+
+            // 默认显示新增视图
+            $('#addView').show();
+        }
+
+        // 页面切换处理
+        form.on('radio(viewType)', function(data) {
+            const views = {
+                addSql: '#addView',
+                update: '#updateView',
+                addRefer: '#addReferView'
+            };
+
+            Object.values(views).forEach(id => $(id).hide());
+            $(views[data.value]).show();
         });
 
-        form.on('submit(saveAndExecute)', function (data) {
-            const field = data.field;
-            post(ctx + "bigdataManager/saveTask", field, (res) => {
+        // 保存任务
+        form.on('submit(save)', function(data) {
+            const formData = {
+                ...data.field,
+                taskId: appState.taskId,
+                sqlContent: appState.editor?.getValue() || ''
+            };
+            post(ctx + "bigdataManager/saveTask", formData, (res) => {
                 if (res.code === 200) {
-                    layer.msg('保存成功，准备执行任务', {icon: 1});
-                } else {
-                    layer.alert(res(res.msg, {icon: 2}));
+                    appState.hasUnsavedChanges = false;
+                    appState.taskId = res.data.id;
+                    appState.taskName = res.data.taskName;
+
+                    $('#hiddenTaskName').val(appState.taskName);
+                    $('#viewTaskName').html(appState.taskName);
+                    $('#taskId').val(appState.taskId);
                 }
-            })
+
+                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                    if (res.code === 200) layer.closeAll();
+                });
+            });
             return false;
         });
 
-        require.config({
-            paths: {
-                'vs': '/static/monaco/min/vs'
-            }
-        });
-
-        require(['vs/editor/editor.main'], function () {
-            initEditor();
-        });
-
-        let editor = null;
-
-        function initEditor() {
-            editor = monaco.editor.create(document.getElementById('monaco-editor'), {
-                value: `-- SQL 编辑器示例
-                        SELECT * FROM users
-                        WHERE id = 1
-                        AND status = 'active'
-
-                        CREATE TABLE users (
-                            id INT PRIMARY KEY,
-                            name VARCHAR(50),
-                            email VARCHAR(100)
-                        );`,
-                language: 'sql',
-                theme: 'vs-light',
-                fontSize: 14,
-                automaticLayout: true,
-                minimap: {
-                    enabled: true,  // 启用预览
-                    side: 'right',  // 预览在右侧
-                    size: 'fill'    // 自适应大小
-                },
-                scrollbar: {
-                    vertical: 'auto',
-                    horizontal: 'auto'
-                }
+        // 加载任务列表
+        function loadTaskOptions() {
+            select.render({
+                elem: "#taskOption",
+                url: ctx + 'bigdataManager/findDataList',
+                select: 10000,
+                title: '请选择要修改的任务',
+                format: parseSelectData,
+                success: (data) => {},
+                onselect: (data) => { appState.taskId = data.id; }
             });
         }
 
-        $('.layui-nav-small .layui-nav-item a').on('click', function (e) {
-            $('.layui-nav-small .layui-nav-item').removeClass('layui-this');
 
-            const title = $(this).attr('title');
-            switch (title) {
-                case '运行':
-                    executeSQL();
-                    break;
-                case '保存':
-                    saveData();
-                    break;
-                case '格式化':
-                    formatSQL();
-                    break;
-                case '定时':
-                    layer.msg('定时功能开发中...');
-                    break;
-                case '发布':
-                    layer.msg('发布功能开发中...');
-                    break;
-                case '任务':
-                    layer.msg('任务管理功能开发中...');
-                    break;
-                case '模板':
-                    layer.msg('模板功能开发中...');
-                    break;
-                case '帮助':
-                    showHelp();
-                    break;
+        // 更新任务
+        form.on('submit(update)', function(data) {
+            const selectedTaskId = $("#taskOption").val();
+            if (!selectedTaskId) {
+                layer.msg('请选择要修改的任务', {icon: 2});
+                return false;
             }
+            appState.taskId = selectedTaskId;
+            appState.hasUnsavedChanges = false;
+            location.href = `${ctx}bigdataManager/dataDevPage?id=${appState.taskId}`;
+            return false;
         });
 
+        // 初始化Monaco编辑器
+        function initMonacoEditor() {
+            require.config({ paths: { 'vs': '/static/monaco/min/vs' }});
+            require(['vs/editor/editor.main'], function() {
+                const defaultValue =
+`-- comment:
+--********************************************************************--
+-- author: ${appState.userName}
+-- date: ${new Date().toLocaleString()}
+--********************************************************************--\n`;
 
-        function executeSQL() {
-            if (!editor) return;
-            const sql = editor.getValue();
-            layer.msg(sql);
+                const initialValue = appState.sqlContent || defaultValue;
+
+                appState.editor = monaco.editor.create(
+                    document.getElementById('monaco-editor'),
+                    {
+                        value: initialValue,
+                        language: 'sql',
+                        theme: 'vs-light',
+                        fontSize: 14,
+                        automaticLayout: true,
+                        minimap: { enabled: true, side: 'right', size: 'fill' },
+                        scrollbar: { vertical: 'auto', horizontal: 'auto' }
+                    }
+                );
+
+                appState.editor.getModel().onDidChangeContent(() => {
+                    appState.hasUnsavedChanges = appState.editor.getValue().trim() !== '';
+                });
+            });
         }
 
+        // 工具栏操作处理
+        function setupToolbarActions() {
+            $('.layui-nav-small .layui-nav-item a').on('click', function(e) {
+                $('.layui-nav-small .layui-nav-item').removeClass('layui-this');
+                const title = $(this).attr('title');
+                const actions = {
+                    '运行': executeSQL,
+                    '保存': saveData,
+                    '格式化': formatSQL,
+                    '定时设置': () => layer.msg('定时功能开发中...'),
+                    '下载': downloadSQL,
+                    '任务实例': () => layer.msg('任务管理功能开发中...'),
+                    '参照模板': () => layer.msg('模板功能开发中...'),
+                    '帮助': showHelp
+                };
+
+                if (actions[title]) actions[title]();
+            });
+        }
+
+        // SQL执行
+        function executeSQL() {
+            if (!appState.editor) return;
+            layer.msg(appState.editor.getValue());
+        }
+
+        // SQL格式化
         function formatSQL() {
-            if (!editor) {
-                layui.layer.msg('编辑器未初始化');
+            if (!appState.editor) {
+                layer.msg('编辑器未初始化');
                 return;
             }
+
             try {
-                const formatted = window.sqlFormatter.format(editor.getValue(), {
-                    language: 'sql',
-                    indent: '    ',
-                    uppercase: true,
-                    linesBetweenQueries: 2
-                });
-                editor.setValue(formatted);
+                const formatted = window.sqlFormatter.format(
+                    appState.editor.getValue(),
+                    { language: 'sql', indent: '    ', uppercase: true, linesBetweenQueries: 2 }
+                );
+                appState.editor.setValue(formatted);
             } catch (error) {
                 console.error('格式化失败:', error);
+                layer.msg('SQL格式化失败', {icon: 2});
             }
         }
 
+        // 显示帮助
         function showHelp() {
             const helpConfig = helpToolbarConfig('https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16922011&doc_id=3405209');
             helpConfig.onClick();
         }
 
-        function saveSQL() {
-            if (!editor) return;
-            const sql = editor.getValue();
-            const blob = new Blob([sql], {type: 'text/plain'});
+        // 下载SQL
+        function downloadSQL() {
+            if (!appState.editor) return;
+
+            const blob = new Blob([appState.editor.getValue()], {type: 'text/plain'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
+
             a.href = url;
-            a.download = `query_${Date.now()}.sql`;
+            a.download = `sql_${appState.taskName || 'script'}_${Date.now()}.sql`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            layui.layer.msg('保存成功');
+
+            layer.msg('下载成功');
         }
 
-        /**
-         * 初始化保存页面,如果已保存无需展示，否则创建任务
-         */
-        function viewSavePage(){
-            const title = taskId === "" ? '新建开发任务' : '修改保存任务';
-            layer.open({
-                type: 1,
-                area: ['600px', '500px'],
-                title: title,
-                shade: 0.6,
-                shadeClose: false,
-                maxmin: false,
-                closeBtn:0,
-                anim: 0,
-                content: $('#save-layer-wrapper'),
+        // 保存数据
+        function saveData() {
+            if (!appState.editor) return;
+            const formData = {
+                id: appState.taskId,
+                sqlContent: appState.editor.getValue()
+            };
+            post(ctx + "bigdataManager/saveTask", formData, (res) => {
+                if (res.code === 200) {
+                    appState.hasUnsavedChanges = false;
+                    appState.taskId = res.data.id;
+                    $('#taskId').val(res.data.id);
+                } else {
+                    layer.msg(res.msg || '保存失败', {icon: 2});
+                }
             });
         }
-        // 初始化保存页面
-        if(taskId ===""){
-            viewSavePage();
+
+        // 显示保存页面
+        function showSavePage() {
+            if (!appState.taskId) {
+                layer.open({
+                    type: 1,
+                    area: ['800px', '600px'],
+                    title: '数据开发',
+                    shade: 0.6,
+                    shadeClose: false,
+                    maxmin: false,
+                    closeBtn:0,
+                    anim: 0,
+                    content: $('#save-layer-wrapper')
+                });
+            }
         }
 
-    });
+        // 初始化应用
+        function initApp() {
+            initAppState();
+            loadTaskOptions();
+            initMonacoEditor();
+            setupToolbarActions();
+            showSavePage();
 
+            // 未保存更改提示
+            window.addEventListener('beforeunload', (e) => {
+                if (appState.hasUnsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = '您修改的内容未保存，确定要离开吗？';
+                    return e.returnValue;
+                }
+            });
+        }
+
+        // 启动应用
+        initApp();
+    });
 </script>
 </body>
 </html>

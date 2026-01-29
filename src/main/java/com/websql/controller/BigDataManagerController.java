@@ -1,10 +1,12 @@
 package com.websql.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.hutool.core.util.ObjectUtil;
 import com.websql.model.AjaxResult;
 import com.websql.model.BigDataInstanceModel;
 import com.websql.model.BigDataTaskModel;
 import com.websql.service.BigDataService;
+import com.websql.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/bigdataManager")
@@ -26,8 +30,14 @@ public class BigDataManagerController {
     @RequestMapping("/dataDevPage")
     @SaCheckRole("bigdata-admin")
     public ModelAndView dataDevPage(Long id) {
+        String currentUserName = StpUtils.getCurrentUserName();
         ModelAndView modelAndView = new ModelAndView("bigdataDataDevPage");
-        modelAndView.addObject("id",id);
+        modelAndView.addObject("data", new BigDataTaskModel());
+        modelAndView.addObject("userName", currentUserName);
+        if (ObjectUtil.isNotNull(id)) {
+            BigDataTaskModel model = bigDataService.getTaskById(id);
+            modelAndView.addObject("data", model);
+        }
         return modelAndView;
     }
 
@@ -55,10 +65,9 @@ public class BigDataManagerController {
     @SaCheckRole("bigdata-admin")
     public AjaxResult saveTask(@RequestBody BigDataTaskModel model) {
         try {
-            bigDataService.saveTask(model);
-            return AjaxResult.success();
+            BigDataTaskModel bigDataTaskModel = bigDataService.saveTask(model);
+            return AjaxResult.success(bigDataTaskModel);
         } catch (Exception e) {
-            log.error("保存任务失败:{}", e.getMessage(), e);
             return AjaxResult.error(e.getMessage());
         }
     }
@@ -119,5 +128,15 @@ public class BigDataManagerController {
             log.error("删除实例失败:{}", e.getMessage(), e);
             return AjaxResult.error("删除失败:" + e.getMessage());
         }
+    }
+
+    @RequestMapping("/findDataList")
+    @ResponseBody
+    @SaCheckRole("bigdata-admin")
+    public Map findDataList() {
+        Map result = new HashMap(2);
+        result.put("code", 0);
+        result.put("data", bigDataService.findDataList());
+        return result;
     }
 }

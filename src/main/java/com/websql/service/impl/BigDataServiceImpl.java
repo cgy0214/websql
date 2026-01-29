@@ -10,6 +10,7 @@ import com.websql.model.Result;
 import com.websql.service.BigDataService;
 import com.websql.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,6 +20,8 @@ import javax.annotation.Resource;
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -54,20 +57,36 @@ public class BigDataServiceImpl implements BigDataService {
     }
 
     @Override
-    public void saveTask(BigDataTaskModel model) {
-        if (ObjectUtil.isEmpty(model.getTaskName())) {
-            throw new RuntimeException("任务名称不能为空");
-        }
+    public BigDataTaskModel saveTask(BigDataTaskModel model) {
         String currentUser = StpUtils.getCurrentUserName();
         String currentTime = DateUtil.now();
         Long currentTeamId = StpUtils.getCurrentActiveTeam().getId();
-        if (ObjectUtil.isEmpty(model.getId())) {
+        if (ObjectUtil.isNotNull(model.getId())) {
+            BigDataTaskModel updateModel = bigDataTaskRepository.findById(model.getId()).orElse(null);
+            if (ObjectUtil.isNull(updateModel)) {
+                throw new RuntimeException("任务不存在,请刷新再试!");
+            }
+            updateModel.setSqlContent(model.getSqlContent());
+            updateModel.setUpdateTime(currentTime);
+            updateModel.setUpdateUser(currentUser);
+            updateModel.setCron(model.getCron());
+            bigDataTaskRepository.saveAndFlush(updateModel);
+        } else {
+            if (ObjectUtil.isEmpty(model.getTaskName())) {
+                throw new RuntimeException("任务名称不能为空!");
+            }
+            BigDataTaskModel param = new BigDataTaskModel();
+            param.setTaskName(model.getTaskName());
+            long count = bigDataTaskRepository.count(Example.of(param));
+            if (count > 0) {
+                throw new RuntimeException("任务名称已存在,请重新输入!");
+            }
             model.setCreateUser(currentUser);
             model.setCreateTime(currentTime);
             model.setTeamId(currentTeamId);
+            bigDataTaskRepository.save(model);
         }
-        model.setUpdateTime(currentTime);
-        bigDataTaskRepository.save(model);
+        return model;
     }
 
     @Override
@@ -115,5 +134,19 @@ public class BigDataServiceImpl implements BigDataService {
     @Override
     public void deleteInstance(Long id) {
         bigDataInstanceRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Map<String, String>> findDataList() {
+        return bigDataTaskRepository.findAll().stream()
+                .map(model -> {
+                    Map<String, String> item = new java.util.HashMap<>(2);
+                    item.put("code", model.getId().toString());
+                    item.put("value", model.getTaskName());
+                    item.put("id", model.getId().toString());
+                    item.put("select", "false");
+                    return item;
+                })
+                .collect(Collectors.toList());
     }
 }

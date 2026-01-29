@@ -16,7 +16,7 @@ public class BigDataTaskModel extends Pages implements Serializable {
     @GeneratedValue(generator = "generator")
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private String taskName;
 
     @Column
@@ -29,6 +29,9 @@ public class BigDataTaskModel extends Pages implements Serializable {
     private String description;
 
     @Column
+    private String cron;
+
+    @Column(columnDefinition = "TEXT")
     private String sqlContent;
 
     @Column
@@ -42,6 +45,9 @@ public class BigDataTaskModel extends Pages implements Serializable {
 
     @Column
     private String createUser;
+
+    @Column
+    private String updateUser;
 
     @Column
     private String createTime;

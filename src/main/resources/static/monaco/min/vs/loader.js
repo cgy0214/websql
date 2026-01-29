@@ -1365,4 +1365,3 @@ var define, AMDLoader;
 			typeof doNotInitLoader > 'u' && c());
 })(AMDLoader || (AMDLoader = {}));
 
-//# sourceMappingURL=../../min-maps/vs/loader.js.map
