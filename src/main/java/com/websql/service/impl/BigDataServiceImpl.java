@@ -78,12 +78,15 @@ public class BigDataServiceImpl implements BigDataService {
             }
             BigDataTaskModel param = new BigDataTaskModel();
             param.setTaskName(model.getTaskName());
+            param.setTeamId(currentTeamId);
             long count = bigDataTaskRepository.count(Example.of(param));
             if (count > 0) {
                 throw new RuntimeException("任务名称已存在,请重新输入!");
             }
             model.setCreateUser(currentUser);
             model.setCreateTime(currentTime);
+            model.setUpdateTime(currentTime);
+            model.setUpdateUser(currentUser);
             model.setTeamId(currentTeamId);
             bigDataTaskRepository.save(model);
         }
@@ -164,6 +167,12 @@ public class BigDataServiceImpl implements BigDataService {
         updateModel.setUpdateUser(currentUser);
         bigDataTaskRepository.saveAndFlush(updateModel);
         return updateModel;
+    }
+
+    @Override
+    public List execute(BigDataTaskModel model) {
+
+        return List.of();
     }
 
 

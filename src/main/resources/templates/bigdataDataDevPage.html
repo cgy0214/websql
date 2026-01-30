@@ -284,7 +284,7 @@
                     <label class="layui-form-label">任务名称</label>
                     <div class="layui-input-inline" style="width: 50%;">
                         <input type="text" name="taskName" id="taskName" lay-verify="required" autocomplete="off"
-                               lay-affix="clear" placeholder="请输入任务名称" class="layui-input">
+                               placeholder="请输入任务名称" class="layui-input">
                     </div>
                 </div>
 
@@ -469,8 +469,8 @@
             require.config({ paths: { 'vs': '/static/monaco/min/vs' }});
             require(['vs/editor/editor.main'], function() {
                 const defaultValue =
-`-- comment:
---********************************************************************--
+`--********************************************************************--
+-- comment:
 -- author: ${appState.userName}
 -- date: ${new Date().toLocaleString()}
 --********************************************************************--\n`;
@@ -515,12 +515,6 @@
 
                 if (actions[title]) actions[title]();
             });
-        }
-
-        // SQL执行
-        function executeSQL() {
-            if (!appState.editor) return;
-            layer.msg(appState.editor.getValue());
         }
 
         // SQL格式化
@@ -620,7 +614,7 @@
                         $('#status').val(data.status).attr("readonly", true);
                         layer.open({
                         type: 1,
-                        area: ['800px', '600px'],
+                        area: ['800px', '500px'],
                         title: '修改任务配置',
                         shade: 0.6,
                         anim: 0,
@@ -630,6 +624,23 @@
                 });
             }
         }
+
+        function executeSQL() {
+            if (!appState.editor) return;
+            const formData = {
+                id: appState.taskId,
+                sqlContent: appState.editor.getValue()
+            };
+            post(ctx + "bigdataManager/execute", formData, (res) => {
+                if (res.code === 200) {
+                    layer.msg(res.data);
+                    layer.closeAll();
+                } else {
+                    layer.msg(res.msg || '保存失败', {icon: 2});
+                }
+            });
+        }
+
 
         // 初始化应用
         function initApp() {

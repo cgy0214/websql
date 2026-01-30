@@ -44,9 +44,9 @@
 <script th:replace="~{base::ctx}"></script>
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
-        <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
         <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="edit">发布</a>
-        <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="edit">实例</a>
+        <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="edit">实例</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
@@ -67,11 +67,10 @@
             cols: [
                 [
                     {field: 'id', title: '主键', sort: true, fixed: true, width: 100},
-                    {field: 'taskName', title: '任务名称', sort: true, fixed: true, width: 260, templet: function (d) {
+                    {field: 'taskName', title: '任务名称', sort: true, fixed: true, width: 200, templet: function (d) {
                             return '<a href="#" lay-event="view" class="layui-table-link">' + d.taskName + '</a>'
                         }
                     },
-                    {field: 'cron', title: '任务定时', sort: true, width: 200},
                     {field: 'taskType', title: '任务类型', sort: true, width: 120},
                     {field: 'status', title: '状态', sort: true, width: 100, templet: function(d) {
                             if (d.status === '启用') {
@@ -97,8 +96,8 @@
                     layer.open({
                         type: 1,
                         title: '查看任务',
-                        area: ['800px', '600px'],
-                        content: '<div style="padding: 20px;"><table class="layui-table"><tr><td>任务名称：</td><td>' + data.taskName + '</td></tr><tr><td>任务类型：</td><td>' + data.taskType + '</td></tr><tr><td>任务描述：</td><td>' + (data.description || '') + '</td></tr><tr><td>状态：</td><td>' + data.status + '</td></tr><tr><td>创建人：</td><td>' + data.createUser + '</td></tr><tr><td>创建时间：</td><td>' + data.createTime + '</td></tr></table></div>'
+                        area: ['750px', '400px'],
+                        content: '<div style="padding: 20px;"><table class="layui-table"><tr><td>任务名称：</td><td>' + data.taskName + '</td></tr><tr><td>任务类型：</td><td>' + data.taskType + '</td></tr><tr><td>任务定时：</td><td>' + data.cron + '</td></tr><tr><td>任务描述：</td><td>' + (data.description || '') + '</td></tr><tr><td>状态：</td><td>' + data.status + '</td></tr><tr><td>创建人：</td><td>' + data.createUser + '</td></tr><tr><td>创建时间：</td><td>' + data.createTime + '</td></tr><tr><td>更新人：</td><td>' + data.updateUser + '</td></tr><tr><td>更新时间：</td><td>' + data.updateTime + '</td></tr></table></div>'
                     });
                     break;
                 case 'edit':

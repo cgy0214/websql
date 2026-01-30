@@ -151,4 +151,16 @@ public class BigDataManagerController {
             return AjaxResult.error(e.getMessage());
         }
     }
+
+    @RequestMapping("/execute")
+    @ResponseBody
+    @SaCheckRole("bigdata-admin")
+    public AjaxResult execute(@RequestBody BigDataTaskModel model) {
+        try {
+             bigDataService.execute(model);
+            return AjaxResult.success();
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
 }

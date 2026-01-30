@@ -26,4 +26,6 @@ public interface BigDataService {
     List<Map<String, String>> findDataList();
 
     BigDataTaskModel saveTaskContent(BigDataTaskModel model);
+
+    List execute(BigDataTaskModel model);
 }
