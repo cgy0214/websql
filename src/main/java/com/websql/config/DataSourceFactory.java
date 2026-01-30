@@ -130,7 +130,7 @@ public class DataSourceFactory {
     /**
      * 获得连接池
      */
-    private static DruidDataSource getDataSource(String sourceKey) {
+    public static DruidDataSource getDataSource(String sourceKey) {
         return DATA_SOURCE_MAP.get(sourceKey.trim());
     }
 

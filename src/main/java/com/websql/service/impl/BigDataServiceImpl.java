@@ -2,6 +2,9 @@ package com.websql.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.druid.pool.DruidDataSource;
+import com.websql.config.CalciteDataSourceConfig;
+import com.websql.config.DataSourceFactory;
 import com.websql.dao.BigDataInstanceRepository;
 import com.websql.dao.BigDataTaskRepository;
 import com.websql.model.BigDataInstanceModel;
@@ -18,6 +21,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.Predicate;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +39,9 @@ public class BigDataServiceImpl implements BigDataService {
 
     @Resource
     private BigDataInstanceRepository bigDataInstanceRepository;
+
+    @Resource
+    private CalciteDataSourceConfig calciteDataSourceConfig;
 
     @Override
     public Result<BigDataTaskModel> queryTaskList(BigDataTaskModel model) {
@@ -171,6 +181,28 @@ public class BigDataServiceImpl implements BigDataService {
 
     @Override
     public List execute(BigDataTaskModel model) {
+        //todo 临时写死，需要解析sql中mysql_schema.orders 数据库，并注册到calcite
+        //todo 使用jdbc 解析sql 语句并insert入库。 运行模式是否需要入库？
+        DruidDataSource data1 = DataSourceFactory.getDataSource("mysql2");
+        DruidDataSource data2 = DataSourceFactory.getDataSource("postgres");
+
+        try(Connection connection = calciteDataSourceConfig.createConnection(data1, data2)){
+            ResultSet resultSet = null;
+            try (Statement statement = connection.createStatement()) {
+                resultSet = statement.executeQuery(model.getSqlContent());
+                while (resultSet.next()){
+                    System.out.println(resultSet.getString(1));
+                    System.out.println(resultSet.getString(2));
+                    System.out.println(resultSet.getString(3));
+                    System.out.println("\n");
+
+                }
+            }catch (SQLException e){
+                throw new SQLException(e);
+            }
+        }catch (SQLException e) {
+            log.error("SQL execution failed: ", e);
+        }
 
         return List.of();
     }

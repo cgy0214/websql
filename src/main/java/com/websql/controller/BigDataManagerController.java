@@ -160,6 +160,7 @@ public class BigDataManagerController {
              bigDataService.execute(model);
             return AjaxResult.success();
         } catch (Exception e) {
+            log.error("执行任务失败:{}", e.getMessage(), e);
             return AjaxResult.error(e.getMessage());
         }
     }

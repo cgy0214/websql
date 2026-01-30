@@ -632,9 +632,10 @@
                 sqlContent: appState.editor.getValue()
             };
             post(ctx + "bigdataManager/execute", formData, (res) => {
+                debugger;
+                layer.closeAll();
                 if (res.code === 200) {
                     layer.msg(res.data);
-                    layer.closeAll();
                 } else {
                     layer.msg(res.msg || '保存失败', {icon: 2});
                 }
