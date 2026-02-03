@@ -33,20 +33,20 @@ public class CalciteDataSourceConfig {
 
         Schema mysqlSchema = JdbcSchema.create(
                 rootSchema,
-                "mysql_schema",
+                "mysql_calcite_2",
                 dataSources1,
                 "calcite",
                 null
         );
         Schema postgresSchema = JdbcSchema.create(
                 rootSchema,
-                "postgres_schema",
+                "postgresql_calcite_1",
                 dataSource2,
                 "calcite",
                 "public"
         );
-        rootSchema.add("mysql_schema", mysqlSchema);
-        rootSchema.add("postgres_schema", postgresSchema);
+        rootSchema.add("mysql_calcite_2", mysqlSchema);
+        rootSchema.add("postgresql_calcite_1", postgresSchema);
         return calciteConnection;
     }
 }

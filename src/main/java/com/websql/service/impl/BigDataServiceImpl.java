@@ -183,8 +183,8 @@ public class BigDataServiceImpl implements BigDataService {
     public List execute(BigDataTaskModel model) {
         //todo 临时写死，需要解析sql中mysql_schema.orders 数据库，并注册到calcite
         //todo 使用jdbc 解析sql 语句并insert入库。 运行模式是否需要入库？
-        DruidDataSource data1 = DataSourceFactory.getDataSource("mysql2");
-        DruidDataSource data2 = DataSourceFactory.getDataSource("postgres");
+        DruidDataSource data1 = DataSourceFactory.getBigDataSource("mysql_calcite_2");
+        DruidDataSource data2 = DataSourceFactory.getBigDataSource("postgresql_calcite_1");
 
         try(Connection connection = calciteDataSourceConfig.createConnection(data1, data2)){
             ResultSet resultSet = null;

@@ -80,6 +80,7 @@ public class DataSourceFactory {
                 ds.setAsyncInit(true);
                 ds.init();
                 DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
+                DATA_KEY_IDENTIFIER_MAP.put(config.getSourceIdentifier(), config.getDbName().trim());
                 index++;
             } catch (Exception e) {
                 log.error("数据源初始化失败:{},错误信息：{}", config.getDbName(), e.getMessage());
@@ -121,6 +122,7 @@ public class DataSourceFactory {
         try {
             ds.init();
             DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
+            DATA_KEY_IDENTIFIER_MAP.put(config.getSourceIdentifier(), config.getDbName().trim());
         } catch (Exception e) {
             DruidDataSourceStatManager.removeDataSource(ds);
             throw new RuntimeException(e);
@@ -130,7 +132,7 @@ public class DataSourceFactory {
     /**
      * 获得连接池
      */
-    public static DruidDataSource getDataSource(String sourceKey) {
+    private static DruidDataSource getDataSource(String sourceKey) {
         return DATA_SOURCE_MAP.get(sourceKey.trim());
     }
 
@@ -224,6 +226,22 @@ public class DataSourceFactory {
         }
         return null;
     }
+
+
+    /**
+     * 获取数据库名称
+      * @param sourceIdentifier 数据源标识
+     * @return
+     */
+    public static DruidDataSource getBigDataSource(String sourceIdentifier) {
+            String sourceKey = DATA_KEY_IDENTIFIER_MAP.get(sourceIdentifier);
+            if(sourceKey == null) {
+                return null;
+            }
+            return getDataSource(sourceKey);
+    }
+
+
 
     /**
      * 获取数据库产品名称
