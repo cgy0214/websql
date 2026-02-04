@@ -2,6 +2,7 @@ package com.websql.service;
 
 import com.websql.model.BigDataInstanceModel;
 import com.websql.model.BigDataTaskModel;
+import com.websql.model.ExecuteResult;
 import com.websql.model.Result;
 
 import java.util.List;
@@ -27,5 +28,10 @@ public interface BigDataService {
 
     BigDataTaskModel saveTaskContent(BigDataTaskModel model);
 
-    List execute(BigDataTaskModel model);
+    /**
+     * 执行大数据SQL
+     * @param model 任务模型
+     * @return 执行结果列表
+     */
+    List<ExecuteResult> execute(BigDataTaskModel model);
 }

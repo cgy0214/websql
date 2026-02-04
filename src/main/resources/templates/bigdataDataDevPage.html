@@ -4,6 +4,7 @@
     <title>数据开发</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <link rel="stylesheet" th:href="@{/static/css/sqlPage.css}" media="all">
     <style>
         /* 自定义小尺寸导航 */
         .layui-nav-small .layui-nav-item {
@@ -29,9 +30,20 @@
             background-color: transparent !important;
         }
 
+        /* 主容器，使用 flex 布局 */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 40px); /* 减去顶部导航栏高度 */
+            width: 100%;
+            overflow: hidden;
+        }
+
         .monaco-wrapper {
-            width: 99%;
-            height: calc(100vh - 50px);
+            flex: 1; /* 自动占据剩余空间 */
+            width: 100%;
+            position: relative;
+            transition: height 0.3s ease; /* 添加平滑过渡动画 */
         }
 
         #monaco-editor {
@@ -41,7 +53,67 @@
             border-radius: 4px;
         }
 
-        /* 卡片风格多选组件 */
+        /* 结果区域容器 */
+        #result-container {
+            height: 350px; /* 固定高度 */
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+            display: none; /* 默认隐藏 */
+            flex-direction: column;
+            position: relative;
+            transition: height 0.3s ease;
+        }
+        
+        /* 结果区域标题栏 */
+        .result-header {
+            height: 32px;
+            line-height: 32px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            padding: 0 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .result-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .result-tools {
+            display: flex;
+            align-items: center;
+        }
+        
+        .result-close-btn {
+            cursor: pointer;
+            padding: 0 5px;
+            color: #666;
+        }
+        
+        .result-close-btn:hover {
+            color: #ff5722;
+        }
+
+        /* 消息区域 */
+        #msgDiv {
+            padding: 10px;
+            overflow-y: auto;
+            max-height: 100px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        /* 表格区域 */
+        #sqlTableDiv {
+            flex: 1;
+            overflow: hidden;
+            padding: 5px;
+        }
+
+        /* 卡片风格多选组件 (保持原有样式) */
         .layui-form-checkbox > .lay-skin-checkcard,
         .layui-form-radio > .lay-skin-checkcard {
             display: flex;
@@ -52,6 +124,8 @@
             color: #000;
             background-color: #fff;
         }
+        /* ... 其他原有样式 ... */
+
 
         .layui-form-checkbox > .lay-skin-checkcard > *,
         .layui-form-radio > .lay-skin-checkcard > * {
@@ -204,9 +278,36 @@
         </li>
     </ul>
 </div>
-<div>
+<div class="main-container">
     <div class="monaco-wrapper">
         <div id="monaco-editor"></div>
+    </div>
+    
+    <div id="result-container">
+        <!-- 结果区域标题栏 -->
+        <div class="result-header">
+            <div class="result-title"><i class="layui-icon layui-icon-list"></i> 执行结果</div>
+            <div class="result-tools">
+                <span class="result-close-btn" onclick="window.closeResult()" title="关闭"><i class="layui-icon layui-icon-close"></i></span>
+            </div>
+        </div>
+
+        <!-- 消息区域 -->
+        <div id="msgDiv" style="display: none;">
+            <div style="font-size: 13px;color: #61914e;display:block;">
+                <span id="msgSpan" style="margin-left: 10px;display:block;width:95%;word-wrap:break-word;white-space:normal;"></span>
+            </div>
+        </div>
+
+        <!-- 表格区域 -->
+        <div id="sqlTableDiv" style="display: none;">
+            <div class="layui-tab layui-tab-brief" lay-filter="sqlTableTab" lay-allowclose="true" style="margin:0; height:100%; display:flex; flex-direction:column;">
+                <ul class="layui-tab-title" id="lists">
+                </ul>
+                <div class="layui-tab-content" id="listsContent" style="flex:1; padding:0; overflow:hidden;">
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -370,11 +471,20 @@
 <script th:replace="~{base::ctx}"></script>
 <script type="text/javascript" th:inline="javascript" th:fragment="ctx">
 
-    layui.use(['element', 'layer', 'form', 'laySelect'], function () {
+    layui.use(['element', 'layer', 'form', 'laySelect', 'table', 'dropdown', 'laytpl'], function () {
         const layer = layui.layer;
         const form = layui.form;
         const $ = layui.$;
         const select = layui.laySelect;
+        const table = layui.table;
+        const dropdown = layui.dropdown;
+        const laytpl = layui.laytpl;
+        const element = layui.element;
+        const viewStore = {
+             get: function(key, def) { return localStorage.getItem(key) || def; },
+             put: function(key, val) { localStorage.setItem(key, val); }
+        };
+        const tableSizeKey = "tableSize";
 
         // 应用状态管理
         const appState = {
@@ -631,16 +741,148 @@
                 id: appState.taskId,
                 sqlContent: appState.editor.getValue()
             };
+            
+            let intervalTime = 0;
+            let interval = setInterval(function () {
+                intervalTime++;
+                // message("执行耗时:" + intervalTime + "毫秒", true);
+            }, 1);
+
             post(ctx + "bigdataManager/execute", formData, (res) => {
-                debugger;
+                window.clearInterval(interval);
                 layer.closeAll();
+                if (!res) {
+                    layer.msg("结果返回未知异常！", {icon: 2});
+                    return;
+                }
                 if (res.code === 200) {
-                    layer.msg(res.data);
+                   tableInit(res.data);
                 } else {
-                    layer.msg(res.msg || '保存失败', {icon: 2});
+                    layer.msg(res.msg || '执行失败', {icon: 2});
                 }
             });
         }
+        
+        let elementTabCount = [];
+        function tableInit(data) {
+            if (!data) return;
+            
+            // $('.monaco-wrapper').css('height', 'calc(100vh - 450px)');
+            $('#result-container').css('display', 'flex');
+            appState.editor.layout();
+
+            for (let i = 0; i < elementTabCount.length; i++) {
+                element.tabDelete('sqlTableTab', elementTabCount[i]);
+            }
+            $("#sqlTableDiv").hide();
+            $("#msgDiv").hide();
+            $("#msgSpan").html("");
+            let index = 0;
+            
+            for (let i = 0; i < data.length; i++) {
+                index++;
+                let item = data[i];
+                let statusMsg = "";
+                
+                if (item.type === 1) {
+                     if (item.status === 2) {
+                         statusMsg = "执行失败 " + item.errorMessage;
+                     } else {
+                         statusMsg = "执行成功影响【" + item.data + "】条数据!";
+                     }
+                } else if (item.data === null) {
+                    statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功返回为空!";
+                } else if (item.status === 2) {
+                     statusMsg = "执行失败 " + item.errorMessage;
+                }
+                
+                if (statusMsg !== "") {
+                    // let msg = "第[" + index + "]条SQL语句" + statusMsg + "<br>";
+                    // $("#msgSpan").append(msg);
+                    // $("#msgDiv").show();
+
+                    let elId = "sqlMsg" + index;
+                    elementTabCount.push(elId);
+                    
+                    let msgContent = `
+                        <div style="padding: 20px; font-size: 14px; color: ${item.status === 2 ? '#FF5722' : '#009688'};">
+                            <i class="layui-icon ${item.status === 2 ? 'layui-icon-close-fill' : 'layui-icon-ok-circle'}" style="font-size: 20px; vertical-align: middle;"></i>
+                            <span style="vertical-align: middle; margin-left: 10px;">${statusMsg}</span>
+                            <div style="margin-top: 10px; color: #666; font-family: monospace; background: #f8f8f8; padding: 10px; border-radius: 4px;">
+                                SQL: ${item.sql || 'N/A'}
+                            </div>
+                        </div>
+                    `;
+                    
+                    element.tabAdd('sqlTableTab', {
+                        title: (item.status === 2 ? '❌ ' : '✅ ') + '结果 ' + index,
+                        content: msgContent,
+                        id: elId,
+                        change: true
+                    });
+                    
+                    if (data.length === 1 || item.status === 2) {
+                        element.tabChange('sqlTableTab', elId);
+                    }
+                }
+                
+                if (item.type === 1 || item.status === 2) {
+                    continue;
+                }
+                
+                $("#sqlTableDiv").css('display', 'flex');
+                let rowsData = item.data;
+                if (!rowsData || rowsData.length === 0) continue;
+                
+                let headArr = Object.keys(rowsData[0]);
+                let head = [];
+                for (let key in headArr) {
+                    head.push({field: headArr[key], title: headArr[key], sort: true});
+                }
+                
+                let elId = "sqlTable" + index;
+                elementTabCount.push(elId);
+                element.tabAdd('sqlTableTab', {
+                    title: '📋 结果集 ' + index,
+                    content: "<table class='layui-table' id='" + elId + "'></table>",
+                    id: elId,
+                    change: true
+                })
+                
+                table.render({
+                    elem: '#' + elId
+                    , cols: [head]
+                    , data: rowsData
+                    , time: item.time
+                    , title: '结果集' + (i + 1)
+                    , loading: true
+                    , height: 260 
+                    , cellMinWidth: 150
+                    , limit: 50
+                    , limits: [50, 500, 1000]
+                    , even: true
+                    , page: true
+                    , text: {none: '查询结果为0条数据'}
+                    , size: viewStore.get(tableSizeKey, 'sm')
+                });
+                
+                if (item.type === 0 && item.status !== 2) {
+                     element.tabChange('sqlTableTab', elId);
+                }
+                
+                 table.on('rowContextmenu(' + elId + ')', function (obj) {
+                 });
+            }
+        }
+        
+        window.closeResult = function() {
+             $('#result-container').hide();
+             // $('.monaco-wrapper').css('height', 'calc(100vh - 50px)');
+             if (appState.editor) {
+                 setTimeout(() => appState.editor.layout(), 50);
+             }
+        }
+
 
 
         // 初始化应用

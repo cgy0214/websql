@@ -157,8 +157,7 @@ public class BigDataManagerController {
     @SaCheckRole("bigdata-admin")
     public AjaxResult execute(@RequestBody BigDataTaskModel model) {
         try {
-             bigDataService.execute(model);
-            return AjaxResult.success();
+            return AjaxResult.success(bigDataService.execute(model));
         } catch (Exception e) {
             log.error("执行任务失败:{}", e.getMessage(), e);
             return AjaxResult.error(e.getMessage());

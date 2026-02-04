@@ -178,54 +178,101 @@ public class BigDataServiceImpl implements BigDataService {
     }
 
     @Override
-    public List execute(BigDataTaskModel model) {
+    public List<ExecuteResult> execute(BigDataTaskModel model) {
+        List<ExecuteResult> results = new ArrayList<>();
+        String fullSql = model.getSqlContent();
+        if (cn.hutool.core.util.StrUtil.isBlank(fullSql)) {
+            return results;
+        }
+
+        List<String> sqlStatements = cn.hutool.core.util.StrUtil.split(fullSql, ';');
+        Set<String> allSchemas = new HashSet<>();
+        List<ParseResultVo> parsedStatements = new ArrayList<>();
+        List<String> executableSqls = new ArrayList<>();
+
+        for (String sql : sqlStatements) {
+            if (cn.hutool.core.util.StrUtil.isBlank(sql)) continue;
+            try {
+                ParseResultVo vo = CalciteSqlParseHandler.parseSql(sql);
+                allSchemas.addAll(vo.getSchemas());
+                parsedStatements.add(vo);
+                executableSqls.add(sql);
+            } catch (Exception e) {
+                ExecuteResult errorResult = new ExecuteResult();
+                errorResult.setSql(sql);
+                errorResult.setStatus(ExecuteResult.STATUS_FAIL);
+                errorResult.setType(ExecuteResult.TYPE_NON_SELECT); // 默认解析失败归为非查询类错误
+                errorResult.setErrorMessage("SQL解析失败: " + e.getMessage());
+                results.add(errorResult);
+            }
+        }
+        
+        if (executableSqls.isEmpty()) {
+            return results;
+        }
+
         List<CalciteDataSourceParams> params = new ArrayList<>();
-        SqlOperationType operationType;
-
-        try {
-            ParseResultVo parseResultVo = CalciteSqlParseHandler.parseSql(model.getSqlContent());
-            Set<String> schemas = parseResultVo.getSchemas();
-            operationType = parseResultVo.getOperationType();
-            if (SqlOperationType.UNKNOWN.equals(operationType)) {
-                throw new RuntimeException("请输入正确的sql!");
+        for (String schemaName : allSchemas) {
+            DruidDataSource bigDataSource = DataSourceFactory.getBigDataSource(schemaName);
+            if (bigDataSource == null) {
+                throw new RuntimeException(schemaName + "数据源不存在,请先配置数据源!");
             }
-
-            for (String schemaName : schemas) {
-                DruidDataSource bigDataSource = DataSourceFactory.getBigDataSource(schemaName);
-                if (bigDataSource == null) {
-                    throw new RuntimeException(schemaName + "数据源不存在,请先配置数据源!");
-                }
-                try (Connection conn = bigDataSource.getConnection()) {
-                    String catalog = MetaUtil.getCatalog(conn);
-                    String schema = MetaUtil.getSchema(conn);
-                    params.add(new CalciteDataSourceParams(schemaName, bigDataSource, catalog, schema));
-                }
+            try (Connection conn = bigDataSource.getConnection()) {
+                String catalog = MetaUtil.getCatalog(conn);
+                String schema = MetaUtil.getSchema(conn);
+                params.add(new CalciteDataSourceParams(schemaName, bigDataSource, catalog, schema));
+            } catch (SQLException e) {
+                log.error("获取数据源连接失败", e);
+                throw new RuntimeException("获取数据源[" + schemaName + "]连接失败: " + e.getMessage());
             }
-
-        } catch (Exception e) {
-            log.error("sql解析失败,", e);
-            throw new RuntimeException(e);
         }
-
+        
         if (params.isEmpty()) {
-            throw new RuntimeException("数据源不存在,请先配置数据源!");
+              throw new RuntimeException("数据源不存在,请先配置数据源!");
         }
-
         try (Connection connection = calciteDataSourceConfig.createConnection(params)) {
-            if (operationType.getCode().equals(SqlOperationType.UPDATE.getCode())
-                    || operationType.getCode().equals(SqlOperationType.DELETE.getCode())
-                    || operationType.getCode().equals(SqlOperationType.INSERT.getCode())) {
-                int i = bigDataExecute(connection, model.getSqlContent());
-                System.out.println("影响行数: " + i);
-            } else {
-                bigDataSelect(connection, model.getSqlContent());
-            }
+            for (int i = 0; i < parsedStatements.size(); i++) {
+                ParseResultVo vo = parsedStatements.get(i);
+                String sql = executableSqls.get(i);
+                long startTime = System.currentTimeMillis();
 
+                ExecuteResult resultItem = new ExecuteResult();
+                resultItem.setSql(sql);
+
+                try {
+                    if (isModificationOperation(vo.getOperationType())) {
+                        int count = bigDataExecute(connection, sql);
+                        resultItem.setStatus(ExecuteResult.STATUS_SUCCESS);
+                        resultItem.setData(count);
+                        resultItem.setType(ExecuteResult.TYPE_NON_SELECT);
+                    } else {
+                        List<Map<String, Object>> data = bigDataSelect(connection, sql);
+                        resultItem.setStatus(ExecuteResult.STATUS_SUCCESS);
+                        resultItem.setData(data);
+                        resultItem.setType(ExecuteResult.TYPE_SELECT);
+                    }
+                } catch (Exception e) {
+                    resultItem.setStatus(ExecuteResult.STATUS_FAIL);
+                    resultItem.setErrorMessage(e.getMessage());
+                    resultItem.setType(ExecuteResult.TYPE_NON_SELECT);
+                    log.error("SQL执行异常: {}", sql, e);
+                } finally {
+                    resultItem.setTime(System.currentTimeMillis() - startTime);
+                }
+                results.add(resultItem);
+            }
         } catch (SQLException e) {
-            log.error("SQL execution failed: ", e);
+            log.error("Calcite 连接创建或执行致命错误", e);
+            throw new RuntimeException("SQL执行环境初始化失败: " + e.getMessage());
         }
 
-        return null;
+        return results;
+    }
+    
+    private boolean isModificationOperation(SqlOperationType type) {
+        return type.getCode().equals(SqlOperationType.UPDATE.getCode())
+                || type.getCode().equals(SqlOperationType.DELETE.getCode())
+                || type.getCode().equals(SqlOperationType.INSERT.getCode());
     }
 
     /**
@@ -251,20 +298,30 @@ public class BigDataServiceImpl implements BigDataService {
      * @param sqlContent
      * @throws SQLException
      */
-    private void bigDataSelect(Connection connection, String sqlContent) throws SQLException {
-        ResultSet resultSet = null;
-        try (Statement statement = connection.createStatement()) {
-            resultSet = statement.executeQuery(sqlContent);
-            while (resultSet.next()) {
-                System.out.println(resultSet.getString(1));
-                System.out.println(resultSet.getString(2));
-                System.out.println(resultSet.getString(3));
-                System.out.println("\n");
+    private List<Map<String, Object>> bigDataSelect(Connection connection, String sqlContent) throws SQLException {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sqlContent)) {
+            
+            java.sql.ResultSetMetaData metaData = resultSet.getMetaData();
+            int columnCount = metaData.getColumnCount();
+            List<String> columnNames = new ArrayList<>();
+            for (int i = 1; i <= columnCount; i++) {
+                columnNames.add(metaData.getColumnLabel(i));
+            }
 
+            while (resultSet.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                for (String columnName : columnNames) {
+                    Object value = resultSet.getObject(columnName);
+                    row.put(columnName, value);
+                }
+                resultList.add(row);
             }
         } catch (SQLException e) {
             throw new SQLException(e);
         }
+        return resultList;
     }
 
 
