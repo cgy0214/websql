@@ -12,6 +12,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.websql.config.JdbcUtils;
 import com.websql.config.SqlParserHandler;
 import com.websql.dao.DetectionLogsRepository;
+import com.websql.model.SqlOperationType;
 import com.websql.model.SqlParserVo;
 import com.websql.model.SysDetectionLogsModel;
 import com.websql.model.SysDetectionModel;
@@ -74,7 +75,7 @@ public class DetectionJobFactory implements Task {
             }
             List<SqlParserVo> parserVoList = SqlParserHandler.getParserVo(vo.getDataBaseName(), sql);
             SqlParserVo sqlParserVo = parserVoList.get(0);
-            if (!SqlParserHandler.SELECT.equals(sqlParserVo.getMethodType())) {
+            if (!SqlOperationType.SELECT.getCode().equals(sqlParserVo.getMethodType())) {
                 throw new RuntimeException("SQL类型不是查询语句，无法执行!");
             }
             Map<String, Object> moreResult = JdbcUtils.findMoreResult(vo.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());

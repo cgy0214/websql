@@ -6,10 +6,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.websql.config.SqlParserHandler;
 import com.websql.dao.DetectionLogsRepository;
 import com.websql.dao.DetectionRepository;
-import com.websql.model.Result;
-import com.websql.model.SqlParserVo;
-import com.websql.model.SysDetectionLogsModel;
-import com.websql.model.SysDetectionModel;
+import com.websql.model.*;
 import com.websql.service.DetectionService;
 import com.websql.service.MessageTemplateService;
 import com.websql.util.StpUtils;
@@ -85,7 +82,7 @@ public class DetectionServiceImpl implements DetectionService {
             throw new RuntimeException("仅限监测单条查询SQL，请拆分SQL后添加!");
         }
         for (SqlParserVo sqlParserVo : parserVoList) {
-            if (ObjectUtil.notEqual(sqlParserVo.getMethodType(), SqlParserHandler.SELECT)) {
+            if (ObjectUtil.notEqual(sqlParserVo.getMethodType(), SqlOperationType.SELECT.getCode())) {
                 throw new RuntimeException("SQL非查询语句类不允许执行!");
             }
         }

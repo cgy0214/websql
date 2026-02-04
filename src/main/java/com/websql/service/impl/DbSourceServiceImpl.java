@@ -254,7 +254,7 @@ public class DbSourceServiceImpl implements DbSourceService {
                 vo.setExecuteType(sqlParserVo.getMethodType());
                 vo.setParserSql(sqlParserVo.getSqlContent());
                 vo.setDataBaseKey(sql.getDataBaseName());
-                if (SqlParserHandler.SELECT.equals(sqlParserVo.getMethodType())) {
+                if (SqlOperationType.SELECT.getCode().equals(sqlParserVo.getMethodType())) {
                     Map<String, Object> moreResult = JdbcUtils.findMoreResult(sql.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());
                     vo.setData(moreResult.get("data"));
                     vo.setStatus(Integer.parseInt(moreResult.get("code").toString()));

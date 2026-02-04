@@ -2,14 +2,14 @@ package com.websql.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.db.meta.MetaUtil;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.websql.config.CalciteDataSourceConfig;
+import com.websql.config.CalciteSqlParseHandler;
 import com.websql.config.DataSourceFactory;
 import com.websql.dao.BigDataInstanceRepository;
 import com.websql.dao.BigDataTaskRepository;
-import com.websql.model.BigDataInstanceModel;
-import com.websql.model.BigDataTaskModel;
-import com.websql.model.Result;
+import com.websql.model.*;
 import com.websql.service.BigDataService;
 import com.websql.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +25,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -154,7 +152,7 @@ public class BigDataServiceImpl implements BigDataService {
     public List<Map<String, String>> findDataList() {
         return bigDataTaskRepository.findAll().stream()
                 .map(model -> {
-                    Map<String, String> item = new java.util.HashMap<>(2);
+                    Map<String, String> item = new HashMap<>(2);
                     item.put("code", model.getId().toString());
                     item.put("value", model.getTaskName());
                     item.put("id", model.getId().toString());
@@ -181,30 +179,92 @@ public class BigDataServiceImpl implements BigDataService {
 
     @Override
     public List execute(BigDataTaskModel model) {
-        //todo 临时写死，需要解析sql中mysql_schema.orders 数据库，并注册到calcite
-        //todo 使用jdbc 解析sql 语句并insert入库。 运行模式是否需要入库？
-        DruidDataSource data1 = DataSourceFactory.getBigDataSource("mysql_calcite_2");
-        DruidDataSource data2 = DataSourceFactory.getBigDataSource("postgresql_calcite_1");
+        List<CalciteDataSourceParams> params = new ArrayList<>();
+        SqlOperationType operationType;
 
-        try(Connection connection = calciteDataSourceConfig.createConnection(data1, data2)){
-            ResultSet resultSet = null;
-            try (Statement statement = connection.createStatement()) {
-                resultSet = statement.executeQuery(model.getSqlContent());
-                while (resultSet.next()){
-                    System.out.println(resultSet.getString(1));
-                    System.out.println(resultSet.getString(2));
-                    System.out.println(resultSet.getString(3));
-                    System.out.println("\n");
-
-                }
-            }catch (SQLException e){
-                throw new SQLException(e);
+        try {
+            ParseResultVo parseResultVo = CalciteSqlParseHandler.parseSql(model.getSqlContent());
+            Set<String> schemas = parseResultVo.getSchemas();
+            operationType = parseResultVo.getOperationType();
+            if (SqlOperationType.UNKNOWN.equals(operationType)) {
+                throw new RuntimeException("请输入正确的sql!");
             }
-        }catch (SQLException e) {
+
+            for (String schemaName : schemas) {
+                DruidDataSource bigDataSource = DataSourceFactory.getBigDataSource(schemaName);
+                if (bigDataSource == null) {
+                    throw new RuntimeException(schemaName + "数据源不存在,请先配置数据源!");
+                }
+                String catalog = MetaUtil.getCatalog(bigDataSource.getConnection());
+                String schema = MetaUtil.getSchema(bigDataSource.getConnection());
+                params.add(new CalciteDataSourceParams(schemaName, bigDataSource, catalog, schema));
+            }
+
+        } catch (Exception e) {
+            log.error("sql解析失败,", e);
+            throw new RuntimeException(e);
+        }
+
+        if (params.isEmpty()) {
+            throw new RuntimeException("数据源不存在,请先配置数据源!");
+        }
+
+        Connection connection = null;
+        try {
+            connection = calciteDataSourceConfig.createConnection(params);
+            if (operationType.getCode().equals(SqlOperationType.UPDATE.getCode())
+                    || operationType.getCode().equals(SqlOperationType.DELETE.getCode())
+                    || operationType.getCode().equals(SqlOperationType.INSERT.getCode())) {
+                int i = bigDataExecute(connection, model.getSqlContent());
+                System.out.println("影响行数: " + i);
+            } else {
+                bigDataSelect(connection, model.getSqlContent());
+            }
+
+        } catch (SQLException e) {
             log.error("SQL execution failed: ", e);
         }
 
-        return List.of();
+        return null;
+    }
+
+    /**
+     * todo 执行SQL
+     *
+     * @param connection
+     * @param sqlContent
+     * @return
+     * @throws SQLException
+     */
+    private int bigDataExecute(Connection connection, String sqlContent) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            return statement.executeUpdate(sqlContent);
+        } catch (SQLException e) {
+            throw new SQLException(e);
+        }
+    }
+
+    /**
+     * todo 处理查询
+     *
+     * @param connection
+     * @param sqlContent
+     * @throws SQLException
+     */
+    private void bigDataSelect(Connection connection, String sqlContent) throws SQLException {
+        ResultSet resultSet = null;
+        try (Statement statement = connection.createStatement()) {
+            resultSet = statement.executeQuery(sqlContent);
+            while (resultSet.next()) {
+                System.out.println(resultSet.getString(1));
+                System.out.println(resultSet.getString(2));
+                System.out.println(resultSet.getString(3));
+                System.out.println("\n");
+
+            }
+        } catch (SQLException e) {
+            throw new SQLException(e);
+        }
     }
 
 
