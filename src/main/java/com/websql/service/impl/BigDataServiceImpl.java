@@ -195,9 +195,11 @@ public class BigDataServiceImpl implements BigDataService {
                 if (bigDataSource == null) {
                     throw new RuntimeException(schemaName + "数据源不存在,请先配置数据源!");
                 }
-                String catalog = MetaUtil.getCatalog(bigDataSource.getConnection());
-                String schema = MetaUtil.getSchema(bigDataSource.getConnection());
-                params.add(new CalciteDataSourceParams(schemaName, bigDataSource, catalog, schema));
+                try (Connection conn = bigDataSource.getConnection()) {
+                    String catalog = MetaUtil.getCatalog(conn);
+                    String schema = MetaUtil.getSchema(conn);
+                    params.add(new CalciteDataSourceParams(schemaName, bigDataSource, catalog, schema));
+                }
             }
 
         } catch (Exception e) {
@@ -209,9 +211,7 @@ public class BigDataServiceImpl implements BigDataService {
             throw new RuntimeException("数据源不存在,请先配置数据源!");
         }
 
-        Connection connection = null;
-        try {
-            connection = calciteDataSourceConfig.createConnection(params);
+        try (Connection connection = calciteDataSourceConfig.createConnection(params)) {
             if (operationType.getCode().equals(SqlOperationType.UPDATE.getCode())
                     || operationType.getCode().equals(SqlOperationType.DELETE.getCode())
                     || operationType.getCode().equals(SqlOperationType.INSERT.getCode())) {

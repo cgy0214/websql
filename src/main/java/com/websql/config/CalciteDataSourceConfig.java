@@ -22,6 +22,9 @@ import java.util.Properties;
 @Component
 public class CalciteDataSourceConfig {
 
+    static {
+        System.setProperty("saffron.default.charset", "UTF-8");
+    }
 
     public Connection createConnection(List<CalciteDataSourceParams> dataList) throws SQLException {
         if (ObjectUtil.isNull(dataList) || dataList.isEmpty()) {
@@ -30,6 +33,8 @@ public class CalciteDataSourceConfig {
         Properties info = new Properties();
         info.setProperty("lex", "JAVA");
         info.setProperty("timeZone", "UTC");
+        info.setProperty("charset", "UTF-8");
+        info.setProperty("saffron.default.charset", "UTF-8");
         Connection calciteConnection = DriverManager.getConnection("jdbc:calcite:", info);
 
         CalciteConnection calciteConn = calciteConnection.unwrap(CalciteConnection.class);
