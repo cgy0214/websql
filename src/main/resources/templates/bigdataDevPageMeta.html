@@ -1,4 +1,3 @@
-
 <!-- 保存弹窗 -->
 <div id="save-layer-wrapper" style="display: none;">
     <div style="padding:10px;">
@@ -130,13 +129,54 @@
                     <select name="taskOption" id="taskOption" lay-filter="taskOption" lay-search=""
                             lay-affix="clear"></select>
                 </div>
-                <div class="page-footer">
-                    <div class="btn-list">
-                        <div class="btnlist">
-                            <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-submit
-                                    lay-filter="update">
-                                <i class="layui-icon layui-icon-ok">&nbsp;</i>开始编辑
-                            </button>
+                <div id="updateViewFrom" style="display: none">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">任务名称</label>
+                        <div class="layui-input-inline" style="width: 50%;">
+                            <input type="text" id="updateViewFromTaskName" name="updateViewFromTaskName" lay-verify="required" autocomplete="off" readonly
+                                   placeholder="" class="layui-input">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">定时任务</label>
+                        <div class="layui-input-inline" style="width: 50%;">
+                            <input type="text" id="updateViewFromTaskCron" name="updateViewFromTaskCron" lay-verify="required" autocomplete="off" readonly
+                                   lay-affix="clear" placeholder="" class="layui-input">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">任务描述</label>
+                        <div class="layui-input-block" style="width: 75%;">
+                    <textarea name="description" placeholder="" readonly id="updateViewFromTaskDesc"
+                              class="layui-textarea"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">任务状态</label>
+                        <div class="layui-input-inline" style="width: 40%;">
+                            <input type="text" name="status" value="" lay-verify="required" id="updateViewFromTaskStatus"
+                                   autocomplete="off" class="layui-input" readonly>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">任务类型</label>
+                        <div class="layui-input-inline" style="width: 50%;">
+                            <input type="text" name="taskType" lay-verify="required" autocomplete="off"
+                                   value="SQL任务" readonly placeholder="SQL任务" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="page-footer">
+                        <div class="btn-list">
+                            <div class="btnlist">
+                                <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-submit
+                                        lay-filter="update">
+                                    <i class="layui-icon layui-icon-ok">&nbsp;</i>开始编辑
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -157,8 +197,11 @@
 <!-- 数据表格下方提示 -->
 <script type="text/html" id="table-page-pageBar">
     <div class="layui-btn-container">
-        <span class="layui-badge"  style="margin-right: 10px;"> {{= d.colNumber }}  <span style="margin-left:2px;">列</span></span>
-        <span class="layui-badge layui-bg-green" style="margin-right: 10px;">{{= d.data.length }} <span style="margin-left:2px;">行</span></span>
-        <span class="layui-badge layui-bg-blue" style="margin-right: 10px;">{{= d.time }} <span style="margin-left:2px;">毫秒</span></span>
+        <span class="layui-badge" style="margin-right: 10px;"> {{= d.colNumber }}  <span
+                style="margin-left:2px;">列</span></span>
+        <span class="layui-badge layui-bg-green" style="margin-right: 10px;">{{= d.data.length }} <span
+                style="margin-left:2px;">行</span></span>
+        <span class="layui-badge layui-bg-blue" style="margin-right: 10px;">{{= d.time }} <span
+                style="margin-left:2px;">毫秒</span></span>
     </div>
 </script>

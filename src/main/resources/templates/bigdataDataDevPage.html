@@ -412,10 +412,23 @@
                 },
                 onselect: (data) => {
                     appState.taskId = data.id;
+                    if (data) {
+                        post(ctx + "bigdataManager/getTask/" + data, null, (res) => {
+                            if (res.code === 200) {
+                                const data = res.data;
+                                $('#updateViewFromTaskDesc').val(data.description);
+                                $('#updateViewFromTaskCron').val(data.cron);
+                                $('#updateViewFromTaskName').val(data.taskName);
+                                $('#updateViewFromTaskStatus').val(data.status);
+                                $("#updateViewFrom").show();
+                            }
+                        });
+                    } else {
+                        $("#updateViewFrom").hide();
+                    }
                 }
             });
         }
-
 
         // 更新任务
         form.on('submit(update)', function (data) {
