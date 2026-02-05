@@ -64,7 +64,7 @@ public class CalciteSqlParseHandler {
                     throw new IllegalArgumentException("不支持的SQL语句类型: " + sqlNode.getClass().getSimpleName());
             }
         } catch (Exception e) {
-            throw new RuntimeException("SQL解析失败: " + e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 

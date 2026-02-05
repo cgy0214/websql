@@ -181,14 +181,19 @@ public class BigDataServiceImpl implements BigDataService {
     public List<ExecuteResult> execute(BigDataTaskModel model) {
         List<ExecuteResult> results = new ArrayList<>();
         String fullSql = model.getSqlContent();
+
+        String pattern = "--\\*+--\\s*--[\\s\\S]*?--\\*+--\\s*";
+        fullSql = fullSql.replaceAll(pattern, "");
+
         if (cn.hutool.core.util.StrUtil.isBlank(fullSql)) {
+            results.add(new ExecuteResult().error("", "SQL内容为空!"));
             return results;
         }
 
         List<String> sqlStatements = cn.hutool.core.util.StrUtil.split(fullSql, ';');
         Set<String> allSchemas = new HashSet<>();
         List<ParseResultVo> parsedStatements = new ArrayList<>();
-        List<String> executableSqls = new ArrayList<>();
+        List<String> executableSqlList = new ArrayList<>();
 
         for (String sql : sqlStatements) {
             if (cn.hutool.core.util.StrUtil.isBlank(sql)) continue;
@@ -196,18 +201,14 @@ public class BigDataServiceImpl implements BigDataService {
                 ParseResultVo vo = CalciteSqlParseHandler.parseSql(sql);
                 allSchemas.addAll(vo.getSchemas());
                 parsedStatements.add(vo);
-                executableSqls.add(sql);
+                executableSqlList.add(sql);
             } catch (Exception e) {
-                ExecuteResult errorResult = new ExecuteResult();
-                errorResult.setSql(sql);
-                errorResult.setStatus(ExecuteResult.STATUS_FAIL);
-                errorResult.setType(ExecuteResult.TYPE_NON_SELECT); // 默认解析失败归为非查询类错误
-                errorResult.setErrorMessage("SQL解析失败: " + e.getMessage());
-                results.add(errorResult);
+                results.add(new ExecuteResult().error(sql, "解析失败:" + e.getMessage()));
             }
         }
-        
-        if (executableSqls.isEmpty()) {
+
+        if (executableSqlList.isEmpty()) {
+            results.add(new ExecuteResult().error(fullSql, "未解析出数据源,请检查数据源标识是否与sql中一致!"));
             return results;
         }
 
@@ -215,7 +216,8 @@ public class BigDataServiceImpl implements BigDataService {
         for (String schemaName : allSchemas) {
             DruidDataSource bigDataSource = DataSourceFactory.getBigDataSource(schemaName);
             if (bigDataSource == null) {
-                throw new RuntimeException(schemaName + "数据源不存在,请先配置数据源!");
+                log.error("{},数据源不存在,请先配置数据源!", schemaName);
+                continue;
             }
             try (Connection conn = bigDataSource.getConnection()) {
                 String catalog = MetaUtil.getCatalog(conn);
@@ -223,17 +225,18 @@ public class BigDataServiceImpl implements BigDataService {
                 params.add(new CalciteDataSourceParams(schemaName, bigDataSource, catalog, schema));
             } catch (SQLException e) {
                 log.error("获取数据源连接失败", e);
-                throw new RuntimeException("获取数据源[" + schemaName + "]连接失败: " + e.getMessage());
+                results.add(new ExecuteResult().error(fullSql, "获取数据源[" + schemaName + "]连接失败: " + e.getMessage()));
             }
         }
-        
+
         if (params.isEmpty()) {
-              throw new RuntimeException("数据源不存在,请先配置数据源!");
+            results.add(new ExecuteResult().error(fullSql, "未解析出数据源,请检查数据源标识是否与sql中一致!"));
+            return results;
         }
         try (Connection connection = calciteDataSourceConfig.createConnection(params)) {
             for (int i = 0; i < parsedStatements.size(); i++) {
                 ParseResultVo vo = parsedStatements.get(i);
-                String sql = executableSqls.get(i);
+                String sql = executableSqlList.get(i);
                 long startTime = System.currentTimeMillis();
 
                 ExecuteResult resultItem = new ExecuteResult();
@@ -263,12 +266,12 @@ public class BigDataServiceImpl implements BigDataService {
             }
         } catch (SQLException e) {
             log.error("Calcite 连接创建或执行致命错误", e);
-            throw new RuntimeException("SQL执行环境初始化失败: " + e.getMessage());
+            results.add(new ExecuteResult().error(fullSql, "SQL执行环境初始化失败: " + e.getMessage()));
         }
 
         return results;
     }
-    
+
     private boolean isModificationOperation(SqlOperationType type) {
         return type.getCode().equals(SqlOperationType.UPDATE.getCode())
                 || type.getCode().equals(SqlOperationType.DELETE.getCode())
@@ -302,7 +305,7 @@ public class BigDataServiceImpl implements BigDataService {
         List<Map<String, Object>> resultList = new ArrayList<>();
         try (Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(sqlContent)) {
-            
+
             java.sql.ResultSetMetaData metaData = resultSet.getMetaData();
             int columnCount = metaData.getColumnCount();
             List<String> columnNames = new ArrayList<>();

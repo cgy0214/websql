@@ -72,14 +72,14 @@
             height: 355px;
             background-color: #fff;
             border-top: 1px solid #ddd;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
             display: none;
             flex-direction: column;
             position: relative;
             transition: height 0.3s ease;
             box-sizing: border-box;
         }
-        
+
         /* 结果区域标题栏 */
         .result-header {
             height: 32px;
@@ -91,28 +91,28 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .result-title {
             font-size: 13px;
             font-weight: bold;
             color: #333;
         }
-        
+
         .result-tools {
             display: flex;
             align-items: center;
         }
-        
+
         .result-close-btn {
             cursor: pointer;
             padding: 0 5px;
             color: #666;
         }
 
-        .layui-tab .layui-tab-title{
+        .layui-tab .layui-tab-title {
             height: 30px;
         }
-        
+
         .result-close-btn:hover {
             color: #ff5722;
         }
@@ -264,15 +264,22 @@
     </style>
 </head>
 <body>
+
+<!-- 导航栏 -->
 <div class="layui-card-header" style="padding:0">
     <ul class="layui-nav layui-bg-gray layui-nav-small" lay-filter="left-icons">
         <li class="layui-nav-item"><a href="javascript:;" title="运行" class="layui-icon layui-icon-play"></a></li>
         <li class="layui-nav-item"><a href="javascript:;" title="保存SQL" class="layui-icon layui-icon-file"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="格式化" class="layui-icon layui-icon-fonts-code"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="发布任务" class="layui-icon layui-icon-release"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="下载" class="layui-icon layui-icon-download-circle"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="任务实例" class="layui-icon layui-icon-chart-screen"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="参照模板" class="layui-icon layui-icon-template"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="格式化" class="layui-icon layui-icon-fonts-code"></a>
+        </li>
+        <li class="layui-nav-item"><a href="javascript:;" title="发布任务" class="layui-icon layui-icon-release"></a>
+        </li>
+        <li class="layui-nav-item"><a href="javascript:;" title="下载"
+                                      class="layui-icon layui-icon-download-circle"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="任务实例"
+                                      class="layui-icon layui-icon-chart-screen"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="参照模板" class="layui-icon layui-icon-template"></a>
+        </li>
         <li class="layui-nav-item"><a href="javascript:;" title="帮助" class="layui-icon layui-icon-about"></a></li>
         <li class="layui-nav-item">
             <a href="javascript:;" title="修改任务" class="layui-icon layui-icon-edit" id="viewTaskName"></a>
@@ -280,175 +287,19 @@
     </ul>
 </div>
 <div class="main-container">
+
+    <!-- 编辑器 -->
     <div class="monaco-wrapper">
         <div id="monaco-editor"></div>
     </div>
-    
+
+    <!-- 运行结果 -->
     <div id="result-container">
-        <!-- 结果区域标题栏 -->
-        <div class="result-header">
-            <div class="result-title"><i class="layui-icon layui-icon-list"></i> 执行结果</div>
-            <div class="result-tools">
-                <span class="result-close-btn" onclick="window.closeResult()" title="关闭"><i class="layui-icon layui-icon-close"></i></span>
-            </div>
-        </div>
-
-        <div class="layui-tab layui-tab-brief" lay-filter="resultTab" lay-allowclose="true" style="margin:0; flex:1; display:flex; flex-direction:column; overflow:hidden;">
-            <ul class="layui-tab-title" style="flex-shrink: 0; white-space: nowrap; overflow-x: auto; overflow-y: hidden;"></ul>
+        <div class="layui-tab layui-tab-brief" lay-filter="resultTab" lay-allowclose="true"
+             style="margin:0; flex:1; display:flex; flex-direction:column; overflow:hidden;">
+            <ul class="layui-tab-title"
+                style="flex-shrink: 0; white-space: nowrap; overflow-x: auto; overflow-y: hidden;"></ul>
             <div class="layui-tab-content" style="flex:1; padding:0; overflow:hidden;"></div>
-        </div>
-    </div>
-</div>
-
-<!-- 保存弹窗 -->
-<div id="save-layer-wrapper" style="display: none;">
-    <div style="padding:10px;">
-        <form class="layui-form" action="" id="typeForm">
-            <!-- 类型 -->
-            <div class="layui-row layui-col-space8" id="tabsHeader">
-                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
-                    <input type="radio" name="viewType" value="addSql" lay-skin="none" checked lay-filter="viewType">
-                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
-                        <div class="lay-skin-checkcard-avatar">
-                            <i class="layui-icon layui-icon-add-1" style="font-size: 30px"></i>
-                        </div>
-                        <div class="lay-skin-checkcard-detail">
-                            <div class="lay-skin-checkcard-header">新建</div>
-                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
-                                SQL脚本类型任务
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
-                    <input type="radio" name="viewType" value="update" lay-skin="none" lay-filter="viewType">
-                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
-                        <div class="lay-skin-checkcard-avatar">
-                            <span class="layui-icon layui-icon-edit" style="font-size: 30px"></span>
-                        </div>
-                        <div class="lay-skin-checkcard-detail">
-                            <div class="lay-skin-checkcard-header">修改</div>
-                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
-                                SQL脚本类型任务
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
-                    <input type="radio" name="viewType" value="addEtl" lay-skin="none" disabled lay-filter="viewType">
-                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
-                        <div class="lay-skin-checkcard-avatar">
-                            <i class="layui-icon layui-icon-table" style="font-size: 30px"></i>
-                        </div>
-                        <div class="lay-skin-checkcard-detail">
-                            <div class="lay-skin-checkcard-header">新建</div>
-                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
-                                ETL可视化类型任务
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
-                    <input type="radio" name="viewType" value="addRefer" lay-skin="none" lay-filter="viewType">
-                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
-                        <div class="lay-skin-checkcard-avatar">
-                            <i class="layui-icon layui-icon-star-fill" style="font-size: 30px"></i>
-                        </div>
-                        <div class="lay-skin-checkcard-detail">
-                            <div class="lay-skin-checkcard-header">示例</div>
-                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
-                                数据宽表处理示例
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-        <!-- 新增 -->
-        <div id="addView" style="display: none;">
-            <form class="layui-form" action="" id="addForm">
-                <input type="hidden" name="id" id="updateId"/>
-                <hr class="layui-border-green">
-                <div class="layui-form-item">
-                    <label class="layui-form-label">任务名称</label>
-                    <div class="layui-input-inline" style="width: 50%;">
-                        <input type="text" name="taskName" id="taskName" lay-verify="required" autocomplete="off"
-                               placeholder="请输入任务名称" class="layui-input">
-                    </div>
-                </div>
-
-                <div class="layui-form-item">
-                    <label class="layui-form-label">定时任务</label>
-                    <div class="layui-input-inline" style="width: 50%;">
-                        <input type="text" name="cron" id="cron" lay-verify="required" autocomplete="off"
-                               lay-affix="clear" placeholder="请输入cron表达式" class="layui-input">
-                    </div>
-                </div>
-
-                <div class="layui-form-item">
-                    <label class="layui-form-label">任务描述</label>
-                    <div class="layui-input-block" style="width: 75%;">
-                    <textarea name="description" id="description" placeholder="请输入任务描述"
-                              class="layui-textarea"></textarea>
-                    </div>
-                </div>
-
-                <div class="layui-form-item">
-                    <label class="layui-form-label">任务状态</label>
-                    <div class="layui-input-inline" style="width: 40%;">
-                        <input type="text" name="status" id="status"  value="草稿" lay-verify="required" autocomplete="off" class="layui-input" readonly>
-                    </div>
-                </div>
-
-                <div class="layui-form-item">
-                    <label class="layui-form-label">任务类型</label>
-                    <div class="layui-input-inline" style="width: 50%;">
-                        <input type="text" name="taskType" id="taskType" lay-verify="required" autocomplete="off"
-                               value="SQL任务" readonly placeholder="SQL任务" class="layui-input">
-                    </div>
-                </div>
-
-                <div class="page-footer">
-                    <div class="btn-list">
-                        <div class="btnlist">
-                            <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-submit
-                                    lay-filter="save">
-                                <i class="layui-icon layui-icon-ok">&nbsp;</i>保存
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- 修改 -->
-        <div id="updateView" style="display: none;">
-            <hr class="layui-border-green">
-            <form class="layui-form" action="" id="updateForm">
-                <div class="layui-form-item">
-                    <select name="taskOption" id="taskOption" lay-filter="taskOption" lay-search=""
-                            lay-affix="clear"></select>
-                </div>
-                <div class="page-footer">
-                    <div class="btn-list">
-                        <div class="btnlist">
-                            <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-submit
-                                    lay-filter="update">
-                                <i class="layui-icon layui-icon-ok">&nbsp;</i>开始编辑
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- 示例 -->
-        <div id="addReferView" style="display: none;">
-            <hr class="layui-border-green">
-            <div class="layui-form-item">
-                Mysql & Postgres IN Doris
-            </div>
         </div>
     </div>
 </div>
@@ -458,6 +309,7 @@
 <script th:src="@{/static/layui.js}"></script>
 <script th:src="@{/static/lay-config.js}"></script>
 <script th:replace="~{base::ctx}"></script>
+<script th:replace="~{bigdataDevPageMeta}"></script>
 <script type="text/javascript" th:inline="javascript" th:fragment="ctx">
 
     layui.use(['element', 'layer', 'form', 'laySelect', 'table', 'dropdown', 'laytpl'], function () {
@@ -470,8 +322,12 @@
         const laytpl = layui.laytpl;
         const element = layui.element;
         const viewStore = {
-             get: function(key, def) { return localStorage.getItem(key) || def; },
-             put: function(key, val) { localStorage.setItem(key, val); }
+            get: function (key, def) {
+                return localStorage.getItem(key) || def;
+            },
+            put: function (key, val) {
+                localStorage.setItem(key, val);
+            }
         };
         const tableSizeKey = "tableSize";
 
@@ -481,7 +337,7 @@
             taskId: null,
             taskName: null,
             editor: null,
-            userName:null
+            userName: null
         };
 
         // 初始化应用状态
@@ -500,7 +356,7 @@
         }
 
         // 页面切换处理
-        form.on('radio(viewType)', function(data) {
+        form.on('radio(viewType)', function (data) {
             const views = {
                 addSql: '#addView',
                 update: '#updateView',
@@ -510,9 +366,9 @@
             Object.values(views).forEach(id => $(id).hide());
             $(views[data.value]).show();
         });
-        
+
         // 监听 Tab 关闭事件
-        element.on('tabDelete(resultTab)', function(data){
+        element.on('tabDelete(resultTab)', function (data) {
             const tabTitle = $('.layui-tab[lay-filter="resultTab"] .layui-tab-title li');
             if (tabTitle.length === 0) {
                 window.closeResult();
@@ -520,7 +376,7 @@
         });
 
         // 保存任务
-        form.on('submit(save)', function(data) {
+        form.on('submit(save)', function (data) {
             const formData = {
                 ...data.field,
                 taskId: appState.taskId,
@@ -552,14 +408,17 @@
                 select: 10000,
                 title: '请选择要修改的任务',
                 format: parseSelectData,
-                success: (data) => {},
-                onselect: (data) => { appState.taskId = data.id; }
+                success: (data) => {
+                },
+                onselect: (data) => {
+                    appState.taskId = data.id;
+                }
             });
         }
 
 
         // 更新任务
-        form.on('submit(update)', function(data) {
+        form.on('submit(update)', function (data) {
             const selectedTaskId = $("#taskOption").val();
             if (!selectedTaskId) {
                 layer.msg('请选择要修改的任务', {icon: 2});
@@ -573,10 +432,10 @@
 
         // 初始化Monaco编辑器
         function initMonacoEditor() {
-            require.config({ paths: { 'vs': '/static/monaco/min/vs' }});
-            require(['vs/editor/editor.main'], function() {
+            require.config({paths: {'vs': '/static/monaco/min/vs'}});
+            require(['vs/editor/editor.main'], function () {
                 const defaultValue =
-`--********************************************************************--
+                    `--********************************************************************--
 -- comment:
 -- author: ${appState.userName}
 -- date: ${new Date().toLocaleString()}
@@ -592,8 +451,8 @@
                         theme: 'vs-light',
                         fontSize: 14,
                         automaticLayout: true,
-                        minimap: { enabled: true, side: 'right', size: 'fill' },
-                        scrollbar: { vertical: 'auto', horizontal: 'auto' }
+                        minimap: {enabled: true, side: 'right', size: 'fill'},
+                        scrollbar: {vertical: 'auto', horizontal: 'auto'}
                     }
                 );
 
@@ -605,7 +464,7 @@
 
         // 工具栏操作处理
         function setupToolbarActions() {
-            $('.layui-nav-small .layui-nav-item a').on('click', function(e) {
+            $('.layui-nav-small .layui-nav-item a').on('click', function (e) {
                 $('.layui-nav-small .layui-nav-item').removeClass('layui-this');
                 const title = $(this).attr('title');
                 const actions = {
@@ -634,7 +493,7 @@
             try {
                 const formatted = window.sqlFormatter.format(
                     appState.editor.getValue(),
-                    { language: 'sql', indent: '    ', uppercase: true, linesBetweenQueries: 2 }
+                    {language: 'sql', indent: '    ', uppercase: true, linesBetweenQueries: 2}
                 );
                 appState.editor.setValue(formatted);
             } catch (error) {
@@ -698,7 +557,7 @@
                     shade: 0.6,
                     shadeClose: false,
                     maxmin: false,
-                    closeBtn:0,
+                    closeBtn: 0,
                     anim: 0,
                     content: $('#save-layer-wrapper')
                 });
@@ -706,12 +565,12 @@
         }
 
         // 显示更新任务页面
-        function showUpdateTaskPage(){
+        function showUpdateTaskPage() {
             if (appState.taskId) {
                 //隐藏固定新增视图
                 $("#typeForm").hide();
                 $('#addView').show();
-                post(ctx + "bigdataManager/getTask/"+appState.taskId, null, (res) => {
+                post(ctx + "bigdataManager/getTask/" + appState.taskId, null, (res) => {
                     if (res.code === 200) {
                         const data = res.data;
                         $('#description').val(data.description);
@@ -720,13 +579,13 @@
                         $('#taskName').val(data.taskName).attr("readonly", true);
                         $('#status').val(data.status).attr("readonly", true);
                         layer.open({
-                        type: 1,
-                        area: ['800px', '500px'],
-                        title: '修改任务配置',
-                        shade: 0.6,
-                        anim: 0,
-                        content: $('#save-layer-wrapper')
-                    })
+                            type: 1,
+                            area: ['800px', '500px'],
+                            title: '修改任务配置',
+                            shade: 0.6,
+                            anim: 0,
+                            content: $('#save-layer-wrapper')
+                        })
                     }
                 });
             }
@@ -738,8 +597,8 @@
                 id: appState.taskId,
                 sqlContent: appState.editor.getValue()
             };
-            
-            let loading = layer.load(1, {shade: [0.1,'#fff']});
+
+            let loading = layer.load(1, {shade: [0.1, '#fff']});
 
             post(ctx + "bigdataManager/execute", formData, (res) => {
                 layer.close(loading);
@@ -747,20 +606,20 @@
                     layer.msg("结果返回未知异常！", {icon: 2});
                     return;
                 }
-                
+
                 if (res.code === 200) {
-                   resultManager.init(res.data);
+                    resultManager.init(res.data);
                 } else {
                     layer.msg(res.msg || '执行失败', {icon: 2});
                 }
             });
         }
-        
+
         // 结果区域管理
         const resultManager = {
-            init: function(data) {
+            init: function (data) {
                 if (!data || data.length === 0) return;
-                
+
                 $('#result-container').show();
                 $('.monaco-wrapper').css('height', 'calc(100% - 350px)');
                 if (appState.editor) {
@@ -776,7 +635,7 @@
                     const tabId = 'tab_' + index;
                     const isSelect = item.type === 0;
                     const isSuccess = item.status === 1;
-                    
+
                     let title = '';
                     if (isSelect) {
                         title = `结果 ${index + 1}`;
@@ -787,11 +646,7 @@
 
                     let content = '';
                     if (isSuccess && isSelect) {
-                         const infoHtml = `
-                             <div style="padding: 5px 10px; background: #f8f8f8; border-bottom: 1px solid #eee; font-size: 12px; color: #666; display: flex; justify-content: flex-end; align-items: center; flex-shrink: 0;">
-                                 <span style="white-space: nowrap;">耗时: ${item.time || 0} ms</span>
-                             </div>`;
-                         content = `<div style="height:100%; display: flex; flex-direction: column;">
+                        content = `<div style="height:100%; display: flex; flex-direction: column;">
                                         <div style="flex: 1; overflow: hidden; padding: 0px;">
                                             <table id="table_${index}" lay-filter="table_${index}"></table>
                                         </div>
@@ -801,7 +656,7 @@
                         const color = isSuccess ? '#009688' : '#FF5722';
                         const statusText = isSuccess ? '执行成功' : '执行失败';
                         const msg = item.errorMessage || `执行成功，影响行数：${item.data}`;
-                        
+
                         content = `
                             <div style="padding: 20px; overflow-y: auto; height: 100%; box-sizing: border-box;">
                                 <div style="color: ${color}; font-size: 16px; margin-bottom: 10px; display: flex; align-items: center;">
@@ -811,9 +666,9 @@
                                     <pre style="background: #f0f0f0; padding: 10px; margin-top: 5px; white-space: pre-wrap; word-break: break-all; border-radius: 4px; font-family: Consolas, monospace;">${msg || ''}</pre>
                                 </div>
                                 <div style="margin-top: 15px; color: #666;">
-                                    <pre style="background: #f0f0f0; padding: 10px; margin-top: 5px; white-space: pre-wrap; word-break: break-all; border-radius: 4px; font-family: Consolas, monospace;">${item.sql || ''}</pre>
+                                <strong>SQL语句:</strong>
+                                    <pre style="background: #f0f0f0; padding: 5px; margin-top: 0; white-space: pre-wrap; word-break: break-all; border-radius: 4px; font-family: Consolas, monospace;">${item.sql || ''}</pre>
                                 </div>
-
                                 <div style="margin-top: 10px; color: #999; font-size: 12px;">
                                     耗时: ${item.time || 0} ms
                                 </div>
@@ -836,11 +691,11 @@
                 element.tabChange('resultTab', 'tab_0');
             },
 
-            renderTable: function(elemId, data, resItem) {
+            renderTable: function (elemId, data, resItem) {
                 if (!data || data.length === 0) {
-                     return;
+                    return;
                 }
-                
+
                 // 动态列
                 const cols = Object.keys(data[0]).map(key => ({
                     field: key,
@@ -855,25 +710,28 @@
                     cols: [cols],
                     page: true,
                     limit: 50,
-                    limits: [50, 100, 500],
-                    height: '295',
+                    limits: [50, 100, 500, 1000, 10000],
+                    height: '335',
                     size: 'sm',
                     even: true,
+                    colNumber: cols.length,
+                    time: resItem.time,
+                    pagebar: '#table-page-pageBar',
                     text: {none: '无数据'},
-                    done: function() {
+                    done: function () {
                     }
                 });
                 this.registerContextMenu(elemId, resItem);
             },
-            
+
             // 注册右键菜单
-            registerContextMenu: function(elemId, res) {
+            registerContextMenu: function (elemId, res) {
                 table.on('rowContextmenu(' + elemId + ')', function (obj) {
                     obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click'); // 选中行样式
-                    
+
                     let data = obj.data;
-                    let tableName = 'table'; 
-                    
+                    let tableName = 'table';
+
                     let columns = Object.keys(data);
                     dropdown.render({
                         trigger: 'contextmenu',
@@ -915,7 +773,8 @@
                                     if (typeof val === 'number') return val;
                                     return `'${val}'`;
                                 });
-                                let insertSql = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${values.join(', ')});`;
+                                let insertSql = `INSERT INTO ${tableName} (${columns.join(', ')})
+                                                 VALUES (${values.join(', ')});`;
                                 copyToClipboard(insertSql);
                                 layer.msg('INSERT语句已复制到剪贴板');
                                 return true;
@@ -933,7 +792,9 @@
                                 let whereClause = typeof firstVal === 'string'
                                     ? `${firstCol} = '${firstVal.replace(/'/g, "''")}'`
                                     : `${firstCol} = ${firstVal}`;
-                                let updateSql = `UPDATE ${tableName} SET ${setParts.join(', ')} WHERE ${whereClause};`;
+                                let updateSql = `UPDATE ${tableName}
+                                                 SET ${setParts.join(', ')}
+                                                 WHERE ${whereClause};`;
                                 copyToClipboard(updateSql);
                                 layer.msg('UPDATE语句已复制到剪贴板');
                                 return true;
@@ -944,7 +805,9 @@
                                 let whereClause = typeof firstVal === 'string'
                                     ? `${firstCol} = '${firstVal.replace(/'/g, "''")}'`
                                     : `${firstCol} = ${firstVal}`;
-                                let selectSql = `SELECT ${columns.join(', ')} FROM ${tableName} WHERE ${whereClause};`;
+                                let selectSql = `SELECT ${columns.join(', ')}
+                                                 FROM ${tableName}
+                                                 WHERE ${whereClause};`;
                                 copyToClipboard(selectSql);
                                 layer.msg('SELECT语句已复制到剪贴板');
                                 return true;
@@ -955,7 +818,7 @@
                 });
             }
         };
-        
+
         // 辅助函数：复制文本到剪贴板
         function copyToClipboard(text) {
             const textarea = document.createElement('textarea');
@@ -965,15 +828,14 @@
             document.execCommand('copy');
             document.body.removeChild(textarea);
         }
-        
-        window.closeResult = function() {
-             $('#result-container').hide();
-             $('.monaco-wrapper').css('height', '100%'); 
-             if (appState.editor) {
-                 setTimeout(() => appState.editor.layout(), 50); 
-             }
-        }
 
+        window.closeResult = function () {
+            $('#result-container').hide();
+            $('.monaco-wrapper').css('height', '100%');
+            if (appState.editor) {
+                setTimeout(() => appState.editor.layout(), 50);
+            }
+        }
 
 
         // 初始化应用

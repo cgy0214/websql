@@ -1,0 +1,164 @@
+
+<!-- 保存弹窗 -->
+<div id="save-layer-wrapper" style="display: none;">
+    <div style="padding:10px;">
+        <form class="layui-form" action="" id="typeForm">
+            <!-- 类型 -->
+            <div class="layui-row layui-col-space8" id="tabsHeader">
+                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+                    <input type="radio" name="viewType" value="addSql" lay-skin="none" checked lay-filter="viewType">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
+                        <div class="lay-skin-checkcard-avatar">
+                            <i class="layui-icon layui-icon-add-1" style="font-size: 30px"></i>
+                        </div>
+                        <div class="lay-skin-checkcard-detail">
+                            <div class="lay-skin-checkcard-header">新建</div>
+                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
+                                SQL脚本类型任务
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+                    <input type="radio" name="viewType" value="update" lay-skin="none" lay-filter="viewType">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
+                        <div class="lay-skin-checkcard-avatar">
+                            <span class="layui-icon layui-icon-edit" style="font-size: 30px"></span>
+                        </div>
+                        <div class="lay-skin-checkcard-detail">
+                            <div class="lay-skin-checkcard-header">修改</div>
+                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
+                                SQL脚本类型任务
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+                    <input type="radio" name="viewType" value="addEtl" lay-skin="none" disabled lay-filter="viewType">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
+                        <div class="lay-skin-checkcard-avatar">
+                            <i class="layui-icon layui-icon-table" style="font-size: 30px"></i>
+                        </div>
+                        <div class="lay-skin-checkcard-detail">
+                            <div class="lay-skin-checkcard-header">新建</div>
+                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
+                                ETL可视化类型任务
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+                    <input type="radio" name="viewType" value="addRefer" lay-skin="none" lay-filter="viewType">
+                    <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 80px">
+                        <div class="lay-skin-checkcard-avatar">
+                            <i class="layui-icon layui-icon-star-fill" style="font-size: 30px"></i>
+                        </div>
+                        <div class="lay-skin-checkcard-detail">
+                            <div class="lay-skin-checkcard-header">示例</div>
+                            <div class="lay-skin-checkcard-description lay-ellipsis-multi-line">
+                                数据宽表处理示例
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <!-- 新增 -->
+        <div id="addView" style="display: none;">
+            <form class="layui-form" action="" id="addForm">
+                <input type="hidden" name="id" id="updateId"/>
+                <hr class="layui-border-green">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务名称</label>
+                    <div class="layui-input-inline" style="width: 50%;">
+                        <input type="text" name="taskName" id="taskName" lay-verify="required" autocomplete="off"
+                               placeholder="请输入任务名称" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">定时任务</label>
+                    <div class="layui-input-inline" style="width: 50%;">
+                        <input type="text" name="cron" id="cron" lay-verify="required" autocomplete="off"
+                               lay-affix="clear" placeholder="请输入cron表达式" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务描述</label>
+                    <div class="layui-input-block" style="width: 75%;">
+                    <textarea name="description" id="description" placeholder="请输入任务描述"
+                              class="layui-textarea"></textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务状态</label>
+                    <div class="layui-input-inline" style="width: 40%;">
+                        <input type="text" name="status" id="status" value="草稿" lay-verify="required"
+                               autocomplete="off" class="layui-input" readonly>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务类型</label>
+                    <div class="layui-input-inline" style="width: 50%;">
+                        <input type="text" name="taskType" id="taskType" lay-verify="required" autocomplete="off"
+                               value="SQL任务" readonly placeholder="SQL任务" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="page-footer">
+                    <div class="btn-list">
+                        <div class="btnlist">
+                            <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-submit
+                                    lay-filter="save">
+                                <i class="layui-icon layui-icon-ok">&nbsp;</i>保存
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 修改 -->
+        <div id="updateView" style="display: none;">
+            <hr class="layui-border-green">
+            <form class="layui-form" action="" id="updateForm">
+                <div class="layui-form-item">
+                    <select name="taskOption" id="taskOption" lay-filter="taskOption" lay-search=""
+                            lay-affix="clear"></select>
+                </div>
+                <div class="page-footer">
+                    <div class="btn-list">
+                        <div class="btnlist">
+                            <button class="layui-btn layui-btn-primary layui-border-green layui-btn-sm" lay-submit
+                                    lay-filter="update">
+                                <i class="layui-icon layui-icon-ok">&nbsp;</i>开始编辑
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 示例 -->
+        <div id="addReferView" style="display: none;">
+            <hr class="layui-border-green">
+            <div class="layui-form-item">
+                Mysql & Postgres IN Doris
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 数据表格下方提示 -->
+<script type="text/html" id="table-page-pageBar">
+    <div class="layui-btn-container">
+        <span class="layui-badge"  style="margin-right: 10px;"> {{= d.colNumber }}  <span style="margin-left:2px;">列</span></span>
+        <span class="layui-badge layui-bg-green" style="margin-right: 10px;">{{= d.data.length }} <span style="margin-left:2px;">行</span></span>
+        <span class="layui-badge layui-bg-blue" style="margin-right: 10px;">{{= d.time }} <span style="margin-left:2px;">毫秒</span></span>
+    </div>
+</script>

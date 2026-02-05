@@ -47,4 +47,21 @@ public class ExecuteResult {
     public static final int STATUS_FAIL = 2;
     public static final int TYPE_SELECT = 0;
     public static final int TYPE_NON_SELECT = 1;
+
+    public ExecuteResult success(String sql, Object data, Long time) {
+        this.sql = sql;
+        this.status = STATUS_SUCCESS;
+        this.type = TYPE_SELECT;
+        this.data = data;
+        this.time = time;
+        return this;
+    }
+
+    public ExecuteResult error(String sql,String errorMessage) {
+        this.sql = sql;
+        this.status = STATUS_FAIL;
+        this.type = TYPE_NON_SELECT;
+        this.errorMessage = errorMessage;
+        return this;
+    }
 }
