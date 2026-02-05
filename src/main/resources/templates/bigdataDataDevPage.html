@@ -321,15 +321,6 @@
         const dropdown = layui.dropdown;
         const laytpl = layui.laytpl;
         const element = layui.element;
-        const viewStore = {
-            get: function (key, def) {
-                return localStorage.getItem(key) || def;
-            },
-            put: function (key, val) {
-                localStorage.setItem(key, val);
-            }
-        };
-        const tableSizeKey = "tableSize";
 
         // 应用状态管理
         const appState = {
@@ -869,7 +860,6 @@
             });
         }
 
-        // 启动应用
         initApp();
     });
 </script>
