@@ -4,7 +4,6 @@
     <title>数据开发</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
-    <link rel="stylesheet" th:href="@{/static/css/sqlPage.css}" media="all">
     <style>
         /* 自定义小尺寸导航 */
         .layui-nav-small .layui-nav-item {
@@ -37,6 +36,7 @@
             height: calc(100vh - 40px); /* 减去顶部导航栏高度 */
             width: 100%;
             overflow: hidden;
+            box-sizing: border-box;
         }
 
         .monaco-wrapper {
@@ -44,6 +44,7 @@
             width: 100%;
             position: relative;
             transition: height 0.3s ease; /* 添加平滑过渡动画 */
+            overflow: hidden; /* 防止溢出 */
         }
 
         #monaco-editor {
@@ -55,14 +56,15 @@
 
         /* 结果区域容器 */
         #result-container {
-            height: 350px; /* 固定高度 */
+            height: 355px;
             background-color: #fff;
             border-top: 1px solid #ddd;
             box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-            display: none; /* 默认隐藏 */
+            display: none;
             flex-direction: column;
             position: relative;
             transition: height 0.3s ease;
+            box-sizing: border-box;
         }
         
         /* 结果区域标题栏 */
@@ -93,27 +95,15 @@
             padding: 0 5px;
             color: #666;
         }
+
+        .layui-tab .layui-tab-title{
+            height: 30px;
+        }
         
         .result-close-btn:hover {
             color: #ff5722;
         }
 
-        /* 消息区域 */
-        #msgDiv {
-            padding: 10px;
-            overflow-y: auto;
-            max-height: 100px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        /* 表格区域 */
-        #sqlTableDiv {
-            flex: 1;
-            overflow: hidden;
-            padding: 5px;
-        }
-
-        /* 卡片风格多选组件 (保持原有样式) */
         .layui-form-checkbox > .lay-skin-checkcard,
         .layui-form-radio > .lay-skin-checkcard {
             display: flex;
@@ -124,8 +114,6 @@
             color: #000;
             background-color: #fff;
         }
-        /* ... 其他原有样式 ... */
-
 
         .layui-form-checkbox > .lay-skin-checkcard > *,
         .layui-form-radio > .lay-skin-checkcard > * {
@@ -292,21 +280,9 @@
             </div>
         </div>
 
-        <!-- 消息区域 -->
-        <div id="msgDiv" style="display: none;">
-            <div style="font-size: 13px;color: #61914e;display:block;">
-                <span id="msgSpan" style="margin-left: 10px;display:block;width:95%;word-wrap:break-word;white-space:normal;"></span>
-            </div>
-        </div>
-
-        <!-- 表格区域 -->
-        <div id="sqlTableDiv" style="display: none;">
-            <div class="layui-tab layui-tab-brief" lay-filter="sqlTableTab" lay-allowclose="true" style="margin:0; height:100%; display:flex; flex-direction:column;">
-                <ul class="layui-tab-title" id="lists">
-                </ul>
-                <div class="layui-tab-content" id="listsContent" style="flex:1; padding:0; overflow:hidden;">
-                </div>
-            </div>
+        <div class="layui-tab layui-tab-brief" lay-filter="resultTab" lay-allowclose="true" style="margin:0; flex:1; display:flex; flex-direction:column; overflow:hidden;">
+            <ul class="layui-tab-title" style="flex-shrink: 0; white-space: nowrap; overflow-x: auto; overflow-y: hidden;"></ul>
+            <div class="layui-tab-content" style="flex:1; padding:0; overflow:hidden;"></div>
         </div>
     </div>
 </div>
@@ -521,6 +497,14 @@
             Object.values(views).forEach(id => $(id).hide());
             $(views[data.value]).show();
         });
+        
+        // 监听 Tab 关闭事件
+        element.on('tabDelete(resultTab)', function(data){
+            const tabTitle = $('.layui-tab[lay-filter="resultTab"] .layui-tab-title li');
+            if (tabTitle.length === 0) {
+                window.closeResult();
+            }
+        });
 
         // 保存任务
         form.on('submit(save)', function(data) {
@@ -579,11 +563,12 @@
             require.config({ paths: { 'vs': '/static/monaco/min/vs' }});
             require(['vs/editor/editor.main'], function() {
                 const defaultValue =
-`--********************************************************************--
+`
+--********************************************************************--
 -- comment:
 -- author: ${appState.userName}
--- date: ${new Date().toLocaleString()}
---********************************************************************--\n`;
+-- date: ${new Date().toLocaleString()}\n
+--********************************************************************--`;
 
                 const initialValue = appState.sqlContent || defaultValue;
 
@@ -742,144 +727,238 @@
                 sqlContent: appState.editor.getValue()
             };
             
-            let intervalTime = 0;
-            let interval = setInterval(function () {
-                intervalTime++;
-                // message("执行耗时:" + intervalTime + "毫秒", true);
-            }, 1);
+            let loading = layer.load(1, {shade: [0.1,'#fff']});
 
             post(ctx + "bigdataManager/execute", formData, (res) => {
-                window.clearInterval(interval);
-                layer.closeAll();
+                layer.close(loading);
                 if (!res) {
                     layer.msg("结果返回未知异常！", {icon: 2});
                     return;
                 }
+                
                 if (res.code === 200) {
-                   tableInit(res.data);
+                   resultManager.init(res.data);
                 } else {
                     layer.msg(res.msg || '执行失败', {icon: 2});
                 }
             });
         }
         
-        let elementTabCount = [];
-        function tableInit(data) {
-            if (!data) return;
-            
-            // $('.monaco-wrapper').css('height', 'calc(100vh - 450px)');
-            $('#result-container').css('display', 'flex');
-            appState.editor.layout();
-
-            for (let i = 0; i < elementTabCount.length; i++) {
-                element.tabDelete('sqlTableTab', elementTabCount[i]);
-            }
-            $("#sqlTableDiv").hide();
-            $("#msgDiv").hide();
-            $("#msgSpan").html("");
-            let index = 0;
-            
-            for (let i = 0; i < data.length; i++) {
-                index++;
-                let item = data[i];
-                let statusMsg = "";
+        // 结果区域管理
+        const resultManager = {
+            init: function(data) {
+                if (!data || data.length === 0) return;
                 
-                if (item.type === 1) {
-                     if (item.status === 2) {
-                         statusMsg = "执行失败 " + item.errorMessage;
-                     } else {
-                         statusMsg = "执行成功影响【" + item.data + "】条数据!";
-                     }
-                } else if (item.data === null) {
-                    statusMsg = item.status === 2 ? "执行失败 " + item.errorMessage : "执行成功返回为空!";
-                } else if (item.status === 2) {
-                     statusMsg = "执行失败 " + item.errorMessage;
+                $('#result-container').show();
+                $('.monaco-wrapper').css('height', 'calc(100% - 350px)');
+                if (appState.editor) {
+                    setTimeout(() => appState.editor.layout(), 50);
                 }
-                
-                if (statusMsg !== "") {
-                    // let msg = "第[" + index + "]条SQL语句" + statusMsg + "<br>";
-                    // $("#msgSpan").append(msg);
-                    // $("#msgDiv").show();
 
-                    let elId = "sqlMsg" + index;
-                    elementTabCount.push(elId);
+                // 清空现有Tab
+                const $tabTitle = $('.layui-tab[lay-filter="resultTab"] .layui-tab-title');
+                $tabTitle.empty();
+                $('.layui-tab[lay-filter="resultTab"] .layui-tab-content').empty();
+
+                data.forEach((item, index) => {
+                    const tabId = 'tab_' + index;
+                    const isSelect = item.type === 0;
+                    const isSuccess = item.status === 1;
                     
-                    let msgContent = `
-                        <div style="padding: 20px; font-size: 14px; color: ${item.status === 2 ? '#FF5722' : '#009688'};">
-                            <i class="layui-icon ${item.status === 2 ? 'layui-icon-close-fill' : 'layui-icon-ok-circle'}" style="font-size: 20px; vertical-align: middle;"></i>
-                            <span style="vertical-align: middle; margin-left: 10px;">${statusMsg}</span>
-                            <div style="margin-top: 10px; color: #666; font-family: monospace; background: #f8f8f8; padding: 10px; border-radius: 4px;">
-                                SQL: ${item.sql || 'N/A'}
-                            </div>
-                        </div>
-                    `;
-                    
-                    element.tabAdd('sqlTableTab', {
-                        title: (item.status === 2 ? '❌ ' : '✅ ') + '结果 ' + index,
-                        content: msgContent,
-                        id: elId,
-                        change: true
-                    });
-                    
-                    if (data.length === 1 || item.status === 2) {
-                        element.tabChange('sqlTableTab', elId);
+                    let title = '';
+                    if (isSelect) {
+                        title = `结果 ${index + 1}`;
+                    } else {
+                        title = `消息 ${index + 1}`;
                     }
-                }
-                
-                if (item.type === 1 || item.status === 2) {
-                    continue;
-                }
-                
-                $("#sqlTableDiv").css('display', 'flex');
-                let rowsData = item.data;
-                if (!rowsData || rowsData.length === 0) continue;
-                
-                let headArr = Object.keys(rowsData[0]);
-                let head = [];
-                for (let key in headArr) {
-                    head.push({field: headArr[key], title: headArr[key], sort: true});
-                }
-                
-                let elId = "sqlTable" + index;
-                elementTabCount.push(elId);
-                element.tabAdd('sqlTableTab', {
-                    title: '📋 结果集 ' + index,
-                    content: "<table class='layui-table' id='" + elId + "'></table>",
-                    id: elId,
-                    change: true
-                })
-                
-                table.render({
-                    elem: '#' + elId
-                    , cols: [head]
-                    , data: rowsData
-                    , time: item.time
-                    , title: '结果集' + (i + 1)
-                    , loading: true
-                    , height: 260 
-                    , cellMinWidth: 150
-                    , limit: 50
-                    , limits: [50, 500, 1000]
-                    , even: true
-                    , page: true
-                    , text: {none: '查询结果为0条数据'}
-                    , size: viewStore.get(tableSizeKey, 'sm')
+                    if (!isSuccess) title = '❌ ' + title;
+
+                    let content = '';
+                    if (isSuccess && isSelect) {
+                         const infoHtml = `
+                             <div style="padding: 5px 10px; background: #f8f8f8; border-bottom: 1px solid #eee; font-size: 12px; color: #666; display: flex; justify-content: flex-end; align-items: center; flex-shrink: 0;">
+                                 <span style="white-space: nowrap;">耗时: ${item.time || 0} ms</span>
+                             </div>`;
+                         content = `<div style="height:100%; display: flex; flex-direction: column;">
+                                        <div style="flex: 1; overflow: hidden; padding: 0px;">
+                                            <table id="table_${index}" lay-filter="table_${index}"></table>
+                                        </div>
+                                    </div>`;
+                    } else {
+                        const icon = isSuccess ? 'layui-icon-ok-circle' : 'layui-icon-close-fill';
+                        const color = isSuccess ? '#009688' : '#FF5722';
+                        const statusText = isSuccess ? '执行成功' : '执行失败';
+                        const msg = item.errorMessage || `执行成功，影响行数：${item.data}`;
+                        
+                        content = `
+                            <div style="padding: 20px; overflow-y: auto; height: 100%; box-sizing: border-box;">
+                                <div style="color: ${color}; font-size: 16px; margin-bottom: 10px; display: flex; align-items: center;">
+                                    <i class="layui-icon ${icon}" style="font-size: 20px; margin-right: 8px;"></i> ${statusText}
+                                </div>
+                                 <div style="margin-top: 15px; color: #666;">
+                                    <pre style="background: #f0f0f0; padding: 10px; margin-top: 5px; white-space: pre-wrap; word-break: break-all; border-radius: 4px; font-family: Consolas, monospace;">${msg || ''}</pre>
+                                </div>
+                                <div style="margin-top: 15px; color: #666;">
+                                    <pre style="background: #f0f0f0; padding: 10px; margin-top: 5px; white-space: pre-wrap; word-break: break-all; border-radius: 4px; font-family: Consolas, monospace;">${item.sql || ''}</pre>
+                                </div>
+
+                                <div style="margin-top: 10px; color: #999; font-size: 12px;">
+                                    耗时: ${item.time || 0} ms
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    element.tabAdd('resultTab', {
+                        title: title,
+                        content: content,
+                        id: tabId
+                    });
+
+                    if (isSuccess && isSelect) {
+                        this.renderTable(`table_${index}`, item.data, item);
+                    }
                 });
-                
-                if (item.type === 0 && item.status !== 2) {
-                     element.tabChange('sqlTableTab', elId);
+
+                // 切换到第一个Tab
+                element.tabChange('resultTab', 'tab_0');
+            },
+
+            renderTable: function(elemId, data, resItem) {
+                if (!data || data.length === 0) {
+                     return;
                 }
                 
-                 table.on('rowContextmenu(' + elId + ')', function (obj) {
-                 });
+                // 动态列
+                const cols = Object.keys(data[0]).map(key => ({
+                    field: key,
+                    title: key,
+                    sort: true,
+                    minWidth: 120
+                }));
+
+                table.render({
+                    elem: '#' + elemId,
+                    data: data,
+                    cols: [cols],
+                    page: true,
+                    limit: 50,
+                    limits: [50, 100, 500],
+                    height: '295',
+                    size: 'sm',
+                    even: true,
+                    text: {none: '无数据'},
+                    done: function() {
+                    }
+                });
+                this.registerContextMenu(elemId, resItem);
+            },
+            
+            // 注册右键菜单
+            registerContextMenu: function(elemId, res) {
+                table.on('rowContextmenu(' + elemId + ')', function (obj) {
+                    obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click'); // 选中行样式
+                    
+                    let data = obj.data;
+                    let tableName = 'table'; 
+                    
+                    let columns = Object.keys(data);
+                    dropdown.render({
+                        trigger: 'contextmenu',
+                        show: true,
+                        data: [
+                            {title: 'copy insert', id: 'insert'},
+                            {title: 'copy update', id: 'update'},
+                            {title: 'copy select', id: 'select'},
+                            {title: 'copy json', id: 'json'},
+                            {title: 'copy 字段名', id: 'head'},
+                            {title: 'copy 字段值', id: 'value'}
+                        ],
+                        click: function (menuData, othis) {
+                            if (menuData.id === "json") {
+                                copyToClipboard(JSON.stringify(data, null, 2));
+                                layer.msg('JSON数据已复制到剪贴板');
+                                return true;
+                            }
+                            if (menuData.id === "head") {
+                                copyToClipboard(columns.join(','));
+                                layer.msg('字段名已复制到剪贴板');
+                                return true;
+                            }
+                            if (menuData.id === "value") {
+                                let values = columns.map(col => {
+                                    let val = data[col];
+                                    if (val === null) return '';
+                                    return String(val);
+                                });
+                                copyToClipboard(values.join(','));
+                                layer.msg('字段值已复制到剪贴板');
+                                return true;
+                            }
+                            if (menuData.id === "insert") {
+                                let values = columns.map(col => {
+                                    let val = data[col];
+                                    if (val === null) return 'NULL';
+                                    if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+                                    if (typeof val === 'number') return val;
+                                    return `'${val}'`;
+                                });
+                                let insertSql = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${values.join(', ')});`;
+                                copyToClipboard(insertSql);
+                                layer.msg('INSERT语句已复制到剪贴板');
+                                return true;
+                            }
+                            if (menuData.id === "update") {
+                                let setParts = columns.map(col => {
+                                    let val = data[col];
+                                    if (val === null) return `${col} = NULL`;
+                                    if (typeof val === 'string') return `${col} = '${val.replace(/'/g, "''")}'`;
+                                    if (typeof val === 'number') return `${col} = ${val}`;
+                                    return `${col} = '${val}'`;
+                                });
+                                let firstCol = columns[0];
+                                let firstVal = data[firstCol];
+                                let whereClause = typeof firstVal === 'string'
+                                    ? `${firstCol} = '${firstVal.replace(/'/g, "''")}'`
+                                    : `${firstCol} = ${firstVal}`;
+                                let updateSql = `UPDATE ${tableName} SET ${setParts.join(', ')} WHERE ${whereClause};`;
+                                copyToClipboard(updateSql);
+                                layer.msg('UPDATE语句已复制到剪贴板');
+                                return true;
+                            }
+                            if (menuData.id === "select") {
+                                let firstCol = columns[0];
+                                let firstVal = data[firstCol];
+                                let whereClause = typeof firstVal === 'string'
+                                    ? `${firstCol} = '${firstVal.replace(/'/g, "''")}'`
+                                    : `${firstCol} = ${firstVal}`;
+                                let selectSql = `SELECT ${columns.join(', ')} FROM ${tableName} WHERE ${whereClause};`;
+                                copyToClipboard(selectSql);
+                                layer.msg('SELECT语句已复制到剪贴板');
+                                return true;
+                            }
+                        }
+                    });
+                    return false;
+                });
             }
+        };
+        
+        // 辅助函数：复制文本到剪贴板
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
         }
         
         window.closeResult = function() {
              $('#result-container').hide();
-             // $('.monaco-wrapper').css('height', 'calc(100vh - 50px)');
+             $('.monaco-wrapper').css('height', '100%'); 
              if (appState.editor) {
-                 setTimeout(() => appState.editor.layout(), 50);
+                 setTimeout(() => appState.editor.layout(), 50); 
              }
         }
 
