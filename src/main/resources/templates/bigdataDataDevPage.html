@@ -24,16 +24,29 @@
             font-size: 18px !important;
         }
 
+        /* 任务名称字体调整 */
+        #viewTaskName {
+            font-size: 14px !important;
+        }
+
         /* 移除选中效果 */
         .layui-nav-small layui-this {
             background-color: transparent !important;
+        }
+
+        /* 全局样式调整 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
 
         /* 主容器，使用 flex 布局 */
         .main-container {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 40px); /* 减去顶部导航栏高度 */
+            height: calc(100vh - 45px); /* 减去顶部导航栏高度 */
             width: 100%;
             overflow: hidden;
             box-sizing: border-box;
@@ -563,12 +576,11 @@
             require.config({ paths: { 'vs': '/static/monaco/min/vs' }});
             require(['vs/editor/editor.main'], function() {
                 const defaultValue =
-`
---********************************************************************--
+`--********************************************************************--
 -- comment:
 -- author: ${appState.userName}
--- date: ${new Date().toLocaleString()}\n
---********************************************************************--`;
+-- date: ${new Date().toLocaleString()}
+--********************************************************************--\n`;
 
                 const initialValue = appState.sqlContent || defaultValue;
 
