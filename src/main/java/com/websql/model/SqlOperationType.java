@@ -8,6 +8,7 @@ public enum SqlOperationType {
     SELECT("SELECT", "查询"),
     UPDATE("UPDATE", "更新"),
     DELETE("DELETE", "删除"),
+    SELECT_INSERT("INSERT_SELECT", "查询并插入"),
     UNKNOWN("UNKNOWN", "未知");
 
     private final String code;

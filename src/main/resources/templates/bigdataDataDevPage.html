@@ -666,12 +666,22 @@
                                 <div style="color: ${color}; font-size: 16px; margin-bottom: 10px; display: flex; align-items: center;">
                                     <i class="layui-icon ${icon}" style="font-size: 20px; margin-right: 8px;"></i> ${statusText}
                                 </div>
-                                 <div style="margin-top: 15px; color: #666;">
-                                    <pre style="background: #f0f0f0; padding: 10px; margin-top: 5px; white-space: pre-wrap; word-break: break-all; border-radius: 4px; font-family: Consolas, monospace;">${msg || ''}</pre>
+                                 <div style="color: #666;">
+                                    <pre style="background: #f0f0f0; padding: 10px;
+                                          white-space: pre-wrap; word-break: break-all; border-radius: 4px;
+                                          font-family: Consolas, monospace;
+                                          max-height: 100px; overflow: auto;">
+                                        ${msg || ''}
+                                    </pre>
                                 </div>
-                                <div style="margin-top: 15px; color: #666;">
+                                <div style="color: #666;">
                                 <strong>SQL语句:</strong>
-                                    <pre style="background: #f0f0f0; padding: 5px; margin-top: 0; white-space: pre-wrap; word-break: break-all; border-radius: 4px; font-family: Consolas, monospace;">${item.sql || ''}</pre>
+                                <pre style="background: #f0f0f0; padding: 10px;
+                                          white-space: pre-wrap; word-break: break-all; border-radius: 4px;
+                                          font-family: Consolas, monospace;
+                                          max-height: 80px; overflow: auto;">
+                                        ${item.sql || ''}
+                                    </pre>
                                 </div>
                                 <div style="margin-top: 10px; color: #999; font-size: 12px;">
                                     耗时: ${item.time || 0} ms

@@ -1,5 +1,6 @@
 package com.websql.config;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.websql.model.*;
 import lombok.Getter;
 import org.apache.calcite.avatica.util.Casing;
@@ -84,15 +85,20 @@ public class CalciteSqlParseHandler {
         if (sourceNode instanceof SqlSelect) {
             sourceTableResult = extractTableInfo((SqlSelect) sourceNode);
         }
-
+        if (ObjectUtil.isNotNull(sourceTableResult)) {
+            sourceTableResult.getSchemas().add(targetTableInfo.getSchema());
+            sourceTableResult.getTableNames().add(targetTableInfo.getTableName());
+        }
         // 生成SQL
         String selectSql = sourceNode instanceof SqlSelect ? buildSelectSql((SqlSelect) sourceNode) : null;
         String insertFromTemp = buildInsertFromTempTable(targetTable, targetColumns, "temp_query_results");
         String insertWithParams = buildInsertWithParams(targetTable, targetColumns);
 
-        return new ParseResultVo(selectSql, insertFromTemp, insertWithParams, targetTable.toString(),
+        SqlOperationType operationType = selectSql==null? SqlOperationType.INSERT :  SqlOperationType.SELECT_INSERT;
+
+        return  new ParseResultVo(selectSql, insertFromTemp, insertWithParams, targetTable.toString(),
                 sourceTableResult.getTableNames(), sourceTableResult.getTableInfos(), sourceTableResult.getSchemas(),
-                targetTableInfo, SqlOperationType.INSERT);
+                targetTableInfo, operationType);
     }
 
     /**
@@ -112,15 +118,15 @@ public class CalciteSqlParseHandler {
      */
     private static ParseResultVo handleUpdateStatement(SqlUpdate updateStmt) {
         SqlIdentifier targetTable = (SqlIdentifier) updateStmt.getTargetTable();
-        
+
         List<String> tableNames = new ArrayList<>();
         List<TableInfo> tableInfos = new ArrayList<>();
         Set<String> schemas = new HashSet<>();
-        
+
         extractTableInfoRecursive(targetTable, tableNames, tableInfos, schemas);
-        
+
         TableExtractionResult extractionResult = new TableExtractionResult(tableNames, tableInfos, schemas);
-        
+
         return new ParseResultVo(null, null, null, targetTable.toString(),
                 extractionResult.getTableNames(), extractionResult.getTableInfos(), extractionResult.getSchemas(),
                 null, SqlOperationType.UPDATE);
@@ -131,14 +137,14 @@ public class CalciteSqlParseHandler {
      */
     private static ParseResultVo handleDeleteStatement(SqlDelete deleteStmt) {
         SqlIdentifier targetTable = (SqlIdentifier) deleteStmt.getTargetTable();
-        
+
         // 复用现有的表信息提取方法
         List<String> tableNames = new ArrayList<>();
         List<TableInfo> tableInfos = new ArrayList<>();
         Set<String> schemas = new HashSet<>();
-        
+
         extractTableInfoRecursive(targetTable, tableNames, tableInfos, schemas);
-        
+
         TableExtractionResult extractionResult = new TableExtractionResult(tableNames, tableInfos, schemas);
 
         return new ParseResultVo(null, null, null, targetTable.toString(),
@@ -196,19 +202,18 @@ public class CalciteSqlParseHandler {
      */
     private static String buildInsertWithParams(SqlIdentifier table, SqlNodeList columns) {
         StringBuilder sb = new StringBuilder();
-        sb.append("INSERT INTO ").append(table.toString());
-
-        if (columns != null && columns.size() > 0) {
-            sb.append("\n    (").append(columns.toString()).append(")");
+        String tableStr = table.toString().replaceAll("[\"`]", "");
+        sb.append("INSERT INTO ").append(tableStr);
+        if (columns != null && !columns.isEmpty()) {
+            String columnsStr = columns.toString().replaceAll("[\"`]", "");
+            sb.append("\n    (").append(columnsStr).append(")");
         }
-
         sb.append("\nVALUES (");
         for (int i = 0; i < columns.size(); i++) {
             if (i > 0) sb.append(", ");
             sb.append("?");
         }
         sb.append(")");
-
         return sb.toString();
     }
 

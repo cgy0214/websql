@@ -241,6 +241,15 @@ public class DataSourceFactory {
             return getDataSource(sourceKey);
     }
 
+    /**
+     * 获取数据库映射名称
+     * @param sourceIdentifier
+     * @return
+     */
+    public static String getBigDataSourceKeyName(String sourceIdentifier) {
+        return DATA_KEY_IDENTIFIER_MAP.get(sourceIdentifier);
+    }
+
 
 
     /**

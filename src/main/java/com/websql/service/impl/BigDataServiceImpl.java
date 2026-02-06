@@ -7,6 +7,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.websql.config.CalciteDataSourceConfig;
 import com.websql.config.CalciteSqlParseHandler;
 import com.websql.config.DataSourceFactory;
+import com.websql.config.JdbcUtils;
 import com.websql.dao.BigDataInstanceRepository;
 import com.websql.dao.BigDataTaskRepository;
 import com.websql.model.*;
@@ -248,6 +249,11 @@ public class BigDataServiceImpl implements BigDataService {
                         resultItem.setStatus(ExecuteResult.STATUS_SUCCESS);
                         resultItem.setData(count);
                         resultItem.setType(ExecuteResult.TYPE_NON_SELECT);
+                    } else if (ObjectUtil.equal(vo.getOperationType(), SqlOperationType.SELECT_INSERT)) {
+                        int count = bigDataInsertOverSelect(connection, vo);
+                        resultItem.setStatus(ExecuteResult.STATUS_SUCCESS);
+                        resultItem.setData(count);
+                        resultItem.setType(ExecuteResult.TYPE_NON_SELECT);
                     } else {
                         List<Map<String, Object>> data = bigDataSelect(connection, sql);
                         resultItem.setStatus(ExecuteResult.STATUS_SUCCESS);
@@ -265,11 +271,37 @@ public class BigDataServiceImpl implements BigDataService {
                 results.add(resultItem);
             }
         } catch (SQLException e) {
-            log.error("Calcite 连接创建或执行致命错误", e);
+            log.error("连接创建或执行致命错误", e);
             results.add(new ExecuteResult().error(fullSql, "SQL执行环境初始化失败: " + e.getMessage()));
         }
 
         return results;
+    }
+
+    /**
+     * 查询并插入
+     *
+     * @param connection 数据连接
+     * @param vo         参数
+     * @return 插入的记录数
+     */
+    private int bigDataInsertOverSelect(Connection connection, ParseResultVo vo) {
+        try {
+            List<Map<String, Object>> data = bigDataSelect(connection, vo.getSelectSql());
+            if (data.isEmpty()) {
+                log.warn("查询结果为空，无需插入");
+                return 0;
+            }
+            String insertWithParamsSql = vo.getInsertWithParamsSql();
+            String cleanInsertSql = insertWithParamsSql.replaceAll("(?i)INSERT INTO\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\.([a-zA-Z_][a-zA-Z0-9_]*)", "INSERT INTO $2");
+            String schema = vo.getTargetTableInfo().getSchema();
+            int insertCount = JdbcUtils.batchInsert(DataSourceFactory.getBigDataSourceKeyName(schema), cleanInsertSql, data);
+            log.info("批量插入完成，成功插入 {} 条记录", insertCount);
+            return insertCount;
+        } catch (Exception e) {
+            log.error("SQL执行异常: {}", e.getMessage(), e);
+            throw new RuntimeException("插入操作失败: " + e.getMessage(), e);
+        }
     }
 
     private boolean isModificationOperation(SqlOperationType type) {
@@ -279,7 +311,7 @@ public class BigDataServiceImpl implements BigDataService {
     }
 
     /**
-     * todo 执行SQL
+     * 执行语句
      *
      * @param connection
      * @param sqlContent
@@ -295,7 +327,7 @@ public class BigDataServiceImpl implements BigDataService {
     }
 
     /**
-     * todo 处理查询
+     * 查询语句
      *
      * @param connection
      * @param sqlContent
