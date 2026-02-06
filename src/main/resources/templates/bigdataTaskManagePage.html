@@ -45,7 +45,7 @@
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-        <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="edit">发布</a>
+        <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="release">发布</a>
         <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="edit">实例</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
@@ -73,9 +73,9 @@
                     },
                     {field: 'taskType', title: '任务类型', sort: true, width: 120},
                     {field: 'status', title: '状态', sort: true, width: 100, templet: function(d) {
-                            if (d.status === '启用') {
+                            if (d.status === '已发布') {
                                 return '<span style="color: green;">' + d.status + '</span>';
-                            } else if (d.status === '停用') {
+                            } else if (d.status === '未发布') {
                                 return '<span style="color: red;">' + d.status + '</span>';
                             }
                             return d.status;
@@ -128,6 +128,21 @@
                             layer.close(index);
                         }
                     });
+                case 'release':
+                    layer.confirm('您确定要发布该任务吗?', {
+                        icon: 3,
+                        title: '确认发布',
+                        btn: ['确认发布', '取消'],
+                        yes: function(index) {
+                            post(ctx + "bigdataManager/release?id=" + data.id, null, (res) => {
+                                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                                    if (res.code === 200) {
+                                        location.reload();
+                                    }
+                                })
+                            })
+                        }
+                    })
                     break;
             }
         });

@@ -12,6 +12,7 @@ import com.websql.dao.BigDataInstanceRepository;
 import com.websql.dao.BigDataTaskRepository;
 import com.websql.model.*;
 import com.websql.service.BigDataService;
+import com.websql.task.ScheduleUtils;
 import com.websql.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
@@ -104,6 +105,7 @@ public class BigDataServiceImpl implements BigDataService {
 
     @Override
     public void deleteTask(Long id) {
+        ScheduleUtils.removeBigDataTask(id);
         bigDataTaskRepository.deleteById(id);
     }
 
@@ -177,6 +179,21 @@ public class BigDataServiceImpl implements BigDataService {
         bigDataTaskRepository.saveAndFlush(updateModel);
         return updateModel;
     }
+
+    @Override
+    public void updateTaskById(BigDataTaskModel bigDataTaskModel) {
+        if(ObjectUtil.isNull(bigDataTaskModel.getId())){
+            throw new RuntimeException("任务ID不存在!");
+        }
+        String currentUser = StpUtils.getCurrentUserName();
+        String currentTime = DateUtil.now();
+        bigDataTaskModel.setUpdateUser(currentUser);
+        bigDataTaskModel.setReleaseTime(currentTime);
+        bigDataTaskModel.setUpdateTime(currentTime);
+        bigDataTaskModel.setReleaseUser(StpUtils.getCurrentUserName());
+        bigDataTaskRepository.saveAndFlush(bigDataTaskModel);
+    }
+
 
     @Override
     public List<ExecuteResult> execute(BigDataTaskModel model) {

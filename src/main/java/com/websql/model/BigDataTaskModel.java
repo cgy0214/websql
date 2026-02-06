@@ -37,6 +37,9 @@ public class BigDataTaskModel extends Pages implements Serializable {
     @Column
     private String dataSource;
 
+    /**
+     * 状态,未发布,已发布
+     */
     @Column
     private String status;
 
@@ -54,4 +57,16 @@ public class BigDataTaskModel extends Pages implements Serializable {
 
     @Column
     private String updateTime;
+
+    /**
+     * 发布/撤回时间
+     */
+    @Column
+    private String releaseTime;
+
+    /**
+     * 发布/撤回人
+     */
+    @Column
+    private String releaseUser;
 }

@@ -29,9 +29,16 @@ public interface BigDataService {
     BigDataTaskModel saveTaskContent(BigDataTaskModel model);
 
     /**
+     * 更新任务发布状态
+     * @param bigDataTaskModel 任务模型
+     */
+    void updateTaskById(BigDataTaskModel bigDataTaskModel);
+
+    /**
      * 执行大数据SQL
      * @param model 任务模型
      * @return 执行结果列表
      */
     List<ExecuteResult> execute(BigDataTaskModel model);
+
 }

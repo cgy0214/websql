@@ -4,11 +4,9 @@ import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.cron.CronUtil;
 import com.websql.config.DataSourceFactory;
+import com.websql.dao.BigDataTaskRepository;
 import com.websql.dao.DetectionRepository;
-import com.websql.model.DataSourceModel;
-import com.websql.model.SysDetectionModel;
-import com.websql.model.SysSetup;
-import com.websql.model.TimingVo;
+import com.websql.model.*;
 import com.websql.service.*;
 import com.websql.util.CacheUtils;
 import com.websql.util.PasswordUtil;
@@ -52,6 +50,9 @@ public class SystemInitPost {
     @Autowired
     private SseEmitterService sseEmitterService;
 
+    @Autowired
+    private BigDataTaskRepository bigDataTaskRepository;
+
     /**
      * 初始化系统调度
      */
@@ -63,6 +64,7 @@ public class SystemInitPost {
         initTimingTask();
         initDetectionTask();
         initSseHeartBeat();
+        initBigDataTask();
         // 启动定时任务调度器
         CronUtil.setMatchSecond(true);
         CronUtil.start();
@@ -120,6 +122,21 @@ public class SystemInitPost {
         ThreadUtil.execAsync(() -> {
             for (SysDetectionModel vo : initList) {
                 ScheduleUtils.addDetectionTask(vo.getCron(), vo.getId(), vo.getName());
+            }
+        });
+    }
+
+    /**
+     * 加载枢易方舟任务
+     */
+    private void initBigDataTask() {
+        BigDataTaskModel param = new BigDataTaskModel();
+        param.setStatus("已发布");
+        List<BigDataTaskModel> initList = bigDataTaskRepository.findAll(Example.of(param));
+        log.info("Successful initialization  {}  BigData Task.", initList.size());
+        ThreadUtil.execAsync(() -> {
+            for (BigDataTaskModel vo : initList) {
+                ScheduleUtils.addBigDataTask(vo);
             }
         });
     }

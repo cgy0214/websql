@@ -476,7 +476,7 @@
                     '保存SQL': saveData,
                     '格式化': formatSQL,
                     '修改任务': showUpdateTaskPage,
-                    '发布任务': () => layer.msg('任务管理功能开发中...'),
+                    '发布任务': releaseTask,
                     '下载': downloadSQL,
                     '任务实例': () => layer.msg('任务管理功能开发中...'),
                     '参照模板': () => layer.msg('模板功能开发中...'),
@@ -528,6 +528,16 @@
             URL.revokeObjectURL(url);
 
             layer.msg('下载成功');
+        }
+
+        function releaseTask(){
+            if (!appState.taskId) {
+                layer.msg('请选择要发布的任务', {icon: 2});
+                return;
+            }
+            post(ctx + "bigdataManager/release?id="+appState.taskId, null, (res) => {
+                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2});
+            });
         }
 
         // 保存数据

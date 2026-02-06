@@ -1,24 +1,28 @@
 package com.websql.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.websql.model.AjaxResult;
 import com.websql.model.BigDataInstanceModel;
 import com.websql.model.BigDataTaskModel;
+import com.websql.model.SysDetectionModel;
 import com.websql.service.BigDataService;
+import com.websql.task.ScheduleUtils;
 import com.websql.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 枢易方舟
+ */
 @Controller
 @RequestMapping("/bigdataManager")
 @Slf4j
@@ -163,4 +167,30 @@ public class BigDataManagerController {
             return AjaxResult.error(e.getMessage());
         }
     }
+
+    @RequestMapping("/release")
+    @ResponseBody
+    public AjaxResult release(@RequestParam Long id) {
+        if (StpUtil.hasRole("demo-admin")) {
+            return AjaxResult.error("抱歉,演示角色不允许发布任务!");
+        }
+        try {
+            BigDataTaskModel bigDataTaskModel = bigDataService.getTaskById(id);
+            if(ObjectUtil.isNull(bigDataTaskModel)){
+                return AjaxResult.error("任务不存在!");
+            }
+            if (ObjectUtil.isNull(bigDataTaskModel.getCron())){
+                return AjaxResult.error("任务未配置定时表达式!");
+            }
+            ScheduleUtils.removeBigDataTask(id);
+            ScheduleUtils.addBigDataTask(bigDataTaskModel);
+            bigDataTaskModel.setStatus("已发布");
+            bigDataService.updateTaskById(bigDataTaskModel);
+            return AjaxResult.success("发布成功");
+        } catch (Exception e) {
+            log.error("发布失败,{}",e.getMessage(),e);
+            return AjaxResult.error("发布失败:"+e.getMessage());
+        }
+    }
+
 }
