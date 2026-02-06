@@ -19,6 +19,9 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         if (!registry.hasMappingForPattern("/static/**")) {
             registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
         }
+        if (!registry.hasMappingForPattern("/favicon.ico")) {
+            registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/static/img/favicon.ico");
+        }
         super.addResourceHandlers(registry);
     }
 
