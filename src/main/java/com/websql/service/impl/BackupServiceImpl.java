@@ -40,6 +40,39 @@ import java.util.stream.Stream;
 @Service
 public class BackupServiceImpl implements BackupService {
 
+    /**
+     * 导入结果封装类
+     */
+    private static class ImportResult {
+        private final boolean success;
+        private final String errorMessage;
+
+        public ImportResult(boolean success) {
+            this(success, null);
+        }
+
+        public ImportResult(boolean success, String errorMessage) {
+            this.success = success;
+            this.errorMessage = errorMessage;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getErrorMessage() {
+            return errorMessage;
+        }
+
+        public static ImportResult success() {
+            return new ImportResult(true);
+        }
+
+        public static ImportResult failure(String errorMessage) {
+            return new ImportResult(false, errorMessage);
+        }
+    }
+
     @Autowired
     private ExamineVersionFactory examineVersionFactory;
 
@@ -279,6 +312,9 @@ public class BackupServiceImpl implements BackupService {
         }
 
         Path tempDir = null;
+        StringBuilder message = new StringBuilder();
+        AtomicBoolean hasError = new AtomicBoolean(false);
+        
         try {
             String currentDir = System.getProperty("user.dir");
             tempDir = Paths.get(currentDir, "data", "temp", "export");
@@ -294,45 +330,54 @@ public class BackupServiceImpl implements BackupService {
 
             Files.deleteIfExists(zipFile);
 
-            StringBuilder message = new StringBuilder();
-            AtomicBoolean success = new AtomicBoolean(true);
-
             try (Stream<Path> fileStream = Files.walk(extractDir)) {
                 fileStream.filter(Files::isRegularFile)
                         .forEach(filePath -> {
+                            String fileName = filePath.getFileName().toString();
                             try {
-                                String fileName = filePath.getFileName().toString();
                                 byte[] fileBytes = Files.readAllBytes(filePath);
                                 String fileContent = new String(fileBytes, StandardCharsets.UTF_8);
 
+                                // 版本验证
                                 if (!validateJsonAndVersion(fileContent, fileName)) {
-                                    message.append("[").append(fileName).append("]版本验证失败或JSON格式错误<br>");
+                                    String errorMsg = "[" + fileName + "]版本验证失败或JSON格式错误";
+                                    message.append(errorMsg).append("<br>");
+                                    log.error(errorMsg);
+                                    hasError.set(true);
                                     return;
                                 }
 
-                                boolean importSuccess = importJsonFile(fileName, fileContent);
-                                if (importSuccess) {
+                                // 导入文件
+                                ImportResult importResult = importJsonFileWithDetail(fileName, fileContent);
+                                if (importResult.isSuccess()) {
                                     message.append("[").append(fileName).append("]导入成功<br>");
+                                    log.info("[{}]导入成功", fileName);
                                 } else {
-                                    message.append("[").append(fileName).append("]导入失败<br>");
-                                    success.set(false);
+                                    message.append("[").append(fileName).append("]导入失败: ").append(importResult.getErrorMessage()).append("<br>");
+                                    log.error("[{}]导入失败: {}", fileName, importResult.getErrorMessage());
+                                    hasError.set(true);
                                 }
                             } catch (Exception e) {
-                                log.error("处理文件 {} 失败", filePath.getFileName(), e);
-                                message.append("[").append(filePath.getFileName()).append("]处理失败: ").append(e.getMessage()).append("<br>");
-                                success.set(false);
+                                String errorMsg = "[" + fileName + "]处理异常: " + e.getMessage();
+                                message.append(errorMsg).append("<br>");
+                                log.error("处理文件 {} 失败", fileName, e);
+                                hasError.set(true);
                             }
                         });
             }
 
-            if (success.get()) {
-                return AjaxResult.success("备份导入完成");
+            if (hasError.get()) {
+                return AjaxResult.error("备份导入完成，但存在错误", message.toString());
             } else {
-                return AjaxResult.error("备份导入存在错误", message.toString());
+                AjaxResult result = AjaxResult.success("备份导入成功");
+                result.setDetailMsg(message.toString());
+                return result;
             }
         } catch (Exception e) {
-            log.error("上传备份文件处理失败", e);
-            return AjaxResult.error("上传备份文件处理失败: " + e.getMessage());
+            String errorMsg = "上传备份文件处理失败: " + e.getMessage();
+            log.error(errorMsg, e);
+            message.append(errorMsg);
+            return AjaxResult.error(errorMsg, message.toString());
         } finally {
             cleanupTempDirectory(tempDir);
         }
@@ -392,6 +437,68 @@ public class BackupServiceImpl implements BackupService {
     }
 
     /**
+     * 上传sql文本数据（返回详细结果）
+     *
+     * @param file JSON数据内容
+     * @return 导入结果
+     */
+    public ImportResult uploadSqlTextJsonWithDetail(String file) {
+        try {
+            JSONArray dataSourceJson = JSONUtil.parseArray(new String(file.getBytes(), StandardCharsets.UTF_8));
+            if (dataSourceJson.isEmpty()) {
+                return ImportResult.failure("没有解析出sql文本json数据，请检查！");
+            }
+            
+            StringBuilder errorMessage = new StringBuilder();
+            boolean hasError = false;
+            int successCount = 0;
+            
+            for (int i = 0; i < dataSourceJson.size(); i++) {
+                try {
+                    Object object = dataSourceJson.get(i);
+                    Map<String, Object> map = (Map<String, Object>) object;
+                    DbSqlText dbSqlText = new DbSqlText();
+                    dbSqlText.setSqlCreateDate(DateUtil.now());
+                    dbSqlText.setSqlText(Base64Decoder.decodeStr(MapUtil.getStr(map, "content")));
+                    dbSqlText.setTitle(Base64Decoder.decodeStr(MapUtil.getStr(map, "title")));
+                    
+                    // 注意：原代码中字段名为"taemId"，这里保持一致
+                    Long teamId = MapUtil.getLong(map, "taemId");
+                    List<TeamSourceModel> teamSourceModels = teamSourceService.queryTeamByIds(Arrays.asList(teamId));
+                    //导入的历史团队id不存在，将赋值给当前选中的团队。
+                    if (!teamSourceModels.isEmpty()) {
+                        dbSqlText.setTeamId(teamId);
+                    }
+                    dbSourceService.saveSqlText(dbSqlText);
+                    successCount++;
+                } catch (Exception e) {
+                    hasError = true;
+                    String title = "未知SQL";
+                    try {
+                        Map<String, Object> map = (Map<String, Object>) dataSourceJson.get(i);
+                        title = Base64Decoder.decodeStr(MapUtil.getStr(map, "title"));
+                    } catch (Exception ex) {
+                        // 忽略获取标题的异常
+                    }
+                    errorMessage.append("第").append(i + 1).append("条数据[").append(title)
+                            .append("]保存失败: ").append(e.getMessage()).append("; ");
+                }
+            }
+            
+            log.info("导入sql文本数据{}条数据，成功{}条，失败{}条", dataSourceJson.size(), successCount, 
+                    dataSourceJson.size() - successCount);
+            
+            if (hasError) {
+                return ImportResult.failure("部分SQL文本导入失败: " + errorMessage.toString());
+            }
+            return ImportResult.success();
+        } catch (Exception e) {
+            log.error("导入sql文本数据失败: {}", e.getMessage(), e);
+            return ImportResult.failure("导入失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 上传sql文本数据
      */
     public boolean uploadSqlTextJson(String file) {
@@ -419,6 +526,78 @@ public class BackupServiceImpl implements BackupService {
         } catch (Exception e) {
             log.error("导入失败,{}", e.getMessage(), e);
             return false;
+        }
+    }
+
+    /**
+     * 上传数据源信息（返回详细结果）
+     *
+     * @param file JSON数据内容
+     * @return 导入结果
+     */
+    public ImportResult uploadDataSourceJsonWithDetail(String file) {
+        try {
+            JSONArray dataSourceJson = JSONUtil.parseArray(file);
+            if (dataSourceJson.isEmpty()) {
+                return ImportResult.failure("没有解析出json数据，请检查！");
+            }
+            
+            StringBuilder errorMessage = new StringBuilder();
+            boolean hasError = false;
+            int successCount = 0;
+            
+            for (int i = 0; i < dataSourceJson.size(); i++) {
+                try {
+                    Object object = dataSourceJson.get(i);
+                    Map<String, Object> map = (Map<String, Object>) object;
+                    DataSourceModel model = new DataSourceModel();
+                    model.setDbName(Base64Decoder.decodeStr(MapUtil.getStr(map, "title")));
+                    model.setDbUrl(Base64Decoder.decodeStr(MapUtil.getStr(map, "url")));
+                    model.setDbAccount(Base64Decoder.decodeStr(MapUtil.getStr(map, "userName")));
+                    model.setDbPassword(Base64Decoder.decodeStr(MapUtil.getStr(map, "password")));
+                    model.setDbCheckUrl(MapUtil.getStr(map, "checkSql"));
+                    model.setDriverClass(MapUtil.getStr(map, "driver"));
+                    model.setInitialSize(MapUtil.getInt(map, "initialSize"));
+                    model.setMaxActive(MapUtil.getInt(map, "maxActive"));
+                    model.setMaxIdle(MapUtil.getInt(map, "maxIdle"));
+                    model.setMaxWait(MapUtil.getInt(map, "maxWait"));
+                    model.setSourceIdentifier(MapUtil.getStr(map, "sourceIdentifier"));
+                    model.setDruidFilterType(MapUtil.getStr(map, "druidFilterType"));
+                    model.setDbPort(MapUtil.getStr(map, "port"));
+                    model.setDbState("有效");
+                    
+                    //导入的历史团队id不存在，将赋值给当前选中的团队。
+                    Long teamId = MapUtil.getLong(map, "teamId");
+                    List<TeamSourceModel> teamSourceModels = teamSourceService.queryTeamByIds(Collections.singletonList(teamId));
+                    if (teamSourceModels.isEmpty()) {
+                        teamId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
+                    }
+                    dbSourceService.addDbSource(model, teamId);
+                    successCount++;
+                } catch (Exception e) {
+                    hasError = true;
+                    String dbName = "未知数据库";
+                    try {
+                        Map<String, Object> map = (Map<String, Object>) dataSourceJson.get(i);
+                        dbName = Base64Decoder.decodeStr(MapUtil.getStr(map, "title"));
+                    } catch (Exception ex) {
+                        // 忽略获取名称的异常
+                    }
+                    errorMessage.append("第").append(i + 1).append("条数据[").append(dbName)
+                            .append("]上传失败: ").append(e.getMessage()).append("; ");
+                }
+            }
+            
+            log.info("导入数据源{}条数据，成功{}条，失败{}条", dataSourceJson.size(), successCount, 
+                    dataSourceJson.size() - successCount);
+            
+            if (hasError) {
+                return ImportResult.failure("部分数据导入失败: " + errorMessage.toString());
+            }
+            return ImportResult.success();
+        } catch (Exception e) {
+            log.error("导入数据源失败: {}", e.getMessage(), e);
+            return ImportResult.failure("导入失败: " + e.getMessage());
         }
     }
 
@@ -452,6 +631,35 @@ public class BackupServiceImpl implements BackupService {
     }
 
     /**
+     * 根据文件名导入对应的JSON数据（返回详细结果）
+     *
+     * @param fileName    文件名
+     * @param jsonContent JSON内容
+     * @return 导入结果
+     */
+    private ImportResult importJsonFileWithDetail(String fileName, String jsonContent) {
+        try {
+            cn.hutool.json.JSONObject jsonObject = JSONUtil.parseObj(jsonContent);
+            String data = jsonObject.getStr("data");
+            String type = jsonObject.getStr("type");
+            
+            if (BackupType.TEAM.name().equals(type)) {
+                return uploadTeamJsonWithDetail(data);
+            } else if (BackupType.SQL_TEXT.name().equals(type)) {
+                return uploadSqlTextJsonWithDetail(data);
+            } else if (BackupType.DATA_SOURCE.name().equals(type)) {
+                return uploadDataSourceJsonWithDetail(data);
+            } else if (BackupType.BIG_DATA.name().equals(type)) {
+                return uploadBigDataJsonWithDetail(data);
+            } else {
+                return ImportResult.failure("未知的文件类型: " + type);
+            }
+        } catch (Exception e) {
+            return ImportResult.failure("JSON解析失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 根据文件名导入对应的JSON数据
      *
      * @param fileName    文件名
@@ -478,6 +686,76 @@ public class BackupServiceImpl implements BackupService {
         } catch (Exception e) {
             log.error("导入文件 {} 失败: {}", fileName, e.getMessage(), e);
             return false;
+        }
+    }
+
+    /**
+     * 上传大数据任务（返回详细结果）
+     *
+     * @param file JSON数据内容
+     * @return 导入结果
+     */
+    public ImportResult uploadBigDataJsonWithDetail(String file) {
+        try {
+            JSONArray bigDataJson = JSONUtil.parseArray(file);
+            if (bigDataJson.isEmpty()) {
+                return ImportResult.failure("没有解析出大数据任务json数据，请检查！");
+            }
+
+            StringBuilder errorMessage = new StringBuilder();
+            boolean hasError = false;
+            int successCount = 0;
+            
+            for (int i = 0; i < bigDataJson.size(); i++) {
+                try {
+                    Object object = bigDataJson.get(i);
+                    Map<String, Object> map = (Map<String, Object>) object;
+                    BigDataTaskModel model = new BigDataTaskModel();
+                    model.setTaskName(MapUtil.getStr(map, "taskName"));
+                    model.setTaskType(MapUtil.getStr(map, "teamType"));
+                    model.setDescription(Base64Decoder.decodeStr(MapUtil.getStr(map, "description")));
+                    model.setSqlContent(Base64Decoder.decodeStr(MapUtil.getStr(map, "sqlContent")));
+                    model.setCron(MapUtil.getStr(map, "cron"));
+                    model.setStatus(MapUtil.getStr(map, "status"));
+                    model.setTeamId(MapUtil.getLong(map, "teamId"));
+                    model.setId(MapUtil.getLong(map, "id"));
+
+                    // 导入的历史团队id不存在，将赋值给当前选中的团队
+                    Long teamId = model.getTeamId();
+                    List<TeamSourceModel> teamSourceModels = teamSourceService.queryTeamByIds(Collections.singletonList(teamId));
+                    if (teamSourceModels.isEmpty()) {
+                        teamId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
+                        model.setTeamId(teamId);
+                    }
+
+                    // 保存大数据任务
+                    bigDataService.saveTask(model);
+                    successCount++;
+                    log.info("[{}]大数据任务上传成功!", model.getTaskName());
+                } catch (Exception e) {
+                    hasError = true;
+                    String taskName = "未知任务";
+                    try {
+                        Map<String, Object> map = (Map<String, Object>) bigDataJson.get(i);
+                        taskName = MapUtil.getStr(map, "taskName");
+                    } catch (Exception ex) {
+                        // 忽略获取任务名称的异常
+                    }
+                    errorMessage.append("第").append(i + 1).append("条数据[").append(taskName)
+                            .append("]上传失败: ").append(e.getMessage()).append("; ");
+                }
+            }
+
+            log.info("导入大数据任务{}条数据，成功{}条，失败{}条", bigDataJson.size(), successCount, 
+                    bigDataJson.size() - successCount);
+            
+            if (hasError) {
+                return ImportResult.failure("部分大数据任务导入失败: " + errorMessage.toString());
+            }
+            return ImportResult.success();
+        } catch (Exception e) {
+            log.error("导入大数据任务失败: {}", e.getMessage(), e);
+            return ImportResult.failure("导入失败: " + e.getMessage());
         }
     }
 
@@ -560,37 +838,77 @@ public class BackupServiceImpl implements BackupService {
     }
 
     /**
+     * 上传团队信息（返回详细结果）
+     *
+     * @param file JSON数据内容
+     * @return 导入结果
+     */
+    public ImportResult uploadTeamJsonWithDetail(String file) {
+        try {
+            JSONArray dataSourceJson = JSONUtil.parseArray(new String(file.getBytes(), StandardCharsets.UTF_8));
+            if (dataSourceJson.isEmpty()) {
+                return ImportResult.failure("没有解析出团队信息json数据，请检查！");
+            }
+            
+            StringBuilder errorMessage = new StringBuilder();
+            boolean hasError = false;
+            int successCount = 0;
+            
+            for (int i = 0; i < dataSourceJson.size(); i++) {
+                try {
+                    Object object = dataSourceJson.get(i);
+                    Map<String, Object> map = (Map<String, Object>) object;
+                    TeamSourceModel teamSourceModel = new TeamSourceModel();
+                    teamSourceModel.setTeamName(Base64Decoder.decodeStr(MapUtil.getStr(map, "teamName")));
+                    teamSourceModel.setUserId(MapUtil.getLong(map, "userId"));
+                    teamSourceModel.setDescription(Base64Decoder.decodeStr(MapUtil.getStr(map, "description")));
+                    teamSourceModel.setState(MapUtil.getInt(map, "state"));
+                    teamSourceModel.setId(MapUtil.getLong(map, "id"));
+                    
+                    AjaxResult ajaxResult = teamSourceService.addTeamSource(teamSourceModel);
+                    if (!ajaxResult.getCode().equals(200)) {
+                        hasError = true;
+                        errorMessage.append("第").append(i + 1).append("条数据[").append(teamSourceModel.getTeamName())
+                                .append("]保存失败: ").append(ajaxResult.getMsg()).append("; ");
+                    } else {
+                        successCount++;
+                    }
+                } catch (Exception e) {
+                    hasError = true;
+                    String teamName = "未知团队";
+                    try {
+                        Map<String, Object> map = (Map<String, Object>) dataSourceJson.get(i);
+                        teamName = Base64Decoder.decodeStr(MapUtil.getStr(map, "teamName"));
+                    } catch (Exception ex) {
+                        // 忽略获取团队名称的异常
+                    }
+                    errorMessage.append("第").append(i + 1).append("条数据[").append(teamName)
+                            .append("]处理失败: ").append(e.getMessage()).append("; ");
+                }
+            }
+            
+            log.info("导入团队信息{}条数据，成功{}条，失败{}条", dataSourceJson.size(), successCount, 
+                    dataSourceJson.size() - successCount);
+            
+            if (hasError) {
+                return ImportResult.failure("部分团队信息导入失败: " + errorMessage.toString());
+            }
+            return ImportResult.success();
+        } catch (Exception e) {
+            log.error("导入团队信息失败: {}", e.getMessage(), e);
+            return ImportResult.failure("导入失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 上传团队信息
      *
      * @param file
      * @return
      */
     public boolean uploadTeamJson(String file) {
-        try {
-            JSONArray dataSourceJson = JSONUtil.parseArray(new String(file.getBytes(), StandardCharsets.UTF_8));
-            if (dataSourceJson.isEmpty()) {
-                log.warn("没有解析出团队信息json数据，请检查！");
-                return false;
-            }
-            for (Object object : dataSourceJson) {
-                Map<String, Object> map = (Map<String, Object>) object;
-                TeamSourceModel teamSourceModel = new TeamSourceModel();
-                teamSourceModel.setTeamName(Base64Decoder.decodeStr(MapUtil.getStr(map, "teamName")));
-                teamSourceModel.setUserId(MapUtil.getLong(map, "userId"));
-                teamSourceModel.setDescription(Base64Decoder.decodeStr(MapUtil.getStr(map, "description")));
-                teamSourceModel.setState(MapUtil.getInt(map, "state"));
-                teamSourceModel.setId(MapUtil.getLong(map, "id"));
-                AjaxResult ajaxResult = teamSourceService.addTeamSource(teamSourceModel);
-                if (!ajaxResult.getCode().equals(200)) {
-                    return false;
-                }
-            }
-            log.info("导入团队信息" + dataSourceJson.size() + "条数据!");
-            return true;
-        } catch (Exception e) {
-            log.error("导入团队信息失败,{}", e.getMessage(), e);
-            return false;
-        }
+        ImportResult result = uploadTeamJsonWithDetail(file);
+        return result.isSuccess();
     }
 
 
