@@ -189,6 +189,10 @@ public class BigDataServiceImpl implements BigDataService {
         bigDataTaskRepository.saveAndFlush(bigDataTaskModel);
     }
 
+    @Override
+    public List<BigDataTaskModel> queryListAll() {
+        return bigDataTaskRepository.findAll();
+    }
 
     @Override
     public List<ExecuteResult> execute(BigDataTaskModel model) {

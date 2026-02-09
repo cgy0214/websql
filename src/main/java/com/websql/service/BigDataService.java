@@ -41,4 +41,9 @@ public interface BigDataService {
      */
     List<ExecuteResult> execute(BigDataTaskModel model);
 
+    /**
+     * 查询所有任务
+     * @return 任务列表
+     */
+    List<BigDataTaskModel> queryListAll();
 }

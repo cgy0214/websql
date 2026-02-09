@@ -23,9 +23,6 @@ public class BigDataTaskModel extends Pages implements Serializable {
     private String taskType;
 
     @Column
-    private String taskCode;
-
-    @Column
     private String description;
 
     @Column
@@ -33,9 +30,6 @@ public class BigDataTaskModel extends Pages implements Serializable {
 
     @Column(columnDefinition = "TEXT")
     private String sqlContent;
-
-    @Column
-    private String dataSource;
 
     /**
      * 状态,未发布,已发布

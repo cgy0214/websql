@@ -214,33 +214,6 @@
                             </div>
 
                             <div class="layui-form-item btnClass">
-                                <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
-                                            onclick="downloadFile('settingManager/downloadTeamJson');return false;">
-                                        <i class="layui-icon layui-icon-download-circle"> </i>导出团队信息
-                                    </button>
-                                </div>
-
-                                <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
-                                            onclick="downloadFile('settingManager/downloadDataSourceJson');return false;">
-                                        <i class="layui-icon layui-icon-download-circle"> </i>导出数据源信息
-                                    </button>
-                                </div>
-
-                                <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
-                                            onclick="downloadFile('settingManager/downloadSqlTextJson');return false;">
-                                        <i class="layui-icon layui-icon-download-circle"> </i>导出SQL文本信息
-                                    </button>
-                                </div>
-
-                                <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
-                                            onclick="btnPost('重建数据源连接池','settingManager/reloadDataSourceAll');return false;">
-                                        <i class="layui-icon layui-icon-refresh"> </i>重建数据源连接池
-                                    </button>
-                                </div>
 
                                 <div class="layui-input-inline">
                                     <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
@@ -256,33 +229,31 @@
                                     </button>
                                 </div>
 
-                            </div>
+                                <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
+                                            onclick="downloadFile('settingManager/dataBackups');return false;">
+                                        <i class="layui-icon layui-icon-download-circle"> </i>数据备份导出
+                                    </button>
+                                </div>
 
-                            <div class="layui-form-item btnClass">
                                 <div class="layui-input-inline">
                                     <button type="button" class="layui-btn layui-btn-radius layui-btn-sm" id="upload-teamData" lay-on="tips-right11"
                                             lay-options="{accept: 'file'}">
                                         <i class="layui-icon layui-icon-upload"></i>
-                                        导入团队信息1
+                                        数据备份导入
                                     </button>
                                 </div>
 
                                 <div class="layui-input-inline">
-                                    <button type="button" class="layui-btn layui-btn-radius layui-btn-sm upload-datasource" id="upload-datasource"
-                                            lay-on="tips-right10"
-                                            lay-options="{accept: 'file'}">
-                                        <i class="layui-icon layui-icon-upload"></i>
-                                        导入数据源信息2
+                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
+                                            onclick="btnPost('重建数据源连接池','settingManager/reloadDataSourceAll');return false;">
+                                        <i class="layui-icon layui-icon-refresh"> </i>重建数据源连接池
                                     </button>
                                 </div>
 
-                                <div class="layui-input-inline">
-                                    <button type="button" class="layui-btn layui-btn-radius layui-btn-sm" id="upload-sqlText" lay-on="tips-right11"
-                                            lay-options="{accept: 'file'}">
-                                        <i class="layui-icon layui-icon-upload"></i>
-                                        导入SQL文本信息3
-                                    </button>
-                                </div>
+                            </div>
+
+                            <div class="layui-form-item btnClass">
                             </div>
                         </div>
                     </div>
