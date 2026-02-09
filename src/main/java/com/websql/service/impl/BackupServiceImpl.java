@@ -32,7 +32,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -272,15 +274,68 @@ public class BackupServiceImpl implements BackupService {
 
 
     public AjaxResult uploadBackups(MultipartFile file) {
-
-        /*JSONArray dataSourceJson = JSONUtil.parseArray(new String(file.getBytes(), StandardCharsets.UTF_8));
-        if (dataSourceJson.isEmpty()) {
-            return AjaxResult.error("没有解析出json数据，请检查！");
+        if (file == null || file.isEmpty()) {
+            return AjaxResult.error("上传文件不能为空");
         }
-        StringBuilder message = new StringBuilder();
-        Boolean flag = true;*/
 
-        return null;
+        Path tempDir = null;
+        try {
+            String currentDir = System.getProperty("user.dir");
+            tempDir = Paths.get(currentDir, "data", "temp", "export");
+            Files.createDirectories(tempDir);
+
+            Path zipFile = tempDir.resolve(file.getOriginalFilename());
+            file.transferTo(zipFile);
+            log.info("保存上传文件: {}", zipFile.getFileName());
+
+            Path extractDir = Files.createTempDirectory(tempDir, "extract_");
+            ZipUtil.unzip(zipFile.toString(), extractDir.toString());
+            log.info("解压文件完成");
+
+            Files.deleteIfExists(zipFile);
+
+            StringBuilder message = new StringBuilder();
+            AtomicBoolean success = new AtomicBoolean(true);
+
+            try (Stream<Path> fileStream = Files.walk(extractDir)) {
+                fileStream.filter(Files::isRegularFile)
+                        .forEach(filePath -> {
+                            try {
+                                String fileName = filePath.getFileName().toString();
+                                byte[] fileBytes = Files.readAllBytes(filePath);
+                                String fileContent = new String(fileBytes, StandardCharsets.UTF_8);
+
+                                if (!validateJsonAndVersion(fileContent, fileName)) {
+                                    message.append("[").append(fileName).append("]版本验证失败或JSON格式错误<br>");
+                                    return;
+                                }
+
+                                boolean importSuccess = importJsonFile(fileName, fileContent);
+                                if (importSuccess) {
+                                    message.append("[").append(fileName).append("]导入成功<br>");
+                                } else {
+                                    message.append("[").append(fileName).append("]导入失败<br>");
+                                    success.set(false);
+                                }
+                            } catch (Exception e) {
+                                log.error("处理文件 {} 失败", filePath.getFileName(), e);
+                                message.append("[").append(filePath.getFileName()).append("]处理失败: ").append(e.getMessage()).append("<br>");
+                                success.set(false);
+                            }
+                        });
+            }
+
+            if (success.get()) {
+                return AjaxResult.success("备份导入完成");
+            } else {
+                return AjaxResult.error("备份导入存在错误", message.toString());
+            }
+        } catch (Exception e) {
+            log.error("上传备份文件处理失败", e);
+            return AjaxResult.error("上传备份文件处理失败: " + e.getMessage());
+        } finally {
+            cleanupTempDirectory(tempDir);
+        }
     }
 
     /**
@@ -296,7 +351,7 @@ public class BackupServiceImpl implements BackupService {
                 return false;
             }
             StringBuilder message = new StringBuilder();
-            Boolean flag = true;
+            boolean flag = true;
             for (Object object : dataSourceJson) {
                 Map<String, Object> map = (Map<String, Object>) object;
                 DataSourceModel model = new DataSourceModel();
@@ -368,7 +423,145 @@ public class BackupServiceImpl implements BackupService {
     }
 
     /**
+     * 验证JSON格式和版本号
+     *
+     * @param jsonContent JSON内容
+     * @param fileName    文件名
+     * @return 是否验证通过
+     */
+    private boolean validateJsonAndVersion(String jsonContent, String fileName) {
+        try {
+            cn.hutool.json.JSONObject jsonObject = JSONUtil.parseObj(jsonContent);
+            String version = jsonObject.getStr("version");
+            String data = jsonObject.getStr("data");
+
+            if (version == null || VersionComparator.INSTANCE.compare(version, "v4.0.5") < 0) {
+                log.warn("文件 {} 版本号 {} 不符合要求(需要>=v4.0.5)", fileName, version);
+                return false;
+            }
+
+            if (data == null || !data.trim().startsWith("[")) {
+                log.warn("文件 {} data字段格式错误", fileName);
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            log.error("文件 {} JSON解析失败: {}", fileName, e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 根据文件名导入对应的JSON数据
+     *
+     * @param fileName    文件名
+     * @param jsonContent JSON内容
+     * @return 导入是否成功
+     */
+    private boolean importJsonFile(String fileName, String jsonContent) {
+        try {
+            cn.hutool.json.JSONObject jsonObject = JSONUtil.parseObj(jsonContent);
+            String data = jsonObject.getStr("data");
+            String type = jsonObject.getStr("type");
+            if (BackupType.TEAM.name().equals(type)) {
+                return uploadTeamJson(data);
+            } else if (BackupType.SQL_TEXT.name().equals(type)) {
+                return uploadSqlTextJson(data);
+            } else if (BackupType.DATA_SOURCE.name().equals(type)) {
+                return uploadDataSourceJson(data);
+            } else if (BackupType.BIG_DATA.name().equals(type)) {
+                return uploadBigDataJson(data);
+            } else {
+                log.warn("未知的文件类型: {}", fileName);
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("导入文件 {} 失败: {}", fileName, e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 上传大数据任务
+     *
+     * @param file JSON数据内容
+     * @return 是否成功
+     */
+    public boolean uploadBigDataJson(String file) {
+        try {
+            JSONArray bigDataJson = JSONUtil.parseArray(file);
+            if (bigDataJson.isEmpty()) {
+                log.warn("没有解析出大数据任务json数据，请检查！");
+                return false;
+            }
+
+            for (Object object : bigDataJson) {
+                Map<String, Object> map = (Map<String, Object>) object;
+                BigDataTaskModel model = new BigDataTaskModel();
+                model.setTaskName(MapUtil.getStr(map, "taskName"));
+                model.setTaskType(MapUtil.getStr(map, "teamType"));
+                model.setDescription(Base64Decoder.decodeStr(MapUtil.getStr(map, "description")));
+                model.setSqlContent(Base64Decoder.decodeStr(MapUtil.getStr(map, "sqlContent")));
+                model.setCron(MapUtil.getStr(map, "cron"));
+                model.setStatus(MapUtil.getStr(map, "status"));
+                model.setTeamId(MapUtil.getLong(map, "teamId"));
+                model.setId(MapUtil.getLong(map, "id"));
+
+                try {
+                    // 导入的历史团队id不存在，将赋值给当前选中的团队
+                    Long teamId = model.getTeamId();
+                    List<TeamSourceModel> teamSourceModels = teamSourceService.queryTeamByIds(Collections.singletonList(teamId));
+                    if (teamSourceModels.isEmpty()) {
+                        teamId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
+                        model.setTeamId(teamId);
+                    }
+
+                    // 保存大数据任务
+                    bigDataService.saveTask(model);
+                    log.info("[{}]大数据任务上传成功!", model.getTaskName());
+                } catch (Exception e) {
+                    log.error("[{}]大数据任务上传失败,原因：{}", model.getTaskName(), e.getMessage(), e);
+                    return false;
+                }
+            }
+
+            log.info("导入大数据任务 {} 条数据!", bigDataJson.size());
+            return true;
+        } catch (Exception e) {
+            log.error("导入大数据任务失败: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 清理临时目录
+     *
+     * @param tempDir 临时目录
+     */
+    private void cleanupTempDirectory(Path tempDir) {
+        if (tempDir != null && Files.exists(tempDir)) {
+            try {
+                Files.walk(tempDir)
+                        .sorted(Comparator.reverseOrder())
+                        .forEach(path -> {
+                            try {
+                                Files.deleteIfExists(path);
+                                log.debug("已删除临时文件: {}", path.getFileName());
+                            } catch (IOException e) {
+                                log.warn("删除临时文件失败: {}", e.getMessage());
+                            }
+                        });
+                Files.deleteIfExists(tempDir);
+                log.debug("已删除临时目录: {}", tempDir.getFileName());
+            } catch (IOException e) {
+                log.warn("清理临时目录失败: {}", e.getMessage());
+            }
+        }
+    }
+
+    /**
      * 上传团队信息
+     *
      * @param file
      * @return
      */
@@ -381,10 +574,6 @@ public class BackupServiceImpl implements BackupService {
             }
             for (Object object : dataSourceJson) {
                 Map<String, Object> map = (Map<String, Object>) object;
-                int compare = VersionComparator.INSTANCE.compare(MapUtil.getStr(map, "version"), "v3.7");
-                if (compare < 0) {
-                    throw new RuntimeException("您的版本小于V3.7不兼容,无法导入团队信息！");
-                }
                 TeamSourceModel teamSourceModel = new TeamSourceModel();
                 teamSourceModel.setTeamName(Base64Decoder.decodeStr(MapUtil.getStr(map, "teamName")));
                 teamSourceModel.setUserId(MapUtil.getLong(map, "userId"));

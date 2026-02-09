@@ -336,9 +336,9 @@ public class SettingConfigController {
         return backupService.dataBackups();
     }
 
-    @PostMapping("/dataBackups")
+    @PostMapping("/uploadBackups")
     @ResponseBody
-    public AjaxResult dataBackups(@RequestParam("file") MultipartFile file) {
+    public AjaxResult uploadBackups(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             return AjaxResult.error("没有解析出文件!");
         }

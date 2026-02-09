@@ -237,8 +237,8 @@
                                 </div>
 
                                 <div class="layui-input-inline">
-                                    <button type="button" class="layui-btn layui-btn-radius layui-btn-sm" id="upload-teamData" lay-on="tips-right11"
-                                            lay-options="{accept: 'file'}">
+                                    <button type="button" class="layui-btn layui-btn-radius layui-btn-sm" id="upload-data" lay-on="tips-right11"
+                                            lay-options="{accept: 'file',exts: 'zip|rar|7z'}">
                                         <i class="layui-icon layui-icon-upload"></i>
                                         数据备份导入
                                     </button>
@@ -341,42 +341,12 @@
 
         form.render();
 
-        //上传数据源初始化
+        //上传初始化
         upload.render({
-            elem: '#upload-datasource',
-            url: ctx + 'settingManager/uploadDataSourceJson',
-            exts: 'json',
-            dataType: 'json',
+            elem: '#upload-data',
+            url: ctx + 'settingManager/uploadBackups',
             done: function (res) {
-                layer.alert(res.msg, {icon: res.code === 200 ? 1 : 2});
-            }, error: function (index, upload) {
-                layer.msg("上传失败,请重试!", {icon: 2});
-                console.log(index, upload);
-            }
-        });
-
-        //上传sql文本信息初始化
-        upload.render({
-            elem: '#upload-sqlText',
-            url: ctx + 'settingManager/uploadSqlTextJson',
-            exts: 'json',
-            dataType: 'json',
-            done: function (res) {
-                layer.alert(res.msg, {icon: res.code === 200 ? 1 : 2});
-            }, error: function (index, upload) {
-                layer.msg("上传失败,请重试!", {icon: 2});
-                console.log(index, upload);
-            }
-        });
-
-        //上传sql文本信息初始化
-        upload.render({
-            elem: '#upload-teamData',
-            url: ctx + 'settingManager/uploadTeamJson',
-            exts: 'json',
-            dataType: 'json',
-            done: function (res) {
-                layer.alert(res.msg, {icon: res.code === 200 ? 1 : 2});
+                layer.alert(res.detailMsg, {icon: res.code === 200 ? 1 : 2});
             }, error: function (index, upload) {
                 layer.msg("上传失败,请重试!", {icon: 2});
                 console.log(index, upload);
