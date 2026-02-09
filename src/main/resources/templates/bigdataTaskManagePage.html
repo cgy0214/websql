@@ -45,7 +45,7 @@
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-        <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="release">发布</a>
+        <a class="layui-btn layui-bg-orange layui-btn-xs" lay-event="release">{{= d.status=='已发布'? '撤回':'发布'}}</a>
         <a class="layui-btn layui-bg-purple layui-btn-xs" lay-event="edit">实例</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
@@ -95,9 +95,9 @@
                 case 'view':
                     layer.open({
                         type: 1,
-                        title: '查看任务',
-                        area: ['750px', '400px'],
-                        content: '<div style="padding: 20px;"><table class="layui-table"><tr><td>任务名称：</td><td>' + data.taskName + '</td></tr><tr><td>任务类型：</td><td>' + data.taskType + '</td></tr><tr><td>任务定时：</td><td>' + data.cron + '</td></tr><tr><td>任务描述：</td><td>' + (data.description || '') + '</td></tr><tr><td>状态：</td><td>' + data.status + '</td></tr><tr><td>创建人：</td><td>' + data.createUser + '</td></tr><tr><td>创建时间：</td><td>' + data.createTime + '</td></tr><tr><td>更新人：</td><td>' + data.updateUser + '</td></tr><tr><td>更新时间：</td><td>' + data.updateTime + '</td></tr></table></div>'
+                        title: '查看任务详情',
+                        area: ['750px', '550px'],
+                        content: '<div style="padding: 20px;"><table class="layui-table"><tr><td>任务名称：</td><td>' + data.taskName + '</td></tr><tr><td>任务类型：</td><td>' + data.taskType + '</td></tr><tr><td>任务定时：</td><td>' + data.cron + '</td></tr><tr><td>任务描述：</td><td>' + (data.description || '') + '</td></tr><tr><td>状态：</td><td>' + data.status + '</td></tr><tr><td>创建人：</td><td>' + data.createUser + '</td></tr><tr><td>创建时间：</td><td>' + data.createTime + '</td></tr><tr><td>更新人：</td><td>' + data.updateUser + '</td></tr><tr><td>更新时间：</td><td>' + data.updateTime + '</td></tr><tr><td>发布/撤回人：</td><td>' + (data.releaseUser || '') + '</td></tr><tr><td>发布/撤回时间：</td><td>' + (data.releaseTime || '')  + '</td></tr></table></div>'
                     });
                     break;
                 case 'edit':
@@ -128,11 +128,12 @@
                             layer.close(index);
                         }
                     });
+                    break;
                 case 'release':
-                    layer.confirm('您确定要发布该任务吗?', {
+                    layer.confirm('您确定要修改该任务吗?', {
                         icon: 3,
-                        title: '确认发布',
-                        btn: ['确认发布', '取消'],
+                        title: '确认',
+                        btn: ['确认', '取消'],
                         yes: function(index) {
                             post(ctx + "bigdataManager/release?id=" + data.id, null, (res) => {
                                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {

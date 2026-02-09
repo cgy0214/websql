@@ -1,12 +1,16 @@
 package com.websql.task;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.cron.task.Task;
 import com.alibaba.fastjson.JSON;
-import com.websql.model.*;
+import com.websql.model.BigDataInstanceModel;
+import com.websql.model.BigDataTaskModel;
+import com.websql.model.ExecuteResult;
 import com.websql.service.BigDataService;
 import com.websql.util.SpringContextHolder;
 import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 
 /**
@@ -44,15 +48,47 @@ public class BigDataJobFactory implements Task {
             log.debug("{}-枢易方舟任务未发布,终止运行...", bigDataTaskModel.getTaskName());
             return;
         }
+        BigDataInstanceModel instance = new BigDataInstanceModel();
+        instance.setTaskId(vo.getId());
+        instance.setTaskName(vo.getTaskName());
+        instance.setInstanceStatus("运行中");
+        instance.setStartTime(DateUtil.now());
+        instance.setCreateTime(DateUtil.now());
+        instance.setCreateUser("SYSTEM");
+        instance.setEndTime(DateUtil.now());
         try {
-            //todo 创建作业执行实例，校验sql返回结果，发送告警
             List<ExecuteResult> execute = bigDataService.execute(bigDataTaskModel);
-            log.info("{}-枢易方舟任务执行结果:{}", bigDataTaskModel.getTaskName(), JSON.toJSONString(execute));
+            log.debug("{}-枢易方舟任务执行结果:{}", bigDataTaskModel.getTaskName(), JSON.toJSONString(execute));
+            if(ObjectUtil.isNull(execute)){
+                instance.setErrorMessage("执行任务结果为空");
+                instance.setInstanceStatus("失败");
+                log.warn("{}-枢易方舟任务返回结果为空.", bigDataTaskModel.getTaskName());
+                return;
+            }
+            for (ExecuteResult executeResult : execute) {
+                if(ObjectUtil.isNull(executeResult)){
+                    instance.setErrorMessage("执行结果为空");
+                    instance.setInstanceStatus("失败");
+                    log.warn("{}-枢易方舟任务执行结果为空.", bigDataTaskModel.getTaskName());
+                    continue;
+                }
+                if(ObjectUtil.notEqual(ExecuteResult.STATUS_SUCCESS, executeResult.getStatus())){
+                    instance.setErrorMessage(executeResult.getErrorMessage());
+                    instance.setInstanceStatus("失败");
+                    log.error("{}-枢易方舟任务执行失败,{}", bigDataTaskModel.getTaskName(),executeResult.getErrorMessage());
+                }
+            }
+            instance.setExecuteResult(JSON.toJSONString(execute));
+            instance.setInstanceStatus("成功");
         } catch (Exception e) {
             log.error("{}-枢易方舟任务执行失败,{}", bigDataTaskModel.getTaskName(),e.getMessage(),e);
+            instance.setErrorMessage(e.getMessage());
+            instance.setInstanceStatus("失败");
         } finally {
             Long end = System.currentTimeMillis();
             Long time = (end - begin);
+            instance.setEndTime(DateUtil.now());
+            bigDataService.saveInstance(instance);
             log.debug("{}-枢易方舟任务完成,time:{}", bigDataTaskModel.getTaskName(), time);
         }
     }

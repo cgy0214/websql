@@ -1,6 +1,7 @@
 package com.websql.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.db.meta.MetaUtil;
 import com.alibaba.druid.pool.DruidDataSource;
@@ -137,13 +138,9 @@ public class BigDataServiceImpl implements BigDataService {
 
     @Override
     public void saveInstance(BigDataInstanceModel model) {
-        String currentUser = StpUtils.getCurrentUserName();
-        String currentTime = DateUtil.now();
-        if (ObjectUtil.isEmpty(model.getId())) {
-            model.setCreateUser(currentUser);
-            model.setCreateTime(currentTime);
-        }
-        bigDataInstanceRepository.save(model);
+        ThreadUtil.execAsync(() -> {
+            bigDataInstanceRepository.save(model);
+        });
     }
 
     @Override
@@ -187,10 +184,8 @@ public class BigDataServiceImpl implements BigDataService {
         }
         String currentUser = StpUtils.getCurrentUserName();
         String currentTime = DateUtil.now();
-        bigDataTaskModel.setUpdateUser(currentUser);
         bigDataTaskModel.setReleaseTime(currentTime);
-        bigDataTaskModel.setUpdateTime(currentTime);
-        bigDataTaskModel.setReleaseUser(StpUtils.getCurrentUserName());
+        bigDataTaskModel.setReleaseUser(currentUser);
         bigDataTaskRepository.saveAndFlush(bigDataTaskModel);
     }
 

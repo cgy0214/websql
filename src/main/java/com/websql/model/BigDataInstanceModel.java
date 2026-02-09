@@ -22,6 +22,9 @@ public class BigDataInstanceModel extends Pages implements Serializable {
     @Column
     private String taskName;
 
+    /**
+     * 执行状态， 单sql 执行结果，多sql执行结果一条成功就算成功
+     */
     @Column
     private String instanceStatus;
 
@@ -31,14 +34,11 @@ public class BigDataInstanceModel extends Pages implements Serializable {
     @Column
     private String endTime;
 
-    @Column
+    @Column(columnDefinition = "text")
     private String executeResult;
 
-    @Column
+    @Column(columnDefinition = "text")
     private String errorMessage;
-
-    @Column
-    private Long executeTime;
 
     @Column
     private String createUser;

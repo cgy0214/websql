@@ -535,9 +535,16 @@
                 layer.msg('请选择要发布的任务', {icon: 2});
                 return;
             }
-            post(ctx + "bigdataManager/release?id="+appState.taskId, null, (res) => {
-                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2});
-            });
+            layer.confirm('您确定要发布该任务吗?', {
+                icon: 3,
+                title: '确认',
+                btn: ['确认', '取消'],
+                yes: function(index) {
+                    post(ctx + "bigdataManager/release?type=release&id="+appState.taskId, null, (res) => {
+                        layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2});
+                    });
+                }
+            })
         }
 
         // 保存数据
