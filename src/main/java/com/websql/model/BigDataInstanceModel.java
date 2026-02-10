@@ -45,4 +45,10 @@ public class BigDataInstanceModel extends Pages implements Serializable {
 
     @Column
     private String createTime;
+
+    @Column(columnDefinition = "text")
+    private String sqlContent;
+
+    @Column
+    private String taskCreateUser;
 }

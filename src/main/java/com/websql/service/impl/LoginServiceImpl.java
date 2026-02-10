@@ -535,6 +535,7 @@ public class LoginServiceImpl implements LoginService {
             driverCustomService.systemLoadConfigDriver();
             //初始化默认数据源H2
             DataSourceModel model = new DataSourceModel()
+                    .setSourceIdentifier("DEFAULT_H2")
                     .setDbName("DEFAULT-H2")
                     .setDriverClass(driverClassName)
                     .setDbUrl(url)

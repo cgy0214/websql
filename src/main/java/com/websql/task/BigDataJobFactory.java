@@ -32,7 +32,7 @@ public class BigDataJobFactory implements Task {
      */
     @Override
     public void execute() {
-        if (ObjectUtil.isNull(bigDataTaskModel)){
+        if (ObjectUtil.isNull(bigDataTaskModel)) {
             log.debug("枢易方舟作业任务参数错误终止运行...");
             return;
         }
@@ -44,7 +44,7 @@ public class BigDataJobFactory implements Task {
             ScheduleUtils.removeTask(bigDataTaskModel.getId(), "BIGDATA", false);
             return;
         }
-        if(ObjectUtil.notEqual("已发布", vo.getStatus())){
+        if (ObjectUtil.notEqual("已发布", vo.getStatus())) {
             log.debug("{}-枢易方舟任务未发布,终止运行...", bigDataTaskModel.getTaskName());
             return;
         }
@@ -56,32 +56,34 @@ public class BigDataJobFactory implements Task {
         instance.setCreateTime(DateUtil.now());
         instance.setCreateUser("SYSTEM");
         instance.setEndTime(DateUtil.now());
+        instance.setTaskCreateUser(vo.getCreateUser());
+        instance.setSqlContent(vo.getSqlContent());
         try {
-            List<ExecuteResult> execute = bigDataService.execute(bigDataTaskModel);
+            List<ExecuteResult> execute = bigDataService.execute(vo);
             log.debug("{}-枢易方舟任务执行结果:{}", bigDataTaskModel.getTaskName(), JSON.toJSONString(execute));
-            if(ObjectUtil.isNull(execute)){
+            if (ObjectUtil.isNull(execute)) {
                 instance.setErrorMessage("执行任务结果为空");
                 instance.setInstanceStatus("失败");
                 log.warn("{}-枢易方舟任务返回结果为空.", bigDataTaskModel.getTaskName());
                 return;
             }
             for (ExecuteResult executeResult : execute) {
-                if(ObjectUtil.isNull(executeResult)){
+                if (ObjectUtil.isNull(executeResult)) {
                     instance.setErrorMessage("执行结果为空");
                     instance.setInstanceStatus("失败");
                     log.warn("{}-枢易方舟任务执行结果为空.", bigDataTaskModel.getTaskName());
                     continue;
                 }
-                if(ObjectUtil.notEqual(ExecuteResult.STATUS_SUCCESS, executeResult.getStatus())){
+                if (ObjectUtil.notEqual(ExecuteResult.STATUS_SUCCESS, executeResult.getStatus())) {
                     instance.setErrorMessage(executeResult.getErrorMessage());
                     instance.setInstanceStatus("失败");
-                    log.error("{}-枢易方舟任务执行失败,{}", bigDataTaskModel.getTaskName(),executeResult.getErrorMessage());
+                    log.error("{}-枢易方舟任务执行失败,{}", bigDataTaskModel.getTaskName(), executeResult.getErrorMessage());
                 }
             }
             instance.setExecuteResult(JSON.toJSONString(execute));
             instance.setInstanceStatus("成功");
         } catch (Exception e) {
-            log.error("{}-枢易方舟任务执行失败,{}", bigDataTaskModel.getTaskName(),e.getMessage(),e);
+            log.error("{}-枢易方舟任务执行失败,{}", bigDataTaskModel.getTaskName(), e.getMessage(), e);
             instance.setErrorMessage(e.getMessage());
             instance.setInstanceStatus("失败");
         } finally {

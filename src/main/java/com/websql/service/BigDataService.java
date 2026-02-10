@@ -46,4 +46,10 @@ public interface BigDataService {
      * @return 任务列表
      */
     List<BigDataTaskModel> queryListAll();
+
+    /**
+     * 删除所有任务
+     */
+    void deleteTaskAll();
+
 }

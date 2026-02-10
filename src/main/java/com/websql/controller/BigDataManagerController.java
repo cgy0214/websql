@@ -87,6 +87,19 @@ public class BigDataManagerController {
         }
     }
 
+    @RequestMapping("/deleteTaskAll")
+    @ResponseBody
+    @SaCheckRole("bigdata-admin")
+    public AjaxResult deleteTaskAll() {
+        try {
+            bigDataService.deleteTaskAll();
+            return AjaxResult.success("删除成功!");
+        } catch (Exception e) {
+            log.error("删除任务失败:{}", e.getMessage(), e);
+            return AjaxResult.error("删除失败:" + e.getMessage());
+        }
+    }
+
     @RequestMapping("/getTask/{id}")
     @ResponseBody
     @SaCheckRole("bigdata-admin")

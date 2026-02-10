@@ -177,38 +177,38 @@
                             <div class="layui-form-item btnClass">
                                 <div class="layui-input-inline">
                                     <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
-                                            onclick="btnPost('清除SQL执行日志','logManager/deleteLog/1');return false;">
-                                        <i class="layui-icon layui-icon-clear"> </i>清空SQL执行记录
+                                            onclick="btnPost('删除全部SQL记录','logManager/deleteLog/1');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>删除全部SQL记录
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
                                     <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
-                                            onclick="btnPost('清除用户登陆日志','logManager/deleteLog/2');return false;">
-                                        <i class="layui-icon layui-icon-clear"> </i>清空登陆系统记录
+                                            onclick="btnPost('删除全部登陆记录','logManager/deleteLog/2');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>删除全部登陆记录
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
                                     <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
-                                            onclick="btnPost('清除作业日志','timingManager/jobLogDelete');return false;">
-                                        <i class="layui-icon layui-icon-clear"> </i>清空作业执行记录
+                                            onclick="btnPost('删除全部作业记录','timingManager/jobLogDelete');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>删除全部作业记录
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
                                     <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
-                                            onclick="btnPost('清除SQL常用记录','sqlManager/sqlTextDeleteAll');return false;">
-                                        <i class="layui-icon layui-icon-clear"> </i>清空SQL常用列表
+                                            onclick="btnPost('删除全部SQL列表','sqlManager/sqlTextDeleteAll');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>删除全部SQL列表
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
                                     <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
-                                            onclick="btnPost('清空数据源列表','settingManager/deleteDataSourceAll');return false;">
-                                        <i class="layui-icon layui-icon-clear"> </i>清空数据源列表
+                                            onclick="btnPost('删除全部数据源','settingManager/deleteDataSourceAll');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>删除全部数据源
                                     </button>
                                 </div>
                                 <div class="layui-input-inline">
                                     <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
-                                            onclick="btnPost('清空系统缓存','settingManager/clearCache');return false;">
-                                        <i class="layui-icon layui-icon-clear"> </i>清空系统缓存
+                                            onclick="btnPost('清理系统缓存','settingManager/clearCache');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>清理系统缓存
                                     </button>
                                 </div>
                             </div>
@@ -217,15 +217,29 @@
 
                                 <div class="layui-input-inline">
                                     <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
-                                            onclick="btnPost('清空监测日志记录','detectionManager/deleteLogAll');return false;">
-                                        <i class="layui-icon layui-icon-clear"> </i>清空监测日志记录
+                                            onclick="btnPost('删除全部监测记录','detectionManager/deleteLogAll');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>删除全部监测记录
                                     </button>
                                 </div>
 
                                 <div class="layui-input-inline">
                                     <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
-                                            onclick="btnPost('清空所有AI对话记录','aiManager/clearAll');return false;">
-                                        <i class="layui-icon layui-icon-clear"> </i>清空所有AI对话记录
+                                            onclick="btnPost('删除全部AI记录','aiManager/clearAll');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>删除全部AI记录
+                                    </button>
+                                </div>
+
+                                <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-red layui-btn-radius layui-btn-sm"
+                                            onclick="btnPost('删除全部数据方舟','bigdataManager/deleteTaskAll');return false;">
+                                        <i class="layui-icon layui-icon-clear"> </i>删除全部数据方舟
+                                    </button>
+                                </div>
+
+                                <div class="layui-input-inline">
+                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
+                                            onclick="btnPost('重建数据源连接池','settingManager/reloadDataSourceAll');return false;">
+                                        <i class="layui-icon layui-icon-refresh"> </i>重建数据源连接池
                                     </button>
                                 </div>
 
@@ -244,12 +258,7 @@
                                     </button>
                                 </div>
 
-                                <div class="layui-input-inline">
-                                    <button class="layui-btn layui-btn-primary layui-border-blue layui-btn-radius layui-btn-sm"
-                                            onclick="btnPost('重建数据源连接池','settingManager/reloadDataSourceAll');return false;">
-                                        <i class="layui-icon layui-icon-refresh"> </i>重建数据源连接池
-                                    </button>
-                                </div>
+
 
                             </div>
 

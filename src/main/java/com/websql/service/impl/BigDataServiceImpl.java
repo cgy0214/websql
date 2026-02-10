@@ -195,6 +195,12 @@ public class BigDataServiceImpl implements BigDataService {
     }
 
     @Override
+    public void deleteTaskAll() {
+        bigDataTaskRepository.deleteAll();
+        bigDataInstanceRepository.deleteAll();
+    }
+
+    @Override
     public List<ExecuteResult> execute(BigDataTaskModel model) {
         List<ExecuteResult> results = new ArrayList<>();
         String fullSql = model.getSqlContent();
@@ -312,7 +318,7 @@ public class BigDataServiceImpl implements BigDataService {
             String cleanInsertSql = insertWithParamsSql.replaceAll("(?i)INSERT INTO\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\.([a-zA-Z_][a-zA-Z0-9_]*)", "INSERT INTO $2");
             String schema = vo.getTargetTableInfo().getSchema();
             int insertCount = JdbcUtils.batchInsert(DataSourceFactory.getBigDataSourceKeyName(schema), cleanInsertSql, data);
-            log.info("批量插入完成，成功插入 {} 条记录", insertCount);
+            log.debug("批量插入完成，成功插入 {} 条记录", insertCount);
             return insertCount;
         } catch (Exception e) {
             log.error("SQL执行异常: {}", e.getMessage(), e);
