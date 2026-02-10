@@ -8,11 +8,12 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.websql.config.CalciteDataSourceConfig;
 import com.websql.config.CalciteSqlParseHandler;
 import com.websql.config.DataSourceFactory;
-import com.websql.config.JdbcUtils;
 import com.websql.dao.BigDataInstanceRepository;
 import com.websql.dao.BigDataTaskRepository;
 import com.websql.model.*;
 import com.websql.service.BigDataService;
+import com.websql.service.strategy.SqlExecutionStrategy;
+import com.websql.service.strategy.SqlStrategyFactory;
 import com.websql.task.ScheduleUtils;
 import com.websql.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +26,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.persistence.criteria.Predicate;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,6 +42,9 @@ public class BigDataServiceImpl implements BigDataService {
 
     @Resource
     private CalciteDataSourceConfig calciteDataSourceConfig;
+
+    @Resource
+    private SqlStrategyFactory sqlStrategyFactory;
 
     @Override
     public Result<BigDataTaskModel> queryTaskList(BigDataTaskModel model) {
@@ -271,22 +273,8 @@ public class BigDataServiceImpl implements BigDataService {
                 resultItem.setSql(sql);
 
                 try {
-                    if (isModificationOperation(vo.getOperationType())) {
-                        int count = bigDataExecute(connection, sql);
-                        resultItem.setStatus(ExecuteResult.STATUS_SUCCESS);
-                        resultItem.setData(count);
-                        resultItem.setType(ExecuteResult.TYPE_NON_SELECT);
-                    } else if (ObjectUtil.equal(vo.getOperationType(), SqlOperationType.SELECT_INSERT)) {
-                        int count = bigDataInsertOverSelect(connection, vo);
-                        resultItem.setStatus(ExecuteResult.STATUS_SUCCESS);
-                        resultItem.setData(count);
-                        resultItem.setType(ExecuteResult.TYPE_NON_SELECT);
-                    } else {
-                        List<Map<String, Object>> data = bigDataSelect(connection, sql);
-                        resultItem.setStatus(ExecuteResult.STATUS_SUCCESS);
-                        resultItem.setData(data);
-                        resultItem.setType(ExecuteResult.TYPE_SELECT);
-                    }
+                    SqlExecutionStrategy strategy = sqlStrategyFactory.getStrategy(vo.getOperationType());
+                    strategy.execute(connection, vo, resultItem);
                 } catch (Exception e) {
                     resultItem.setStatus(ExecuteResult.STATUS_FAIL);
                     resultItem.setErrorMessage(e.getMessage());
@@ -304,87 +292,4 @@ public class BigDataServiceImpl implements BigDataService {
 
         return results;
     }
-
-    /**
-     * 查询并插入
-     *
-     * @param connection 数据连接
-     * @param vo         参数
-     * @return 插入的记录数
-     */
-    private int bigDataInsertOverSelect(Connection connection, ParseResultVo vo) {
-        try {
-            List<Map<String, Object>> data = bigDataSelect(connection, vo.getSelectSql());
-            if (data.isEmpty()) {
-                log.warn("查询结果为空，无需插入");
-                return 0;
-            }
-            String insertWithParamsSql = vo.getInsertWithParamsSql();
-            String cleanInsertSql = insertWithParamsSql.replaceAll("(?i)INSERT INTO\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\.([a-zA-Z_][a-zA-Z0-9_]*)", "INSERT INTO $2");
-            String schema = vo.getTargetTableInfo().getSchema();
-            int insertCount = JdbcUtils.batchInsert(DataSourceFactory.getBigDataSourceKeyName(schema), cleanInsertSql, data);
-            log.debug("批量插入完成，成功插入 {} 条记录", insertCount);
-            return insertCount;
-        } catch (Exception e) {
-            log.error("SQL执行异常: {}", e.getMessage(), e);
-            throw new RuntimeException("插入操作失败: " + e.getMessage(), e);
-        }
-    }
-
-    private boolean isModificationOperation(SqlOperationType type) {
-        return type.getCode().equals(SqlOperationType.UPDATE.getCode())
-                || type.getCode().equals(SqlOperationType.DELETE.getCode())
-                || type.getCode().equals(SqlOperationType.INSERT.getCode());
-    }
-
-    /**
-     * 执行语句
-     *
-     * @param connection
-     * @param sqlContent
-     * @return
-     * @throws SQLException
-     */
-    private int bigDataExecute(Connection connection, String sqlContent) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
-            return statement.executeUpdate(sqlContent);
-        } catch (SQLException e) {
-            throw new SQLException(e);
-        }
-    }
-
-    /**
-     * 查询语句
-     *
-     * @param connection
-     * @param sqlContent
-     * @throws SQLException
-     */
-    private List<Map<String, Object>> bigDataSelect(Connection connection, String sqlContent) throws SQLException {
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        try (Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sqlContent)) {
-
-            java.sql.ResultSetMetaData metaData = resultSet.getMetaData();
-            int columnCount = metaData.getColumnCount();
-            List<String> columnNames = new ArrayList<>();
-            for (int i = 1; i <= columnCount; i++) {
-                columnNames.add(metaData.getColumnLabel(i));
-            }
-
-            while (resultSet.next()) {
-                Map<String, Object> row = new LinkedHashMap<>();
-                for (String columnName : columnNames) {
-                    Object value = resultSet.getObject(columnName);
-                    row.put(columnName, value);
-                }
-                resultList.add(row);
-            }
-        } catch (SQLException e) {
-            throw new SQLException(e);
-        }
-        return resultList;
-    }
-
-
 }

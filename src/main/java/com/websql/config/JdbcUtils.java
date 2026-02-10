@@ -21,6 +21,30 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JdbcUtils {
 
+    public static List<Map<String, Object>> executeQuery(Connection connection, String sql) throws SQLException {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            int columnCount = metaData.getColumnCount();
+            List<String> columnNames = new ArrayList<>();
+            for (int i = 1; i <= columnCount; i++) {
+                columnNames.add(metaData.getColumnLabel(i));
+            }
+
+            while (resultSet.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                for (String columnName : columnNames) {
+                    Object value = resultSet.getObject(columnName);
+                    row.put(columnName, value);
+                }
+                resultList.add(row);
+            }
+        }
+        return resultList;
+    }
+
     public static Map<String, Object> updateByPreparedStatement(String sourceKey, String sql, List<?> params) {
         Map<String, Object> map = new HashMap<>(4);
         map.put("code", "1");

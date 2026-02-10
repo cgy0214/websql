@@ -108,6 +108,10 @@
                         maxmin: true,
                         success: function(layero, index){
                             layer.full(index); // 最大化
+                        },
+                        end: function() {
+                            // 关闭编辑窗口后刷新表格
+                            table.reload('dataTable');
                         }
                     });
                     break;
@@ -120,7 +124,8 @@
                             post(ctx + "bigdataManager/deleteTask/" + data.id, null, (res) => {
                                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                     if (res.code === 200) {
-                                        obj.del();
+                                        // obj.del();
+                                        table.reload('dataTable');
                                     }
                                 });
                             });

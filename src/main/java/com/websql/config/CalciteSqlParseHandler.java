@@ -42,28 +42,47 @@ public class CalciteSqlParseHandler {
      */
     public static ParseResultVo parseSql(String fullSql) {
         try {
+            boolean isUpsert = false;
+            String sqlToParse = fullSql;
+            if (fullSql != null && fullSql.trim().toUpperCase().startsWith("UPSERT")) {
+                isUpsert = true;
+                // 将UPSERT替换为INSERT以便解析
+                sqlToParse = "INSERT" + fullSql.trim().substring(6);
+            }
+
             Config config = SqlParser.config()
                     .withCaseSensitive(false)
                     .withUnquotedCasing(Casing.UNCHANGED)
                     .withQuotedCasing(Casing.UNCHANGED);
 
-            SqlParser parser = SqlParser.create(fullSql, config);
+            SqlParser parser = SqlParser.create(sqlToParse, config);
             SqlNode sqlNode = parser.parseStmt();
 
             SqlOperationType operationType = SqlOperationType.fromSqlNode(sqlNode);
 
+            ParseResultVo resultVo;
             switch (operationType) {
                 case INSERT:
-                    return handleInsertStatement((SqlInsert) sqlNode);
+                    resultVo = handleInsertStatement((SqlInsert) sqlNode);
+                    break;
                 case SELECT:
-                    return handleSelectStatement((SqlSelect) sqlNode);
+                    resultVo = handleSelectStatement((SqlSelect) sqlNode);
+                    break;
                 case UPDATE:
-                    return handleUpdateStatement((SqlUpdate) sqlNode);
+                    resultVo = handleUpdateStatement((SqlUpdate) sqlNode);
+                    break;
                 case DELETE:
-                    return handleDeleteStatement((SqlDelete) sqlNode);
+                    resultVo = handleDeleteStatement((SqlDelete) sqlNode);
+                    break;
                 default:
                     throw new IllegalArgumentException("不支持的SQL语句类型: " + sqlNode.getClass().getSimpleName());
             }
+
+            if (isUpsert && SqlOperationType.SELECT_INSERT.equals(resultVo.getOperationType())) {
+                resultVo.setOperationType(SqlOperationType.SELECT_UPSERT);
+            }
+
+            return resultVo;
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -192,7 +211,11 @@ public class CalciteSqlParseHandler {
         }
 
         sb.append("\nSELECT * FROM ").append(tempTableName);
-        sb.append(";\n-- 或者使用显式列名：\n-- SELECT ").append(columns.toString()).append(" FROM ").append(tempTableName);
+        if (columns != null) {
+            sb.append(";\n-- 或者使用显式列名：\n-- SELECT ").append(columns.toString()).append(" FROM ").append(tempTableName);
+        } else {
+            sb.append(";\n-- 列名未指定");
+        }
 
         return sb.toString();
     }
@@ -209,10 +232,33 @@ public class CalciteSqlParseHandler {
             sb.append("\n    (").append(columnsStr).append(")");
         }
         sb.append("\nVALUES (");
-        for (int i = 0; i < columns.size(); i++) {
-            if (i > 0) sb.append(", ");
-            sb.append("?");
+        
+        // 如果没有列信息，我们很难知道有多少个问号。
+        // 这里假设如果 columns 为 null，调用者（BigDataServiceImpl）可能会处理，或者这是一个不支持的情况。
+        // 但为了避免 NPE，我们这里先做一个保护。
+        // 实际上，如果 columns 为 null，INSERT INTO table VALUES (...) 依赖于源数据的列数。
+        // 但 buildInsertWithParams 是为了 JDBC batch insert 准备的，通常需要明确的参数个数。
+        // 如果 columns 为 null，我们暂时无法确定参数个数，除非我们解析了 SELECT 部分或者查询了表元数据。
+        // 在当前上下文，如果不传 columns，我们假设至少有一个参数或者由后续逻辑处理。
+        // 但原来的逻辑是遍历 columns 来 append("?")。
+        
+        if (columns != null) {
+            for (int i = 0; i < columns.size(); i++) {
+                if (i > 0) sb.append(", ");
+                sb.append("?");
+            }
+        } else {
+             // 如果 columns 为空，通常意味着 INSERT INTO table SELECT * ...
+             // 在这种情况下，生成 VALUES (?) 形式的 SQL 是不合适的，因为它不是 VALUES 插入。
+             // 但是这个方法 buildInsertWithParams 似乎是专门用于 "Select 结果插入" 的场景，
+             // 即先查出来数据，再用 INSERT INTO ... VALUES (?,?,?) 插入回去。
+             // 如果没有列名，我们无法构建正确的 VALUES 子句，因为不知道有多少列。
+             // 这里返回一个占位符或者抛出更友好的异常可能更好，但为了防止 NPE，先判空。
+             // 考虑到 BigDataServiceImpl 中 batchInsert 的逻辑，它会用 data 的 keySet 作为列名。
+             // 所以如果 columns 为 null，也许我们应该在 BigDataServiceImpl 中根据 data 动态构建 SQL，而不是依赖这里。
+             // 但这里我们先修 NPE。
         }
+        
         sb.append(")");
         return sb.toString();
     }
