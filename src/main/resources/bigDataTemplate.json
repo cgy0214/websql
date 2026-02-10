@@ -1,0 +1,43 @@
+[
+	{
+		"code":"demo1",
+		"title": "mysql Insert postgres",
+		"content": [
+			"-- test",
+			"select * from db.test;"
+		],
+		"description":"mysql数据查询并新增至postgres数据表",
+		"helpUrl": "",
+		"version": "v4.0.5"
+	},
+	{
+		"code":"demo2",
+		"title": "mysql Join postgres In Result",
+		"content": [
+			"Mysql & Postgres IN Doris"
+		],
+		"description":"mysql与postgres数据表关联并查询结果",
+		"helpUrl": "",
+		"version": "v4.0.5"
+	},
+	{
+		"code":"demo3",
+		"title": "mysql Join postgres In Doris",
+		"content": [
+			"Mysql & Postgres IN Doris"
+		],
+		"description":"mysql与postgres数据表关联结果新增至Doris数据表",
+		"helpUrl": "",
+		"version": "v4.0.5"
+	},
+{
+		"code":"demo3",
+		"title": "mysql Join postgres In StarRocks",
+		"content": [
+			"Mysql & Postgres IN Doris"
+		],
+		"description":"mysql与postgres关联结果入库StarRocks",
+		"helpUrl": "",
+		"version": "v4.0.5"
+	}
+]

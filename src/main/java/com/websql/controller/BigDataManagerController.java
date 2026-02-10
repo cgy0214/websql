@@ -2,10 +2,15 @@ package com.websql.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.http.HttpStatus;
+import com.alibaba.fastjson.JSON;
 import com.websql.model.AjaxResult;
 import com.websql.model.BigDataInstanceModel;
 import com.websql.model.BigDataTaskModel;
+import com.websql.model.BigDataTemplateVo;
 import com.websql.service.BigDataService;
 import com.websql.task.ScheduleUtils;
 import com.websql.util.StpUtils;
@@ -16,7 +21,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName BigDataManagerController
@@ -208,6 +215,58 @@ public class BigDataManagerController {
         } catch (Exception e) {
             log.error("操作失败,{}", e.getMessage(), e);
             return AjaxResult.error("操作失败:" + e.getMessage());
+        }
+    }
+
+    /**
+     * 查询数据示例模板
+     *
+     * @param code 编码
+     * @return
+     */
+    @PostMapping("/queryBigDataTemplateList")
+    @ResponseBody
+    public AjaxResult queryBigDataTemplateList(@RequestParam(required = false) String code) {
+        List<BigDataTemplateVo> list = JSON.parseArray(ResourceUtil.readUtf8Str("bigDataTemplate.json"), BigDataTemplateVo.class);
+        if (ObjectUtil.isNull(list)) {
+            return AjaxResult.success();
+        }
+        if (ObjectUtil.isNotEmpty(code)) {
+            list = list.stream().filter(item -> item.getCode().equals(code)).collect(Collectors.toList());
+        }
+        return AjaxResult.success(list);
+    }
+
+    @RequestMapping("/createDemoTask")
+    @ResponseBody
+    @SaCheckRole("bigdata-admin")
+    public AjaxResult createDemoTask(@RequestParam(required = false) String code) {
+        try {
+            if (ObjectUtil.isNull(code)) {
+                return AjaxResult.error("请选择数据示例!");
+            }
+            AjaxResult ajaxResult = queryBigDataTemplateList(code);
+            if (ObjectUtil.notEqual(ajaxResult.getCode(), HttpStatus.HTTP_OK)) {
+                return AjaxResult.error("数据示例不存在!");
+            }
+            List<BigDataTemplateVo> list = (List<BigDataTemplateVo>) ajaxResult.getData();
+            BigDataTemplateVo bigDataTemplateVo = list.get(0);
+            String sql = String.join("\n", bigDataTemplateVo.getContent());
+            BigDataTaskModel model = new BigDataTaskModel();
+            model.setTaskName(bigDataTemplateVo.getTitle() + "示例任务-" + System.currentTimeMillis());
+            model.setDescription(bigDataTemplateVo.getDescription());
+            model.setSqlContent(sql);
+            model.setCron("0 0 1 * * ?");
+            model.setTaskType("sql");
+            model.setStatus("草稿");
+            model.setCreateTime(DateUtil.now());
+            model.setUpdateTime(DateUtil.now());
+            model.setId(null);
+            model.setTeamId(StpUtils.getCurrentActiveTeam().getId());
+            BigDataTaskModel bigDataTaskModel = bigDataService.saveTask(model);
+            return AjaxResult.success(bigDataTaskModel.getId());
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
         }
     }
 

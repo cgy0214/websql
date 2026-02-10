@@ -261,6 +261,16 @@
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 3;
         }
+
+        .card-hover {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -421,6 +431,38 @@
             });
         }
 
+        //加载demo列表
+        function loadDemoOptions(code) {
+            post(ctx + "bigdataManager/queryBigDataTemplateList?code=" + code, null, (res) => {
+                if (res.code === 200) {
+                    for (let index in res.data) {
+                        let itemData = res.data[index];
+                        let card = `<div class="layui-col-md6" >
+                        <div class="layui-card card-hover" data-id="${itemData.code}">
+                            <div class="layui-card-header"><b>${itemData.title}</b></div>
+                            <div class="layui-card-body">
+                                ${itemData.description}
+                                <br>
+                                <div class="layui-font-12"> ${itemData.version} </div>
+                            </div></div></div>`;
+                        $("#referDiv").append(card);
+                    }
+                }
+            });
+        }
+
+        // 示例任务创建并修改
+        $(document).on('click', '.card-hover', function () {
+            let itemId = $(this).data('id');
+            post(ctx + "bigdataManager/createDemoTask?code=" + itemId, null, (res) => {
+                if (res.code === 200) {
+                    location.href = `${ctx}bigdataManager/dataDevPage?id=${res.data}`;
+                } else {
+                    layer.msg(res.msg, {icon: 2});
+                }
+            });
+        });
+
         // 更新任务
         form.on('submit(update)', function (data) {
             const selectedTaskId = $("#taskOption").val();
@@ -433,6 +475,7 @@
             location.href = `${ctx}bigdataManager/dataDevPage?id=${appState.taskId}`;
             return false;
         });
+
 
         // 初始化Monaco编辑器
         function initMonacoEditor() {
@@ -530,7 +573,7 @@
             layer.msg('下载成功');
         }
 
-        function releaseTask(){
+        function releaseTask() {
             if (!appState.taskId) {
                 layer.msg('请选择要发布的任务', {icon: 2});
                 return;
@@ -539,8 +582,8 @@
                 icon: 3,
                 title: '确认',
                 btn: ['确认', '取消'],
-                yes: function(index) {
-                    post(ctx + "bigdataManager/release?type=release&id="+appState.taskId, null, (res) => {
+                yes: function (index) {
+                    post(ctx + "bigdataManager/release?type=release&id=" + appState.taskId, null, (res) => {
                         layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2});
                     });
                 }
@@ -876,8 +919,8 @@
             initMonacoEditor();
             setupToolbarActions();
             showSavePage();
+            loadDemoOptions("");
 
-            // 未保存更改提示
             window.addEventListener('beforeunload', (e) => {
                 if (appState.hasUnsavedChanges) {
                     e.preventDefault();
@@ -886,6 +929,7 @@
                 }
             });
         }
+
 
         initApp();
     });
