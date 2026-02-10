@@ -72,21 +72,26 @@ public class BigDataServiceImpl implements BigDataService {
         String currentUser = StpUtils.getCurrentUserName();
         String currentTime = DateUtil.now();
         Long currentTeamId = StpUtils.getCurrentActiveTeam().getId();
+        if (ObjectUtil.isEmpty(model.getTaskName())) {
+            throw new RuntimeException("任务名称不能为空!");
+        }
         if (ObjectUtil.isNotNull(model.getId())) {
             BigDataTaskModel updateModel = bigDataTaskRepository.findById(model.getId()).orElse(null);
             if (ObjectUtil.isNull(updateModel)) {
                 throw new RuntimeException("任务不存在,请刷新再试!");
             }
+            long count = bigDataTaskRepository.countByTitle(model.getTaskName(),model.getId(),currentTeamId);
+            if (count > 0) {
+                throw new RuntimeException("任务名称已存在,请重新输入!");
+            }
             updateModel.setSqlContent(model.getSqlContent());
             updateModel.setUpdateTime(currentTime);
             updateModel.setUpdateUser(currentUser);
+            updateModel.setTaskName(model.getTaskName());
             updateModel.setCron(model.getCron());
             updateModel.setDescription(model.getDescription());
             bigDataTaskRepository.saveAndFlush(updateModel);
         } else {
-            if (ObjectUtil.isEmpty(model.getTaskName())) {
-                throw new RuntimeException("任务名称不能为空!");
-            }
             BigDataTaskModel param = new BigDataTaskModel();
             param.setTaskName(model.getTaskName());
             param.setTeamId(currentTeamId);
@@ -151,7 +156,7 @@ public class BigDataServiceImpl implements BigDataService {
     @Override
     public List<Map<String, String>> findDataList() {
         return bigDataTaskRepository.findAll().stream()
-                .map(model -> {
+                .sorted(Comparator.comparing(BigDataTaskModel::getId, Comparator.reverseOrder())).map(model -> {
                     Map<String, String> item = new HashMap<>(2);
                     item.put("code", model.getId().toString());
                     item.put("value", model.getTaskName());

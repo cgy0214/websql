@@ -190,6 +190,7 @@ public class BigDataManagerController {
     }
 
     @RequestMapping("/release")
+    @SaCheckRole("bigdata-admin")
     @ResponseBody
     public AjaxResult release(@RequestParam Long id, @RequestParam(required = false) String type) {
         if (StpUtil.hasRole("demo-admin")) {

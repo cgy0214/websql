@@ -1,42 +1,61 @@
 [
 	{
-		"code":"demo1",
+		"code": "demo1",
 		"title": "mysql Insert postgres",
 		"content": [
-			"-- test",
-			"select * from db.test;"
+			"--********************************************************************--",
+			"-- comment: mysql数据查询并新增至postgres数据表",
+			"-- author: 超级管理员",
+			"-- date: 2026/2/6 00:21:28",
+			"--********************************************************************--",
+			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16922011&doc_id=3405209 "
 		],
-		"description":"mysql数据查询并新增至postgres数据表",
+		"description": "mysql数据查询并新增至postgres数据表",
 		"helpUrl": "",
 		"version": "v4.0.5"
 	},
 	{
-		"code":"demo2",
+		"code": "demo2",
 		"title": "mysql Join postgres In Result",
 		"content": [
-			"Mysql & Postgres IN Doris"
+			"--********************************************************************--",
+			"-- comment: mysql与postgres数据表关联并查询结果",
+			"-- author: 超级管理员",
+			"-- date: 2026/2/6 00:21:28",
+			"--********************************************************************--",
+			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16922011&doc_id=3405209 "
 		],
-		"description":"mysql与postgres数据表关联并查询结果",
+		"description": "mysql与postgres数据表关联并查询结果",
 		"helpUrl": "",
 		"version": "v4.0.5"
 	},
 	{
-		"code":"demo3",
-		"title": "mysql Join postgres In Doris",
+		"code": "demo3",
+		"title": "postgres In CRUD",
 		"content": [
-			"Mysql & Postgres IN Doris"
+			"--********************************************************************--",
+			"-- comment: postgres数据表增删改查测试",
+			"-- author: 超级管理员",
+			"-- date: 2026/2/6 00:21:28",
+			"--********************************************************************--",
+			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16922011&doc_id=3405209 "
 		],
-		"description":"mysql与postgres数据表关联结果新增至Doris数据表",
+		"description": "postgres数据表增删改查测试",
 		"helpUrl": "",
 		"version": "v4.0.5"
 	},
-{
-		"code":"demo3",
+	{
+		"code": "demo3",
 		"title": "mysql Join postgres In StarRocks",
 		"content": [
-			"Mysql & Postgres IN Doris"
+			"--********************************************************************--",
+			"-- comment: mysql与postgres关联结果入库StarRocks",
+			"-- author: 超级管理员",
+			"-- date: 2026/2/6 00:21:28",
+			"--********************************************************************--",
+			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16922011&doc_id=3405209 "
 		],
-		"description":"mysql与postgres关联结果入库StarRocks",
+		"description": "mysql与postgres关联结果入库StarRocks",
 		"helpUrl": "",
 		"version": "v4.0.5"
 	}

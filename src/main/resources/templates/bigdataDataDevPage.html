@@ -286,9 +286,6 @@
         </li>
         <li class="layui-nav-item"><a href="javascript:;" title="下载"
                                       class="layui-icon layui-icon-download-circle"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="任务实例"
-                                      class="layui-icon layui-icon-chart-screen"></a></li>
-        <li class="layui-nav-item"><a href="javascript:;" title="参照模板" class="layui-icon layui-icon-template"></a>
         </li>
         <li class="layui-nav-item"><a href="javascript:;" title="帮助" class="layui-icon layui-icon-about"></a></li>
         <li class="layui-nav-item">
@@ -521,8 +518,6 @@
                     '修改任务': showUpdateTaskPage,
                     '发布任务': releaseTask,
                     '下载': downloadSQL,
-                    '任务实例': () => layer.msg('任务管理功能开发中...'),
-                    '参照模板': () => layer.msg('模板功能开发中...'),
                     '帮助': showHelp
                 };
 
@@ -640,7 +635,7 @@
                         $('#description').val(data.description);
                         $('#updateId').val(data.id);
                         $('#cron').val(data.cron);
-                        $('#taskName').val(data.taskName).attr("readonly", true);
+                        $('#taskName').val(data.taskName);
                         $('#status').val(data.status).attr("readonly", true);
                         layer.open({
                             type: 1,
