@@ -8,6 +8,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * @ClassName DbSourceRepository
+ * @Description 数据源数据访问接口
+ * @Author rabbit boy_0214@sina.com
+ * @Date 2024/02/10 10:00
+ */
 @Repository
 public interface DbSourceRepository extends JpaSpecificationExecutor<DataSourceModel>, JpaRepository<DataSourceModel, Long> {
 

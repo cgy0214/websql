@@ -19,7 +19,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 枢易方舟
+ * @ClassName BigDataManagerController
+ * @Description 枢易方舟
+ * @Author rabbit boy_0214@sina.com
+ * @Date 2024/02/10 10:00
  */
 @Controller
 @RequestMapping("/bigdataManager")

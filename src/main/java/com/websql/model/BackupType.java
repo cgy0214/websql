@@ -1,5 +1,11 @@
 package com.websql.model;
 
+/**
+ * @ClassName BackupType
+ * @Description 备份类型枚举
+ * @Author rabbit boy_0214@sina.com
+ * @Date 2024/02/10 10:00
+ */
 public enum BackupType {
 
     DATA_SOURCE("数据源"),

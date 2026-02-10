@@ -1,7 +1,10 @@
 package com.websql.model;
 
 /**
- * SQL操作类型枚举
+ * @ClassName SqlOperationType
+ * @Description SQL操作类型枚举
+ * @Author rabbit boy_0214@sina.com
+ * @Date 2024/02/10 10:00
  */
 public enum SqlOperationType {
     INSERT("INSERT", "插入"),
