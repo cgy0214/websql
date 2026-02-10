@@ -67,21 +67,26 @@ public class BigDataJobFactory implements Task {
                 log.warn("{}-枢易方舟任务返回结果为空.", bigDataTaskModel.getTaskName());
                 return;
             }
+            boolean isSuccess = true;
             for (ExecuteResult executeResult : execute) {
                 if (ObjectUtil.isNull(executeResult)) {
                     instance.setErrorMessage("执行结果为空");
                     instance.setInstanceStatus("失败");
                     log.warn("{}-枢易方舟任务执行结果为空.", bigDataTaskModel.getTaskName());
+                    isSuccess = false;
                     continue;
                 }
                 if (ObjectUtil.notEqual(ExecuteResult.STATUS_SUCCESS, executeResult.getStatus())) {
                     instance.setErrorMessage(executeResult.getErrorMessage());
                     instance.setInstanceStatus("失败");
+                    isSuccess = false;
                     log.error("{}-枢易方舟任务执行失败,{}", bigDataTaskModel.getTaskName(), executeResult.getErrorMessage());
                 }
             }
             instance.setExecuteResult(JSON.toJSONString(execute));
-            instance.setInstanceStatus("成功");
+            if(isSuccess){
+                instance.setInstanceStatus("成功");
+            }
         } catch (Exception e) {
             log.error("{}-枢易方舟任务执行失败,{}", bigDataTaskModel.getTaskName(), e.getMessage(), e);
             instance.setErrorMessage(e.getMessage());

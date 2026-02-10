@@ -66,13 +66,13 @@
             height: '525',
             cols: [
                 [
-                    {field: 'id', title: '主键', sort: true, fixed: true, width: 100},
-                    {field: 'taskName', title: '任务名称', sort: true, fixed: true, width: 200, templet: function (d) {
+                    {field: 'id', title: '主键', sort: true, fixed: true, width: '8%'},
+                    {field: 'taskName', title: '任务名称', sort: true, fixed: true, width: '15%', templet: function (d) {
                             return '<a href="#" lay-event="view" class="layui-table-link">' + d.taskName + '</a>'
                         }
                     },
-                    {field: 'taskType', title: '任务类型', sort: true, width: 120},
-                    {field: 'status', title: '状态', sort: true, width: 100, templet: function(d) {
+                    {field: 'taskType', title: '任务类型', sort: true, width: '10%'},
+                    {field: 'status', title: '状态', sort: true, width: '8%', templet: function(d) {
                             if (d.status === '已发布') {
                                 return '<span style="color: green;">' + d.status + '</span>';
                             } else if (d.status === '未发布') {
@@ -80,10 +80,10 @@
                             }
                             return d.status;
                         }},
-                    {field: 'createUser', title: '创建人', sort: true, width: 120},
-                    {field: 'createTime', title: '创建时间', sort: true, width: 180},
-                    {field: 'updateTime', title: '更新时间', sort: true, width: 180},
-                    {fixed: 'right', title: '操作', toolbar: '#toolbarTable'}
+                    {field: 'createUser', title: '创建人', sort: true, width: '10%'},
+                    {field: 'createTime', title: '创建时间', sort: true, width: '15%'},
+                    {field: 'updateTime', title: '更新时间', sort: true, width: '15%'},
+                    {fixed: 'right', title: '操作', width: '19%', toolbar: '#toolbarTable'}
                 ]
             ],
             parseData: res => parseData(res)

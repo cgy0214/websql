@@ -23,7 +23,7 @@ public class BigDataInstanceModel extends Pages implements Serializable {
     private String taskName;
 
     /**
-     * 执行状态， 单sql 执行结果，多sql执行结果一条成功就算成功
+     * 执行状态， 单sql 执行结果，多sql执行结果一条失败就算失败
      */
     @Column
     private String instanceStatus;
