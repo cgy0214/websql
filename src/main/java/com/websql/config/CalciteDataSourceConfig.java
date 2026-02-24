@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Properties;
 
@@ -32,7 +33,7 @@ public class CalciteDataSourceConfig {
         }
         Properties info = new Properties();
         info.setProperty("lex", "JAVA");
-        info.setProperty("timeZone", "UTC");
+        info.setProperty("timeZone", ZoneId.systemDefault().getId());
         info.setProperty("charset", "UTF-8");
         info.setProperty("saffron.default.charset", "UTF-8");
         Connection calciteConnection = DriverManager.getConnection("jdbc:calcite:", info);

@@ -485,7 +485,7 @@ public class JdbcUtils {
             }
             return successCount;
         } catch (Exception e) {
-            logErrorWithDetails("批量插入失败", e);
+            logErrorWithDetails(sql, e);
         } finally {
             releaseConn(null, pstmt, connection);
         }
@@ -505,5 +505,6 @@ public class JdbcUtils {
                         "【异常类型】 {}\n" +
                         "=====================================================",
                 sql, e.getMessage(), e.getClass().getName());
+        throw new RuntimeException(e);
     }
 }

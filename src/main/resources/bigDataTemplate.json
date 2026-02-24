@@ -1,16 +1,50 @@
 [
 	{
 		"code": "demo1",
-		"title": "mysql Insert postgres",
+		"title": "mysql Join postgres  Insert postgres",
 		"content": [
 			"--********************************************************************--",
-			"-- comment: mysql数据查询并新增至postgres数据表",
+			"-- comment: mysql多表联查postgres表并全量同步至postgres数据表示例",
 			"-- author: 超级管理员",
 			"-- date: 2026/2/6 00:21:28",
 			"--********************************************************************--",
-			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16922011&doc_id=3405209 "
+			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=17181366&doc_id=3405209 ",
+			"",
+            "-- 数据源管理 - 新增数据源2个数据源 -> PostgreSQL数据源标识: postgresql_calcite_1 Mysql数据源标识:mysql_calcite_1 ",
+            "",
+            "-- postgresql创建2张测试数据表: products,dim_order_info mysql测试2张表: orders,users 并创建测试数据",
+            "",
+            "-- 易枢方舟-数据开发-SQL窗口 - 执行下方SQL",
+			"INSERT INTO postgresql_calcite_1.dim_order_info (
+                 id,
+                 order_id,
+                 username,
+                 email,
+                 product_name,
+                 category,
+                 quantity,
+                 price,
+                 total_amount,
+                 order_date,
+                 status
+             )
+             SELECT
+                 o.order_id id,
+                 o.order_id,
+                 u.username,
+                 u.email,
+                 p.product_name,
+                 p.category,
+                 o.quantity,
+                 p.price,
+                 o.total_amount,
+                 o.order_date,
+                 o.status
+             FROM mysql_calcite_1.orders o
+             JOIN mysql_calcite_1.users u ON o.user_id = u.id
+             JOIN postgresql_calcite_1.products p ON o.product_id = p.product_id;"
 		],
-		"description": "mysql数据查询并新增至postgres数据表",
+		"description": "多源多表联查并全量同步至postgres",
 		"helpUrl": "",
 		"version": "v4.0.5"
 	},
@@ -19,11 +53,39 @@
 		"title": "mysql Join postgres In Result",
 		"content": [
 			"--********************************************************************--",
-			"-- comment: mysql与postgres数据表关联并查询结果",
+			"-- comment: mysql与postgres数据表关联并查询结果示例",
 			"-- author: 超级管理员",
 			"-- date: 2026/2/6 00:21:28",
 			"--********************************************************************--",
-			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16922011&doc_id=3405209 "
+			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=17181366&doc_id=3405209 ",
+			"",
+            "-- 多源多表联查
+             SELECT
+                             '中国-北京' address ,
+                              o.order_id,
+                              u.username,
+                              u.email,
+                              p.product_name,
+                              p.category,
+                              o.quantity,
+                              p.price,
+                              o.total_amount,
+                              o.order_date,
+                              o.status
+                          FROM mysql_calcite_1.orders o
+                          JOIN mysql_calcite_1.users u ON o.user_id = u.id
+                          JOIN postgresql_calcite_1.products p ON o.product_id = p.product_id;
+
+                          -- 函数示例
+                          SELECT
+                              max(o.order_id),
+                              avg(total_amount),
+                              sum(quantity),
+                              1+1
+                          FROM mysql_calcite_1.orders o
+                          JOIN mysql_calcite_1.users u ON o.user_id = u.id
+                          JOIN postgresql_calcite_1.products p ON o.product_id = p.product_id;"
+
 		],
 		"description": "mysql与postgres数据表关联并查询结果",
 		"helpUrl": "",
@@ -34,28 +96,123 @@
 		"title": "postgres In CRUD",
 		"content": [
 			"--********************************************************************--",
-			"-- comment: postgres数据表增删改查测试",
+			"-- comment: postgres数据表增删改查示例",
 			"-- author: 超级管理员",
-			"-- date: 2026/2/6 00:21:28",
+			"-- date: 2026/02/24 00:21:28",
 			"--********************************************************************--",
-			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16922011&doc_id=3405209 "
+			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=17181366&doc_id=3405209 ",
+			"",
+			"-- 数据源管理 - 新增数据源 ->  PostgreSQL -> 数据源标识: 'postgresql_calcite_1' 必须一致,不填写默认生成,填写要唯一性。",
+			"",
+			"-- SQL窗口 - 复制下面CREATE SQL创建测试数据表: dim_order_info ",
+			"",
+			"--  CREATE TABLE dim_order_info (id integer NOT NULL, order_id character varying(50) NOT NULL, username character varying(100) NOT NULL, email character varying(255), product_name character varying(255) NOT NULL, category character varying(100), quantity integer NOT NULL, price numeric(12,2) NOT NULL, total_amount numeric(12,2) NOT NULL, order_date timestamp without time zone NOT NULL, status character varying(20) NOT NULL)",
+			"",
+			"-- 易枢方舟-数据开发-SQL窗口 - 执行下方SQL",
+			"",
+			"-- 新增:",
+			"INSERT INTO postgresql_calcite_1.dim_order_info (
+                 id,
+                 order_id,
+                 username,
+                 email,
+                 product_name,
+                 category,
+                 quantity,
+                 price,
+                 total_amount,
+                 order_date,
+                 status
+             )values (1,1001,'张三','websql@qq.com','iPhone 17 Pro Max','数码产品',1,8999.00,8999.00,'2026-02-24','已下单');",
+             "-- 修改:",
+             "update postgresql_calcite_1.dim_order_info set status = '已发货' where id = 1;",
+             "-- 查询:",
+             "select id,
+                  order_id,
+                  username,
+                  email,
+                  product_name,
+                  category,
+                  quantity,
+                  price,
+                  total_amount,
+                  order_date,
+                  status  from postgresql_calcite_1.dim_order_info;",
+             "-- 删除:",
+             "delete from postgresql_calcite_1.dim_order_info where id =1;",
+
 		],
-		"description": "postgres数据表增删改查测试",
+		"description": "postgres数据表增删改查",
 		"helpUrl": "",
 		"version": "v4.0.5"
 	},
 	{
-		"code": "demo3",
-		"title": "mysql Join postgres In StarRocks",
+		"code": "demo4",
+		"title": "mysql Join postgres Upsert In postgres",
 		"content": [
 			"--********************************************************************--",
-			"-- comment: mysql与postgres关联结果入库StarRocks",
+			"-- comment: 多源多表联查增量同步至postgres示例",
 			"-- author: 超级管理员",
 			"-- date: 2026/2/6 00:21:28",
 			"--********************************************************************--",
-			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16922011&doc_id=3405209 "
+			"-- wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=17181366&doc_id=3405209 ",
+			"",
+            "-- 数据源管理 - 新增数据源2个数据源 -> PostgreSQL数据源标识: postgresql_calcite_1 Mysql数据源标识:mysql_calcite_1 ",
+            "",
+            "-- postgresql创建2张测试数据表: products,dim_order_info mysql测试2张表: orders,users 并创建测试数据",
+			"",
+			"UPSERT INTO postgresql_calcite_1.dim_order_info
+              SELECT
+                  o.order_id,
+                  o.order_id,
+                  o.order_id,
+                  u.username,
+                  u.email,
+                  p.product_name,
+                  p.category,
+                  o.quantity,
+                  p.price,
+                  o.total_amount,
+                  o.order_date,
+                  o.status
+              FROM mysql_calcite_1.orders o
+              JOIN mysql_calcite_1.users u ON o.user_id = u.id
+              JOIN postgresql_calcite_1.products p ON o.product_id = p.product_id
+              WHERE o.order_id > (SELECT COALESCE(MAX(order_id), 0) FROM postgresql_calcite_1.dim_order_info) -- 增量条件"
 		],
-		"description": "mysql与postgres关联结果入库StarRocks",
+		"description": "多源多表联查并增量同步至postgres",
+		"helpUrl": "",
+		"version": "v4.0.5"
+	},
+{
+		"code": "demo5",
+		"title": "postgres Upsert In mysql",
+		"content": [
+			"--********************************************************************--",
+			"-- comment:  postgres查询增量同步至mysql示例",
+			"-- author: 超级管理员",
+			"-- date: 2026/2/6 00:21:28",
+			"--********************************************************************--",
+            "",
+			"upsert into mysql_calcite_2.products
+             select
+               product_id as id,    -- 别名需于MySQL目标表字段名对应
+               product_name as name,
+               price
+             from
+               postgresql_calcite_1.products
+             where
+             -- 时间增量条件,使用临时表方式获取当前时间-1
+               created_at >= (
+                 SELECT
+                   TIMESTAMPADD(DAY, -1, CURRENT_TIMESTAMP)
+                 from
+                   postgresql_calcite_1.products
+                 limit
+                   1
+               ) "
+		],
+		"description": "postgres查询增量同步至mysql示例",
 		"helpUrl": "",
 		"version": "v4.0.5"
 	}

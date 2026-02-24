@@ -32,7 +32,7 @@ public class UpsertSelectStrategy implements SqlExecutionStrategy {
         try {
             List<Map<String, Object>> data = JdbcUtils.executeQuery(connection, vo.getSelectSql());
             if (data.isEmpty()) {
-                log.warn("查询结果为空，无需更新插入");
+                log.debug("查询结果为空，无需更新插入");
                 return 0;
             }
 
@@ -50,9 +50,13 @@ public class UpsertSelectStrategy implements SqlExecutionStrategy {
             List<String> pks = keyMetas.stream().map(DataSourceTableMeta::getColumnName).collect(Collectors.toList());
 
             if (pks.isEmpty()) {
-                log.warn("表 {} 没有主键，无法执行Upsert操作，尝试执行普通Insert", tableName);
+                log.debug("表 {} 没有主键，无法执行Upsert操作，尝试执行普通Insert", tableName);
                 String insertWithParamsSql = vo.getInsertWithParamsSql();
                 String cleanInsertSql = insertWithParamsSql.replaceAll("(?i)INSERT INTO\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\.([a-zA-Z_][a-zA-Z0-9_]*)", "INSERT INTO $2");
+
+                int size = data.get(0).keySet().size();
+                String placeholders = String.join(",", java.util.Collections.nCopies(size, "?"));
+                cleanInsertSql += " VALUES (" + placeholders + ")";
                 return JdbcUtils.batchInsert(sourceKey, cleanInsertSql, data);
             }
 
@@ -60,8 +64,6 @@ public class UpsertSelectStrategy implements SqlExecutionStrategy {
             String upsertSql = generateUpsertSql(dbType, tableName, columns, pks);
 
             log.debug("生成的Upsert SQL: {}", upsertSql);
-
-            // 6. 执行批量更新插入
             int insertCount = JdbcUtils.batchInsert(sourceKey, upsertSql, data);
             log.debug("批量更新插入完成，影响 {} 条记录", insertCount);
             return insertCount;

@@ -11,8 +11,8 @@ public enum SqlOperationType {
     SELECT("SELECT", "查询"),
     UPDATE("UPDATE", "更新"),
     DELETE("DELETE", "删除"),
-    SELECT_INSERT("INSERT_SELECT", "查询并插入"),
-    SELECT_UPSERT("UPSERT_SELECT", "查询并更新插入"),
+    SELECT_INSERT("SELECT_INSERT", "查询并插入"),
+    SELECT_UPSERT("SELECT_UPSERT", "查询并更新插入"),
     UNKNOWN("UNKNOWN", "未知");
 
     private final String code;
@@ -50,11 +50,15 @@ public enum SqlOperationType {
             return INSERT;
         } else if (className.contains("SELECT")) {
             return SELECT;
+        } else if(className.contains("ORDERBY")){
+            return SELECT;
         } else if (className.contains("UPDATE")) {
             return UPDATE;
         } else if (className.contains("DELETE")) {
             return DELETE;
-        } else {
+        } else if(className.contains("UPSERT")){
+            return SELECT_UPSERT;
+        }else {
             return UNKNOWN;
         }
     }

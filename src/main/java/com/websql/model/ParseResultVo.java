@@ -12,7 +12,6 @@ public class ParseResultVo {
 
     // SQL内容相关
     private String selectSql;              // SELECT查询语句
-    private String insertFromTempSql;      // 从临时表插入的INSERT
     private String insertWithParamsSql;    // 带参数的INSERT
 
     // 表信息相关
@@ -24,13 +23,12 @@ public class ParseResultVo {
 
     private SqlOperationType operationType;  // SQL操作类型
 
-    public ParseResultVo(String selectSql, String insertFromTempSql,
+    public ParseResultVo(String selectSql,
                          String insertWithParamsSql, String targetTable,
                          List<String> tableNames, List<TableInfo> tableInfos,
                          Set<String> schemas, TargetTableInfo targetTableInfo,
                          SqlOperationType operationType) {
         this.selectSql = selectSql;
-        this.insertFromTempSql = insertFromTempSql;
         this.insertWithParamsSql = insertWithParamsSql;
         this.targetTable = targetTable;
         this.tableNames = tableNames;
