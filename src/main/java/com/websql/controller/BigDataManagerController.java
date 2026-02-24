@@ -254,11 +254,11 @@ public class BigDataManagerController {
             BigDataTemplateVo bigDataTemplateVo = list.get(0);
             String sql = String.join("\n", bigDataTemplateVo.getContent());
             BigDataTaskModel model = new BigDataTaskModel();
-            model.setTaskName(bigDataTemplateVo.getTitle() + "示例任务-" + System.currentTimeMillis());
+            model.setTaskName(bigDataTemplateVo.getTitle() + "-" + DateUtil.now());
             model.setDescription(bigDataTemplateVo.getDescription());
             model.setSqlContent(sql);
             model.setCron("0 0 1 * * ?");
-            model.setTaskType("sql");
+            model.setTaskType("SQL任务");
             model.setStatus("草稿");
             model.setCreateTime(DateUtil.now());
             model.setUpdateTime(DateUtil.now());
