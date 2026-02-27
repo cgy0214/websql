@@ -63,4 +63,10 @@ public class BigDataTaskModel extends Pages implements Serializable {
      */
     @Column
     private String releaseUser;
+
+    /**
+     * 下次执行时间
+     */
+    @Transient
+    private String nextExecuteTime;
 }

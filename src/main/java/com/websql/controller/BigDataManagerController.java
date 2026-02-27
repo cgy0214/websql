@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -261,6 +262,25 @@ public class BigDataManagerController {
             return AjaxResult.success(bigDataTaskModel.getId());
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    @RequestMapping("/getNextExecuteTime")
+    @ResponseBody
+    public AjaxResult getNextExecuteTime(@RequestParam Long id) {
+        try {
+            BigDataTaskModel task = bigDataService.getTaskById(id);
+            if (ObjectUtil.isNull(task) || ObjectUtil.isEmpty(task.getCron())) {
+                return AjaxResult.success("");
+            }
+            Date nextDate = CronUtils.getNextDate(task.getCron());
+            if (ObjectUtil.isNotNull(nextDate)) {
+                return AjaxResult.success(DateUtil.formatDateTime(nextDate));
+            }
+            return AjaxResult.success("-");
+        } catch (Exception e) {
+            log.error("获取下次执行时间失败:{}", e.getMessage(), e);
+            return AjaxResult.error("获取失败:" + e.getMessage());
         }
     }
 

@@ -4,6 +4,7 @@ import cn.hutool.cron.pattern.CronPattern;
 import cn.hutool.cron.pattern.CronPatternUtil;
 
 import java.util.Date;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @ClassName : CronUtils
@@ -13,9 +14,11 @@ import java.util.Date;
  */
 public class CronUtils {
 
+    private static final ConcurrentHashMap<String, CronPattern> PATTERN_CACHE = new ConcurrentHashMap<>(16);
+
     public static boolean isValid(String cron) {
         try {
-            new CronPattern(cron);
+            getOrCreatePattern(cron);
             return true;
         } catch (Exception e) {
             return false;
@@ -23,17 +26,26 @@ public class CronUtils {
     }
 
     public static Date getNextDate(String cron) {
-        if (!isValid(cron)) {
-            return null;
-        }
         try {
+            CronPattern pattern = getOrCreatePattern(cron);
+            if (pattern == null) {
+                return null;
+            }
             return CronPatternUtil.nextDateAfter(
-                    new CronPattern(cron),
+                    pattern,
                     new Date(),
                     true
             );
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private static CronPattern getOrCreatePattern(String cron) {
+        return PATTERN_CACHE.computeIfAbsent(cron, CronPattern::new);
+    }
+
+    public static void clearCache() {
+        PATTERN_CACHE.clear();
     }
 }
