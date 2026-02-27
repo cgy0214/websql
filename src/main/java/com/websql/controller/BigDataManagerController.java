@@ -12,6 +12,7 @@ import com.websql.model.BigDataTaskModel;
 import com.websql.model.BigDataTemplateVo;
 import com.websql.service.BigDataService;
 import com.websql.task.ScheduleUtils;
+import com.websql.util.CronUtils;
 import com.websql.util.StpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -71,6 +72,9 @@ public class BigDataManagerController {
     @ResponseBody
     public AjaxResult saveTask(@RequestBody BigDataTaskModel model) {
         try {
+            if (ObjectUtil.isNotEmpty(model.getCron()) && !CronUtils.isValid(model.getCron())) {
+                return AjaxResult.error("cron表达式格式不正确，请检查！");
+            }
             BigDataTaskModel bigDataTaskModel = bigDataService.saveTask(model);
             return AjaxResult.success(bigDataTaskModel);
         } catch (Exception e) {
@@ -156,6 +160,9 @@ public class BigDataManagerController {
     @ResponseBody
     public AjaxResult saveTaskContent(@RequestBody BigDataTaskModel model) {
         try {
+            if (ObjectUtil.isNotEmpty(model.getCron()) && !CronUtils.isValid(model.getCron())) {
+                return AjaxResult.error("cron表达式格式不正确，请检查！");
+            }
             BigDataTaskModel bigDataTaskModel = bigDataService.saveTaskContent(model);
             return AjaxResult.success(bigDataTaskModel);
         } catch (Exception e) {
@@ -187,6 +194,9 @@ public class BigDataManagerController {
             }
             if (ObjectUtil.isNull(bigDataTaskModel.getCron())) {
                 return AjaxResult.error("任务未配置定时表达式!");
+            }
+            if (!CronUtils.isValid(bigDataTaskModel.getCron())) {
+                return AjaxResult.error("cron表达式格式不正确，请检查！");
             }
             ScheduleUtils.removeBigDataTask(id);
             if ("已发布".equals(bigDataTaskModel.getStatus()) && ObjectUtil.notEqual("release", type)) {
