@@ -1,6 +1,5 @@
 package com.websql.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
@@ -40,7 +39,6 @@ public class BigDataManagerController {
     private BigDataService bigDataService;
 
     @RequestMapping("/dataDevPage")
-    @SaCheckRole("bigdata-admin")
     public ModelAndView dataDevPage(Long id) {
         String currentUserName = StpUtils.getCurrentUserName();
         ModelAndView modelAndView = new ModelAndView("bigdataDataDevPage");
@@ -54,27 +52,23 @@ public class BigDataManagerController {
     }
 
     @RequestMapping("/taskManagePage")
-    @SaCheckRole("bigdata-admin")
     public String taskManagePage() {
         return "bigdataTaskManagePage";
     }
 
     @RequestMapping("/taskInstancePage")
-    @SaCheckRole("bigdata-admin")
     public String taskInstancePage() {
         return "bigdataTaskInstancePage";
     }
 
     @RequestMapping("/taskList")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public AjaxResult taskList(BigDataTaskModel model) {
         return AjaxResult.success(bigDataService.queryTaskList(model));
     }
 
     @RequestMapping("/saveTask")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public AjaxResult saveTask(@RequestBody BigDataTaskModel model) {
         try {
             BigDataTaskModel bigDataTaskModel = bigDataService.saveTask(model);
@@ -86,7 +80,6 @@ public class BigDataManagerController {
 
     @RequestMapping("/deleteTask/{id}")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public AjaxResult deleteTask(@PathVariable Long id) {
         try {
             bigDataService.deleteTask(id);
@@ -99,7 +92,6 @@ public class BigDataManagerController {
 
     @RequestMapping("/deleteTaskAll")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public AjaxResult deleteTaskAll() {
         try {
             bigDataService.deleteTaskAll();
@@ -112,7 +104,6 @@ public class BigDataManagerController {
 
     @RequestMapping("/getTask/{id}")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public AjaxResult getTask(@PathVariable Long id) {
         try {
             return AjaxResult.success(bigDataService.getTaskById(id));
@@ -124,14 +115,12 @@ public class BigDataManagerController {
 
     @RequestMapping("/instanceList")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public AjaxResult instanceList(BigDataInstanceModel model) {
         return AjaxResult.success(bigDataService.queryInstanceList(model));
     }
 
     @RequestMapping("/saveInstance")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public AjaxResult saveInstance(@RequestBody BigDataInstanceModel model) {
         try {
             bigDataService.saveInstance(model);
@@ -144,7 +133,6 @@ public class BigDataManagerController {
 
     @RequestMapping("/deleteInstance/{id}")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public AjaxResult deleteInstance(@PathVariable Long id) {
         try {
             bigDataService.deleteInstance(id);
@@ -157,7 +145,6 @@ public class BigDataManagerController {
 
     @RequestMapping("/findDataList")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public Map findDataList() {
         Map result = new HashMap(2);
         result.put("code", 0);
@@ -167,7 +154,6 @@ public class BigDataManagerController {
 
     @RequestMapping("/saveTaskContent")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public AjaxResult saveTaskContent(@RequestBody BigDataTaskModel model) {
         try {
             BigDataTaskModel bigDataTaskModel = bigDataService.saveTaskContent(model);
@@ -179,7 +165,6 @@ public class BigDataManagerController {
 
     @RequestMapping("/execute")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public AjaxResult execute(@RequestBody BigDataTaskModel model) {
         try {
             return AjaxResult.success(bigDataService.execute(model));
@@ -190,7 +175,6 @@ public class BigDataManagerController {
     }
 
     @RequestMapping("/release")
-    @SaCheckRole("bigdata-admin")
     @ResponseBody
     public AjaxResult release(@RequestParam Long id, @RequestParam(required = false) String type) {
         if (StpUtil.hasRole("demo-admin")) {
@@ -240,7 +224,6 @@ public class BigDataManagerController {
 
     @RequestMapping("/createDemoTask")
     @ResponseBody
-    @SaCheckRole("bigdata-admin")
     public AjaxResult createDemoTask(@RequestParam(required = false) String code) {
         try {
             if (ObjectUtil.isNull(code)) {

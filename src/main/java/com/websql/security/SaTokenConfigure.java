@@ -112,6 +112,10 @@ public class SaTokenConfigure implements WebMvcConfigurer {
             SaRouter.match("/aiManager/**")
                     .check(r -> StpUtil.checkRoleOr("sql-admin", "timing-admin", "super-admin"));
 
+            // 大数据管理权限 - bigdata-admin 或 super-admin 可访问
+            SaRouter.match("/bigdataManager/**")
+                    .check(r -> StpUtil.checkRoleOr("bigdata-admin", "super-admin"));
+
         })).addPathPatterns("/**");
     }
 
@@ -173,9 +177,24 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 "/detectionManager/findDataSelect",
                 "/detectionManager/logList",
                 "/detectionManager/logCharts",
+
                 //ai 功能
-                "/aiManager/*"
-        );
+                "/aiManager/*",
+
+                //大数据相关
+                "/bigdataManager/dataDevPage",
+                "/bigdataManager/taskManagePage",
+                "/bigdataManager/taskInstancePage",
+                "/bigdataManager/taskList",
+                "/bigdataManager/saveTask",
+                "/bigdataManager/getTask/**",
+                "/bigdataManager/instanceList",
+                "/bigdataManager/saveInstance",
+                "/bigdataManager/saveTaskContent",
+                "/bigdataManager/queryBigDataTemplateList",
+                "/bigdataManager/createDemoTask",
+                "/bigdataManager/execute"
+                );
     }
 
 }
