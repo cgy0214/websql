@@ -34,3 +34,5 @@ build/
 .vscode/
 .trae
 .vscode-test/
+.trae/
+.qoder/

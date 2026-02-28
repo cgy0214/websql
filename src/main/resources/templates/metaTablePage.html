@@ -8,7 +8,33 @@
     <style>
         .small-input {
             width: 350px;
-            height: 30px;
+            height: 36px;
+            font-size: 14px;
+        }
+        /* Tree 样式美化 */
+        #div-tree {
+            background: #fafafa;
+            border-radius: 4px;
+            padding: 6px;
+        }
+        /* 文字大小 */
+        #div-tree .layui-tree-txt {
+            font-size: 16px;
+            color: #333;
+        }
+        /* 节点间距 */
+        #div-tree .layui-tree-set {
+            line-height: 26px;
+        }
+        /* 搜索框区域 */
+        .layui-input-group {
+            margin-bottom: 10px;
+        }
+        /* 左侧面板 */
+        .tree-panel {
+            background: #fff;
+            border: 1px solid #e6e6e6;
+            border-radius: 6px;
         }
     </style>
 </head>
@@ -17,7 +43,7 @@
     <div class="layui-panel" style="background: #e9e9e96b;">
         <div class="layui-row">
             <div class="layui-col-xs3">
-                <div class="layui-panel" style="padding: 4px;">
+                <div class="layui-panel tree-panel" style="padding: 10px;">
                     <div class="layui-input-group">
                         <input type="text" placeholder="search..." class="layui-input small-input" id="searchInput">
                         <div class="layui-input-suffix">

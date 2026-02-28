@@ -18,35 +18,34 @@
 
 - [快速开始](https://gitee.com/boy_0214/websql/wikis/Home)
 
-> 注：学习测试请拉取 `master` 分支，`dev` 是开发分支，有很多特性并不稳定（在项目根目录执行 `git checkout master`）。
-
 开源不易，点个 star 鼓励一下吧！⭐
 
 ---
 
 ## 🔧 webSql 核心介绍
 
-**webSql** 支持动态配置 `多数据源`、`权限控制`、在线 `执行SQL`、跨库 `查询`、 AI` Text2Sql、常用 `SQL文本实时获取`、`导出、打印` 结果集、可控的 `日志记录`、团队 `数据隔离`、`危险` SQL限制运行、生产环境 `数据` 同步、`OpenAPI`、ETL抽取、元数据查询、SQL生成、定时 `监测数据趋势` 告警功能；众多功能集一身的 `SQL在线执行工具`。
+**webSql** 支持动态配置 `多数据源`、`权限控制`、在线 `执行SQL`、跨库 `查询`、数据`开发`、 AI` Text2Sql、常用 `SQL文本实时获取`、`导出、打印` 结果集、可控的 `日志记录`、团队 `数据隔离`、`危险` SQL限制运行、生产环境 `数据` 同步、`OpenAPI`、ETL抽取、元数据查询、SQL生成、定时 `监测数据趋势` 告警功能；众多功能集一身的 `SQL在线执行工具`。
 
 ---
 
 ## 🗄️ 支持的数据库产品
 
-| 数据库 | 适配度 | 功能描述 |
-|:------|:-----|:--------|
-| MySQL | ✅ | 支持所有功能 |
-| Oracle | ✅ | 支持所有功能 |
-| H2 | ✅ | 支持所有功能 |
-| PostgreSQL | ✅ | 支持所有功能 |
-| SQLite | ✅ | 支持所有功能 |
-| SQL Server | ✅ | 不支持元数据 |
-| 达梦数据库 | ✅ | 支持所有功能 |
-| Doris | ✅ | 支持所有功能 |
-| TiDB | ✅ | 支持所有功能 |
-| ClickHouse | ✅ | 支持所有功能 |
-| OceanBase | ✅ | 支持所有功能 |
+| 数据库            | 适配度 | 功能描述 |
+|:---------------|:-----|:--------|
+| MySQL          | ✅ | 支持所有功能 |
+| Oracle         | ✅ | 支持所有功能 |
+| H2             | ✅ | 支持所有功能 |
+| PostgreSQL     | ✅ | 支持所有功能 |
+| SQLite         | ✅ | 支持所有功能 |
+| SQL Server     | ✅ | 不支持元数据 |
+| 达梦数据库          | ✅ | 支持所有功能 |
+| Doris          | ✅ | 支持所有功能 |
+| TiDB           | ✅ | 支持所有功能 |
+| ClickHouse     | ✅ | 支持所有功能 |
+| OceanBase      | ✅ | 支持所有功能 |
+| 自定义数据源         | 部分 | 不支持元数据 |
 | 人大金仓 Kingbase8 | 部分 | 不支持元数据 |
-| 神州通用 Oscar | 部分 | 不支持元数据 |
+| 神州通用 Oscar     | 部分 | 不支持元数据 |
 | 阿里云 MaxCompute | 部分 | 不支持元数据 |
 
 ---
@@ -80,7 +79,7 @@ WebSql 主要功能模块：
 - **监测管理** —— 不同团队自定义SQL，定时执行数据监测，达到阈值自定义告警通知
 - **参数设置** —— 参数设置中可以操作更多细致化控制
 - **OpenAPI** —— 支持HTTP调用系统接口形式执行SQL动作 [<a href='https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7884992&doc_id=3405209'>查看示例</a>]
-- **枢易方舟** —— 实现多源、跨库数据无缝接入,便捷的数据开发
+- **枢易方舟** —— 实现多源、跨库数据无缝接入,数据开发
 - **开箱即用** —— 提供jar、docker镜像，内置H2数据库，一条命令即可启动，真正的开箱即用
 
 ---
@@ -106,13 +105,10 @@ nohup java -jar websql.jar >> web.log &
 ### Docker部署
 
 ```bash
-# 拉取镜像（如果pull失败，可以加群寻找国内镜像地址）
 docker pull registry.cn-beijing.aliyuncs.com/cgycms/websql:latest
 
-# 运行容器
 docker run -di --name websql -p 80:80 cgycms/websql:latest
 
-# 查看日志
 docker logs websql
 ```
 
