@@ -19,6 +19,9 @@ public interface SysUserLogRepository extends JpaSpecificationExecutor<SysUserLo
     @Query(value = "select  count(*) FROM SYS_USERLOG WHERE USER_NAME= ?1 and login_flag  not like '%登录成功%' ", nativeQuery = true)
     Integer findUserLoginFail(String userName);
 
+    @Query(value = "select  count(*) FROM SYS_USERLOG WHERE USER_NAME= ?1 and login_flag  not like '%登录成功%' and id = (select max(id) from SYS_USERLOG where USER_NAME= ?1)", nativeQuery = true)
+    Integer findLastLoginFail(String userName);
+
     @Transactional(rollbackFor = Exception.class)
     @Query("delete  SysUserLog WHERE userName= ?1 and loginFlag not like '%登录成功%' ")
     @Modifying

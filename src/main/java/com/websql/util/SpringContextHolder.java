@@ -9,7 +9,10 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 /**
- * 手动获取bean
+ * @ClassName SpringContextHolder
+ * @Description Spring容器上下文工具类
+ * @Author rabbit boy_0214@sina.com
+ * @Date 2024/02/10 10:00
  */
 @Component
 public class SpringContextHolder implements BeanFactoryPostProcessor, ApplicationContextAware {

@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>数据开发</title>
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
+    <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <style>
+        /* 自定义小尺寸导航 */
+        .layui-nav-small .layui-nav-item {
+            height: 35px !important;
+            line-height: 35px !important;
+            margin: 0 5px;
+        }
+
+        .layui-nav-small .layui-nav-item a {
+            padding: 0 10px !important;
+            height: 35px !important;
+            line-height: 35px !important;
+            font-size: 16px !important;
+        }
+
+        /* 图标样式调整 */
+        .layui-nav-small .layui-icon {
+            font-size: 18px !important;
+        }
+
+        /* 任务名称字体调整 */
+        #viewTaskName {
+            font-size: 14px !important;
+        }
+
+        /* 移除选中效果 */
+        .layui-nav-small layui-this {
+            background-color: transparent !important;
+        }
+
+        /* 全局样式调整 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* 主容器，使用 flex 布局 */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 45px); /* 减去顶部导航栏高度 */
+            width: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .monaco-wrapper {
+            flex: 1; /* 自动占据剩余空间 */
+            width: 100%;
+            position: relative;
+            transition: height 0.3s ease; /* 添加平滑过渡动画 */
+            overflow: hidden; /* 防止溢出 */
+        }
+
+        #monaco-editor {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* 结果区域容器 */
+        #result-container {
+            height: 355px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+            display: none;
+            flex-direction: column;
+            position: relative;
+            transition: height 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        /* 结果区域标题栏 */
+        .result-header {
+            height: 32px;
+            line-height: 32px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            padding: 0 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .result-tools {
+            display: flex;
+            align-items: center;
+        }
+
+        .result-close-btn {
+            cursor: pointer;
+            padding: 0 5px;
+            color: #666;
+        }
+
+        .layui-tab .layui-tab-title {
+            height: 30px;
+        }
+
+        .result-close-btn:hover {
+            color: #ff5722;
+        }
+
+        .layui-form-checkbox > .lay-skin-checkcard,
+        .layui-form-radio > .lay-skin-checkcard {
+            display: flex;
+            padding: 12px;
+            white-space: normal;
+            border-radius: 10px;
+            border: 1px solid #e5e5e5;
+            color: #000;
+            background-color: #fff;
+        }
+
+        .layui-form-checkbox > .lay-skin-checkcard > *,
+        .layui-form-radio > .lay-skin-checkcard > * {
+            vertical-align: top;
+        }
+
+        .layui-form-checkbox:hover > .lay-skin-checkcard,
+        .layui-form-radio:hover > .lay-skin-checkcard {
+            border-color: #16b777;
+        }
+
+        .layui-form-checked > .lay-skin-checkcard,
+        .layui-form-radioed[lay-skin="none"] > .lay-skin-checkcard {
+            color: #000;
+            border-color: #16b777;
+            background-color: rgb(22 183 119 / 10%) !important;
+        }
+
+        .layui-checkbox-disabled > .lay-skin-checkcard,
+        .layui-radio-disabled > .lay-skin-checkcard {
+            box-shadow: none;
+            border-color: #e5e5e5 !important;
+            background-color: #eee !important;
+        }
+
+        .lay-skin-checkcard-avatar {
+            padding-right: 8px;
+        }
+
+        .lay-skin-checkcard-detail {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .lay-skin-checkcard-header {
+            font-weight: 500;
+            font-size: 16px;
+            white-space: nowrap;
+            margin-bottom: 4px;
+        }
+
+        .lay-skin-checkcard-description {
+            font-size: 13px;
+            color: #5f5f5f;
+        }
+
+        .layui-disabled .lay-skin-checkcard-description {
+            color: #c2c2c2 !important;
+        }
+
+        .layui-form-checked > .lay-check-dot:after,
+        .layui-form-radioed > .lay-check-dot:after {
+            position: absolute;
+            content: "";
+            top: 2px;
+            right: 2px;
+            width: 0;
+            height: 0;
+            display: inline-block;
+            vertical-align: middle;
+            border-width: 10px;
+            border-style: dashed;
+            border-color: transparent;
+            border-top-left-radius: 0;
+            border-top-right-radius: 6px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 6px;
+            border-top-color: #16b777;
+            border-top-style: solid;
+            border-right-color: #16b777;
+            border-right-style: solid;
+            overflow: hidden;
+        }
+
+        .layui-checkbox-disabled > .lay-check-dot:after,
+        .layui-radio-disabled > .lay-check-dot:after {
+            border-top-color: #d2d2d2;
+            border-right-color: #d2d2d2;
+        }
+
+        .layui-form-checked > .lay-check-dot-2:before,
+        .layui-form-radioed > .lay-check-dot-2:before {
+            position: absolute;
+            font-family: "layui-icon";
+            content: "\e605";
+            color: #fff;
+            bottom: 4px;
+            right: 3px;
+            font-size: 9px;
+            z-index: 12;
+        }
+
+        .layui-form-checked > .lay-check-dot-2:after,
+        .layui-form-radioed > .lay-check-dot-2:after {
+            position: absolute;
+            content: "";
+            bottom: 2px;
+            right: 2px;
+            width: 0;
+            height: 0;
+            display: inline-block;
+            vertical-align: middle;
+            border-width: 10px;
+            border-style: dashed;
+            border-color: transparent;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 6px;
+            border-bottom-left-radius: 0;
+            border-right-color: #16b777;
+            border-right-style: solid;
+            border-bottom-color: #16b777;
+            border-bottom-style: solid;
+            overflow: hidden;
+        }
+
+        .layui-checkbox-disabled > .lay-check-dot-2:before,
+        .layui-radio-disabled > .lay-check-dot-2:before {
+            color: #eee !important;
+        }
+
+        .layui-checkbox-disabled > .lay-check-dot-2:after,
+        .layui-radio-disabled > .lay-check-dot-2:after {
+            border-bottom-color: #d2d2d2;
+            border-right-color: #d2d2d2;
+        }
+
+        .lay-ellipsis-multi-line {
+            overflow: hidden;
+            word-break: break-all;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+        }
+
+        .card-hover {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+<!-- 导航栏 -->
+<div class="layui-card-header" style="padding:0">
+    <ul class="layui-nav layui-bg-gray layui-nav-small" lay-filter="left-icons">
+        <li class="layui-nav-item"><a href="javascript:;" title="运行" class="layui-icon layui-icon-play"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="保存SQL" class="layui-icon layui-icon-file"></a></li>
+        <li class="layui-nav-item"><a href="javascript:;" title="格式化" class="layui-icon layui-icon-fonts-code"></a>
+        </li>
+        <li class="layui-nav-item"><a href="javascript:;" title="发布任务" class="layui-icon layui-icon-release"></a>
+        </li>
+        <li class="layui-nav-item"><a href="javascript:;" title="下载"
+                                      class="layui-icon layui-icon-download-circle"></a></li>
+        </li>
+        <li class="layui-nav-item"><a href="javascript:;" title="帮助" class="layui-icon layui-icon-about"></a></li>
+        <li class="layui-nav-item">
+            <a href="javascript:;" title="修改任务" class="layui-icon layui-icon-edit" id="viewTaskName"></a>
+        </li>
+    </ul>
+</div>
+<div class="main-container">
+
+    <!-- 编辑器 -->
+    <div class="monaco-wrapper">
+        <div id="monaco-editor"></div>
+    </div>
+
+    <!-- 运行结果 -->
+    <div id="result-container">
+        <div class="layui-tab layui-tab-brief" lay-filter="resultTab" lay-allowclose="true"
+             style="margin:0; flex:1; display:flex; flex-direction:column; overflow:hidden;">
+            <ul class="layui-tab-title"
+                style="flex-shrink: 0; white-space: nowrap; overflow-x: auto; overflow-y: hidden;"></ul>
+            <div class="layui-tab-content" style="flex:1; padding:0; overflow:hidden;"></div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/static/code/sql-formatter.min.cjs}"></script>
+<script th:src="@{/static/monaco/min/vs/loader.js}"></script>
+<script th:src="@{/static/layui.js}"></script>
+<script th:src="@{/static/lay-config.js}"></script>
+<script th:replace="~{base::ctx}"></script>
+<script th:replace="~{bigdataDevPageMeta}"></script>
+<script type="text/javascript" th:inline="javascript" th:fragment="ctx">
+
+    layui.use(['element', 'layer', 'form', 'laySelect', 'table', 'dropdown', 'laytpl'], function () {
+        const layer = layui.layer;
+        const form = layui.form;
+        const $ = layui.$;
+        const select = layui.laySelect;
+        const table = layui.table;
+        const dropdown = layui.dropdown;
+        const laytpl = layui.laytpl;
+        const element = layui.element;
+
+        // 应用状态管理
+        const appState = {
+            hasUnsavedChanges: false,
+            taskId: null,
+            taskName: null,
+            editor: null,
+            userName: null
+        };
+
+        // 初始化应用状态
+        function initAppState() {
+            appState.taskId = [[${data.id != null ? data.id : ''}]];
+            appState.taskName = [[${data.taskName != null ? data.taskName : ''}]];
+            appState.cron = [[${data.cron != null ? data.cron : ''}]];
+            appState.sqlContent = [[${data.sqlContent != null ? data.sqlContent : ''}]];
+            appState.userName = [[${userName != null ? userName : ''}]];
+
+            $('#taskId').val(appState.taskId);
+            // 设置视图显示
+            $('#viewTaskName').html(appState.taskName || '未命名任务');
+            // 默认显示新增视图
+            $('#addView').show();
+        }
+
+        // 页面切换处理
+        form.on('radio(viewType)', function (data) {
+            const views = {
+                addSql: '#addView',
+                update: '#updateView',
+                addRefer: '#addReferView'
+            };
+
+            Object.values(views).forEach(id => $(id).hide());
+            $(views[data.value]).show();
+        });
+
+        // 监听 Tab 关闭事件
+        element.on('tabDelete(resultTab)', function (data) {
+            const tabTitle = $('.layui-tab[lay-filter="resultTab"] .layui-tab-title li');
+            if (tabTitle.length === 0) {
+                window.closeResult();
+            }
+        });
+
+        // 保存任务
+        form.on('submit(save)', function (data) {
+            const formData = {
+                ...data.field,
+                taskId: appState.taskId,
+                sqlContent: appState.editor?.getValue() || ''
+            };
+            post(ctx + "bigdataManager/saveTask", formData, (res) => {
+                if (res.code === 200) {
+                    appState.hasUnsavedChanges = false;
+                    appState.taskId = res.data.id;
+                    appState.taskName = res.data.taskName;
+
+                    $('#hiddenTaskName').val(appState.taskName);
+                    $('#viewTaskName').html(appState.taskName);
+                    $('#taskId').val(appState.taskId);
+                }
+
+                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                    if (res.code === 200) layer.closeAll();
+                });
+            });
+            return false;
+        });
+
+        // 加载任务列表
+        function loadTaskOptions() {
+            select.render({
+                elem: "#taskOption",
+                url: ctx + 'bigdataManager/findDataList',
+                select: 10000,
+                title: '请选择要修改的任务',
+                format: parseSelectData,
+                success: (data) => {
+                },
+                onselect: (data) => {
+                    appState.taskId = data.id;
+                    if (data) {
+                        post(ctx + "bigdataManager/getTask/" + data, null, (res) => {
+                            if (res.code === 200) {
+                                const data = res.data;
+                                $('#updateViewFromTaskDesc').val(data.description);
+                                $('#updateViewFromTaskCron').val(data.cron);
+                                $('#updateViewFromTaskName').val(data.taskName);
+                                $('#updateViewFromTaskStatus').val(data.status);
+                                $("#updateViewFrom").show();
+                            }
+                        });
+                    } else {
+                        $("#updateViewFrom").hide();
+                    }
+                }
+            });
+        }
+
+        //加载demo列表
+        function loadDemoOptions(code) {
+            post(ctx + "bigdataManager/queryBigDataTemplateList?code=" + code, null, (res) => {
+                if (res.code === 200) {
+                    for (let index in res.data) {
+                        let itemData = res.data[index];
+                        let card = `<div class="layui-col-md6" >
+                        <div class="layui-card card-hover" data-id="${itemData.code}">
+                            <div class="layui-card-header"><b>${itemData.title}</b></div>
+                            <div class="layui-card-body">
+                                ${itemData.description}
+                                <br>
+                                <div class="layui-font-12"> ${itemData.version} </div>
+                            </div></div></div>`;
+                        $("#referDiv").append(card);
+                    }
+                }
+            });
+        }
+
+        // 示例任务创建并修改
+        $(document).on('click', '.card-hover', function () {
+            let itemId = $(this).data('id');
+            post(ctx + "bigdataManager/createDemoTask?code=" + itemId, null, (res) => {
+                if (res.code === 200) {
+                    location.href = `${ctx}bigdataManager/dataDevPage?id=${res.data}`;
+                } else {
+                    layer.msg(res.msg, {icon: 2});
+                }
+            });
+        });
+
+        // 更新任务
+        form.on('submit(update)', function (data) {
+            const selectedTaskId = $("#taskOption").val();
+            if (!selectedTaskId) {
+                layer.msg('请选择要修改的任务', {icon: 2});
+                return false;
+            }
+            appState.taskId = selectedTaskId;
+            appState.hasUnsavedChanges = false;
+            location.href = `${ctx}bigdataManager/dataDevPage?id=${appState.taskId}`;
+            return false;
+        });
+
+
+        // 初始化Monaco编辑器
+        function initMonacoEditor() {
+            require.config({paths: {'vs': '/static/monaco/min/vs'}});
+            require(['vs/editor/editor.main'], function () {
+                const defaultValue =
+                    `--********************************************************************--
+-- comment:
+-- author: ${appState.userName}
+-- date: ${new Date().toLocaleString()}
+--********************************************************************--\n`;
+
+                const initialValue = appState.sqlContent || defaultValue;
+
+                appState.editor = monaco.editor.create(
+                    document.getElementById('monaco-editor'),
+                    {
+                        value: initialValue,
+                        language: 'sql',
+                        theme: 'vs-light',
+                        fontSize: 14,
+                        automaticLayout: true,
+                        minimap: {enabled: true, side: 'right', size: 'fill'},
+                        scrollbar: {vertical: 'auto', horizontal: 'auto'}
+                    }
+                );
+
+                appState.editor.getModel().onDidChangeContent(() => {
+                    appState.hasUnsavedChanges = appState.editor.getValue().trim() !== '';
+                });
+            });
+        }
+
+        // 工具栏操作处理
+        function setupToolbarActions() {
+            $('.layui-nav-small .layui-nav-item a').on('click', function (e) {
+                $('.layui-nav-small .layui-nav-item').removeClass('layui-this');
+                const title = $(this).attr('title');
+                const actions = {
+                    '运行': executeSQL,
+                    '保存SQL': saveData,
+                    '格式化': formatSQL,
+                    '修改任务': showUpdateTaskPage,
+                    '发布任务': releaseTask,
+                    '下载': downloadSQL,
+                    '帮助': showHelp
+                };
+
+                if (actions[title]) actions[title]();
+            });
+        }
+
+        // SQL格式化
+        function formatSQL() {
+            if (!appState.editor) {
+                layer.msg('编辑器未初始化');
+                return;
+            }
+
+            try {
+                const formatted = window.sqlFormatter.format(
+                    appState.editor.getValue(),
+                    {language: 'sql', indent: '    ', uppercase: true, linesBetweenQueries: 2}
+                );
+                appState.editor.setValue(formatted);
+            } catch (error) {
+                console.error('格式化失败:', error);
+                layer.msg('SQL格式化失败', {icon: 2});
+            }
+        }
+
+        // 显示帮助
+        function showHelp() {
+            const helpConfig = helpToolbarConfig('https://gitee.com/boy_0214/websql/wikis/pages?sort_id=17181366&doc_id=3405209');
+            helpConfig.onClick();
+        }
+
+        // 下载SQL
+        function downloadSQL() {
+            if (!appState.editor) return;
+
+            const blob = new Blob([appState.editor.getValue()], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+
+            a.href = url;
+            a.download = `sql_${appState.taskName || 'script'}_${Date.now()}.sql`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            layer.msg('下载成功');
+        }
+
+        function releaseTask() {
+            if (!appState.taskId) {
+                layer.msg('请选择要发布的任务', {icon: 2});
+                return;
+            }
+            layer.confirm('您确定要发布该任务吗?', {
+                icon: 3,
+                title: '确认',
+                btn: ['确认', '取消'],
+                yes: function (index) {
+                    post(ctx + "bigdataManager/release?type=release&id=" + appState.taskId, null, (res) => {
+                        layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2});
+                    });
+                }
+            })
+        }
+
+        // 保存数据
+        function saveData() {
+            if (!appState.editor) return;
+            const formData = {
+                id: appState.taskId,
+                sqlContent: appState.editor.getValue()
+            };
+            post(ctx + "bigdataManager/saveTaskContent", formData, (res) => {
+                if (res.code === 200) {
+                    appState.hasUnsavedChanges = false;
+                    appState.taskId = res.data.id;
+                    $('#taskId').val(res.data.id);
+                } else {
+                    layer.msg(res.msg || '保存失败', {icon: 2});
+                }
+            });
+        }
+
+        // 显示保存页面
+        function showSavePage() {
+            if (!appState.taskId) {
+                $("#typeForm").show();
+                $("#taskName").val(appState.taskName);
+                $("#taskId").val(appState.taskId);
+                layer.open({
+                    type: 1,
+                    area: ['800px', '600px'],
+                    title: '数据开发',
+                    shade: 0.6,
+                    shadeClose: false,
+                    maxmin: false,
+                    closeBtn: 0,
+                    anim: 0,
+                    content: $('#save-layer-wrapper')
+                });
+            }
+        }
+
+        // 显示更新任务页面
+        function showUpdateTaskPage() {
+            if (appState.taskId) {
+                //隐藏固定新增视图
+                $("#typeForm").hide();
+                $('#addView').show();
+                post(ctx + "bigdataManager/getTask/" + appState.taskId, null, (res) => {
+                    if (res.code === 200) {
+                        const data = res.data;
+                        $('#description').val(data.description);
+                        $('#updateId').val(data.id);
+                        $('#cron').val(data.cron);
+                        $('#taskName').val(data.taskName);
+                        $('#status').val(data.status).attr("readonly", true);
+                        layer.open({
+                            type: 1,
+                            area: ['800px', '500px'],
+                            title: '修改任务配置',
+                            shade: 0.6,
+                            anim: 0,
+                            content: $('#save-layer-wrapper')
+                        })
+                    }
+                });
+            }
+        }
+
+        function executeSQL() {
+            if (!appState.editor) return;
+            const formData = {
+                id: appState.taskId,
+                sqlContent: appState.editor.getValue()
+            };
+
+            let loading = layer.load(1, {shade: [0.1, '#fff']});
+
+            post(ctx + "bigdataManager/execute", formData, (res) => {
+                layer.close(loading);
+                if (!res) {
+                    layer.msg("结果返回未知异常！", {icon: 2});
+                    return;
+                }
+
+                if (res.code === 200) {
+                    resultManager.init(res.data);
+                } else {
+                    layer.msg(res.msg || '执行失败', {icon: 2});
+                }
+            });
+        }
+
+        // 结果区域管理
+        const resultManager = {
+            init: function (data) {
+                if (!data || data.length === 0) return;
+
+                $('#result-container').show();
+                $('.monaco-wrapper').css('height', 'calc(100% - 350px)');
+                if (appState.editor) {
+                    setTimeout(() => appState.editor.layout(), 50);
+                }
+
+                // 清空现有Tab
+                const $tabTitle = $('.layui-tab[lay-filter="resultTab"] .layui-tab-title');
+                $tabTitle.empty();
+                $('.layui-tab[lay-filter="resultTab"] .layui-tab-content').empty();
+
+                data.forEach((item, index) => {
+                    const tabId = 'tab_' + index;
+                    const isSelect = item.type === 0;
+                    const isSuccess = item.status === 1;
+
+                    let title = '';
+                    if (isSelect) {
+                        title = `结果 ${index + 1}`;
+                    } else {
+                        title = `消息 ${index + 1}`;
+                    }
+                    if (!isSuccess) title = '❌ ' + title;
+
+                    let content = '';
+                    if (isSuccess && isSelect) {
+                        content = `<div style="height:100%; display: flex; flex-direction: column;">
+                                        <div style="flex: 1; overflow: hidden; padding: 0px;">
+                                            <table id="table_${index}" lay-filter="table_${index}"></table>
+                                        </div>
+                                    </div>`;
+                    } else {
+                        const icon = isSuccess ? 'layui-icon-ok-circle' : 'layui-icon-close-fill';
+                        const color = isSuccess ? '#009688' : '#FF5722';
+                        const statusText = isSuccess ? '执行成功' : '执行失败';
+                        const msg = item.errorMessage || `执行成功，影响行数：${item.data}`;
+
+                        content = `
+                            <div style="padding: 20px; overflow-y: auto; height: 100%; box-sizing: border-box;">
+                                <div style="color: ${color}; font-size: 16px; margin-bottom: 10px; display: flex; align-items: center;">
+                                    <i class="layui-icon ${icon}" style="font-size: 20px; margin-right: 8px;"></i> ${statusText}
+                                </div>
+                                 <div style="color: #666;">
+                                    <pre style="background: #f0f0f0; padding: 10px;
+                                          white-space: pre-wrap; word-break: break-all; border-radius: 4px;
+                                          font-family: Consolas, monospace;
+                                          max-height: 100px; overflow: auto;">
+                                        ${msg || ''}
+                                    </pre>
+                                </div>
+                                <div style="color: #666;">
+                                <strong>SQL语句:</strong>
+                                <pre style="background: #f0f0f0; padding: 10px;
+                                          white-space: pre-wrap; word-break: break-all; border-radius: 4px;
+                                          font-family: Consolas, monospace;
+                                          max-height: 80px; overflow: auto;">
+                                        ${item.sql || ''}
+                                    </pre>
+                                </div>
+                                <div style="margin-top: 10px; color: #999; font-size: 12px;">
+                                    耗时: ${item.time || 0} ms
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    element.tabAdd('resultTab', {
+                        title: title,
+                        content: content,
+                        id: tabId
+                    });
+
+                    if (isSuccess && isSelect) {
+                        this.renderTable(`table_${index}`, item.data, item);
+                    }
+                });
+
+                // 切换到第一个Tab
+                element.tabChange('resultTab', 'tab_0');
+            },
+
+            renderTable: function (elemId, data, resItem) {
+                if (!data || data.length === 0) {
+                    return;
+                }
+
+                // 动态列
+                const cols = Object.keys(data[0]).map(key => ({
+                    field: key,
+                    title: key,
+                    sort: true,
+                    minWidth: 120
+                }));
+
+                table.render({
+                    elem: '#' + elemId,
+                    data: data,
+                    cols: [cols],
+                    page: true,
+                    limit: 50,
+                    limits: [50, 100, 500, 1000, 10000],
+                    height: '335',
+                    size: 'sm',
+                    even: true,
+                    colNumber: cols.length,
+                    time: resItem.time,
+                    pagebar: '#table-page-pageBar',
+                    text: {none: '无数据'},
+                    done: function () {
+                    }
+                });
+                this.registerContextMenu(elemId, resItem);
+            },
+
+            // 注册右键菜单
+            registerContextMenu: function (elemId, res) {
+                table.on('rowContextmenu(' + elemId + ')', function (obj) {
+                    obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click'); // 选中行样式
+
+                    let data = obj.data;
+                    let tableName = 'table';
+
+                    let columns = Object.keys(data);
+                    dropdown.render({
+                        trigger: 'contextmenu',
+                        show: true,
+                        data: [
+                            {title: 'copy insert', id: 'insert'},
+                            {title: 'copy update', id: 'update'},
+                            {title: 'copy select', id: 'select'},
+                            {title: 'copy json', id: 'json'},
+                            {title: 'copy 字段名', id: 'head'},
+                            {title: 'copy 字段值', id: 'value'}
+                        ],
+                        click: function (menuData, othis) {
+                            if (menuData.id === "json") {
+                                copyToClipboard(JSON.stringify(data, null, 2));
+                                layer.msg('JSON数据已复制到剪贴板');
+                                return true;
+                            }
+                            if (menuData.id === "head") {
+                                copyToClipboard(columns.join(','));
+                                layer.msg('字段名已复制到剪贴板');
+                                return true;
+                            }
+                            if (menuData.id === "value") {
+                                let values = columns.map(col => {
+                                    let val = data[col];
+                                    if (val === null) return '';
+                                    return String(val);
+                                });
+                                copyToClipboard(values.join(','));
+                                layer.msg('字段值已复制到剪贴板');
+                                return true;
+                            }
+                            if (menuData.id === "insert") {
+                                let values = columns.map(col => {
+                                    let val = data[col];
+                                    if (val === null) return 'NULL';
+                                    if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+                                    if (typeof val === 'number') return val;
+                                    return `'${val}'`;
+                                });
+                                let insertSql = `INSERT INTO ${tableName} (${columns.join(', ')})
+                                                 VALUES (${values.join(', ')});`;
+                                copyToClipboard(insertSql);
+                                layer.msg('INSERT语句已复制到剪贴板');
+                                return true;
+                            }
+                            if (menuData.id === "update") {
+                                let setParts = columns.map(col => {
+                                    let val = data[col];
+                                    if (val === null) return `${col} = NULL`;
+                                    if (typeof val === 'string') return `${col} = '${val.replace(/'/g, "''")}'`;
+                                    if (typeof val === 'number') return `${col} = ${val}`;
+                                    return `${col} = '${val}'`;
+                                });
+                                let firstCol = columns[0];
+                                let firstVal = data[firstCol];
+                                let whereClause = typeof firstVal === 'string'
+                                    ? `${firstCol} = '${firstVal.replace(/'/g, "''")}'`
+                                    : `${firstCol} = ${firstVal}`;
+                                let updateSql = `UPDATE ${tableName}
+                                                 SET ${setParts.join(', ')}
+                                                 WHERE ${whereClause};`;
+                                copyToClipboard(updateSql);
+                                layer.msg('UPDATE语句已复制到剪贴板');
+                                return true;
+                            }
+                            if (menuData.id === "select") {
+                                let firstCol = columns[0];
+                                let firstVal = data[firstCol];
+                                let whereClause = typeof firstVal === 'string'
+                                    ? `${firstCol} = '${firstVal.replace(/'/g, "''")}'`
+                                    : `${firstCol} = ${firstVal}`;
+                                let selectSql = `SELECT ${columns.join(', ')}
+                                                 FROM ${tableName}
+                                                 WHERE ${whereClause};`;
+                                copyToClipboard(selectSql);
+                                layer.msg('SELECT语句已复制到剪贴板');
+                                return true;
+                            }
+                        }
+                    });
+                    return false;
+                });
+            }
+        };
+
+        // 辅助函数：复制文本到剪贴板
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+
+        window.closeResult = function () {
+            $('#result-container').hide();
+            $('.monaco-wrapper').css('height', '100%');
+            if (appState.editor) {
+                setTimeout(() => appState.editor.layout(), 50);
+            }
+        }
+
+
+        // 初始化应用
+        function initApp() {
+            initAppState();
+            loadTaskOptions();
+            initMonacoEditor();
+            setupToolbarActions();
+            showSavePage();
+            loadDemoOptions("");
+
+            window.addEventListener('beforeunload', (e) => {
+                if (appState.hasUnsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = '您修改的内容未保存，确定要离开吗？';
+                    return e.returnValue;
+                }
+            });
+        }
+
+
+        initApp();
+    });
+</script>
+</body>
+</html>

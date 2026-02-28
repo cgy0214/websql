@@ -8,6 +8,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * @ClassName SysUserRepository
+ * @Description 用户数据访问接口
+ * @Author rabbit boy_0214@sina.com
+ * @Date 2024/02/10 10:00
+ */
 @Repository
 public interface SysUserRepository extends JpaSpecificationExecutor<SysUser>, JpaRepository<SysUser, Long> {
     SysUser findByUserName(String userName);

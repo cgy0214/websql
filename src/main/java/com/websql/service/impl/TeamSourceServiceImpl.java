@@ -44,6 +44,9 @@ public class TeamSourceServiceImpl implements TeamSourceService {
     @Resource
     private TimingRepository timingRepository;
 
+    @Resource
+    private BigDataTaskRepository bigDataTaskRepository;
+
     /**
      * 修改团队所属资源
      *
@@ -219,6 +222,20 @@ public class TeamSourceServiceImpl implements TeamSourceService {
             item.put("resourceName", timingVo.getTitle());
             item.put("resourceType", "作业任务");
             item.put("datetime", timingVo.getSqlCreateDate());
+            resultList.add(item);
+        }
+        //枢易方舟数据开发任务
+        List<BigDataTaskModel> bigDataTaskList = bigDataTaskRepository.findAll().stream()
+                .filter(task -> task.getTeamId() != null && task.getTeamId().equals(id))
+                .collect(Collectors.toList());
+        for (BigDataTaskModel task : bigDataTaskList) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("teamId", id);
+            item.put("teamName", teamSourceModel.getTeamName());
+            item.put("resourceId", task.getId());
+            item.put("resourceName", task.getTaskName());
+            item.put("resourceType", "数据开发任务");
+            item.put("datetime", task.getCreateTime());
             resultList.add(item);
         }
         Result<Map<String, Object>> result = new Result<>();

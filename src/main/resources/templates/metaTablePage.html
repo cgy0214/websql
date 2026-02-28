@@ -8,16 +8,42 @@
     <style>
         .small-input {
             width: 350px;
-            height: 30px;
+            height: 36px;
+            font-size: 14px;
+        }
+        /* Tree 样式美化 */
+        #div-tree {
+            background: #fafafa;
+            border-radius: 4px;
+            padding: 6px;
+        }
+        /* 文字大小 */
+        #div-tree .layui-tree-txt {
+            font-size: 16px;
+            color: #333;
+        }
+        /* 节点间距 */
+        #div-tree .layui-tree-set {
+            line-height: 26px;
+        }
+        /* 搜索框区域 */
+        .layui-input-group {
+            margin-bottom: 10px;
+        }
+        /* 左侧面板 */
+        .tree-panel {
+            background: #fff;
+            border: 1px solid #e6e6e6;
+            border-radius: 6px;
         }
     </style>
 </head>
 <body>
-<form class="layui-form">
+<form class="layui-form" onsubmit="return false;">
     <div class="layui-panel" style="background: #e9e9e96b;">
         <div class="layui-row">
             <div class="layui-col-xs3">
-                <div class="layui-panel" style="padding: 4px;">
+                <div class="layui-panel tree-panel" style="padding: 10px;">
                     <div class="layui-input-group">
                         <input type="text" placeholder="search..." class="layui-input small-input" id="searchInput">
                         <div class="layui-input-suffix">
@@ -62,10 +88,14 @@
         </colgroup>
         <tbody>
         <tr>
-            <td><b>数据源</b></td>
-            <td>{{= d.dataSourceKey}}</td>
             <td><b>名称</b></td>
-            <td>{{= d.databaseName}}</td>
+            <td>
+                <span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText('{{= d.dataSourceKey}}')" title="点击复制">{{= d.dataSourceKey}}</span>
+            </td>
+            <td><b>标识</b></td>
+            <td>
+                <span style="cursor: pointer; color: #16baaa;" onclick="copyTableText('{{= d.sourceIdentifier}}')" title="点击复制数据源标识">{{= d.sourceIdentifier}}</span>
+            </td>
             <td><b>类型</b></td>
             <td>{{= d.productName}}</td>
             <td><b>版本</b></td>
@@ -194,8 +224,15 @@
         const util = layui.util;
         const tree = layui.tree;
         const $ = layui.jquery;
+        const layer = layui.layer;
 
         let treeData = [];
+        // 记录已加载表数据的数据库
+        let loadedDatabases = {};
+        // 当前是否为搜索模式
+        let isSearchMode = false;
+        // 搜索延迟定时器
+        let searchTimer = null;
 
         //树呈现
         tree.render({
@@ -207,79 +244,204 @@
             isJump: false,
             click: function (obj) {
                 const data = obj.data;
-                data.tableMeta.tableCount = data.tableCount;
-                data.tableMeta.fieldCount = data.fieldCount;
-                const DataBaseView = document.getElementById('DataBaseView').innerHTML;
-                const view1 = document.getElementById('view1');
-                laytpl(DataBaseView).render(data.tableMeta, function (str) {
-                    view1.innerHTML = str;
-                });
-                if (data.field === "database") {
-                    $("#showView2").hide();
-                } else {
-                    const tableView = document.getElementById('tableView').innerHTML;
-                    const view2 = document.getElementById('view2');
-                    laytpl(tableView).render(data.tableMeta, function (str) {
-                        view2.innerHTML = str;
-                    });
-                    $("#showView2").show();
+                // 如果是数据库节点且未加载子节点，则异步加载表数据
+                if (data.field === "database" && !loadedDatabases[data.title] && !isSearchMode) {
+                    loadTablesByDatabase(data.title, obj);
+                    return;
                 }
+                // 如果是已加载的数据库节点，从treeData中获取最新数据
+                if (data.field === "database") {
+                    const dbNode = findDatabaseNode(data.title);
+                    if (dbNode) {
+                        showDatabaseInfo(dbNode);
+                        return;
+                    }
+                }
+                // 显示数据库/表信息
+                showDatabaseInfo(data);
             }
         });
 
         /**
-         * 加载树形元数据
-         * @returns {*[]}
+         * 显示数据库信息
          */
-        function loadTreeData() {
-            post(ctx + "sqlManager/metaTreeTableList", null, (res) => {
+        function showDatabaseInfo(data) {
+            if (!data.tableMeta) {
+                return;
+            }
+            data.tableMeta.tableCount = data.tableCount || 0;
+            data.tableMeta.fieldCount = data.fieldCount || 0;
+            const DataBaseView = document.getElementById('DataBaseView').innerHTML;
+            const view1 = document.getElementById('view1');
+            laytpl(DataBaseView).render(data.tableMeta, function (str) {
+                view1.innerHTML = str;
+            });
+            if (data.field === "database") {
+                $("#showView2").hide();
+            } else {
+                const tableView = document.getElementById('tableView').innerHTML;
+                const view2 = document.getElementById('view2');
+                laytpl(tableView).render(data.tableMeta, function (str) {
+                    view2.innerHTML = str;
+                });
+                $("#showView2").show();
+            }
+        }
+
+        /**
+         * 加载数据库列表（只加载数据库节点）
+         */
+        function loadDatabaseList() {
+            isSearchMode = false;
+            loadedDatabases = {};
+            post(ctx + "sqlManager/metaDatabaseList", null, (res) => {
                 if (res.code === 200) {
                     treeData = res.data;
                     tree.reload('tree-id-1', {
                         data: res.data
                     });
                 }
-            })
+            });
+        }
+
+        /**
+         * 根据数据库名加载表列表
+         */
+        function loadTablesByDatabase(database, obj) {
+            const loadIndex = layer.load(0);
+            $.ajax({
+                type: "post",
+                url: ctx + "sqlManager/metaTableListByDatabase?database=" + encodeURIComponent(database),
+                async: true,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (res) {
+                    layer.close(loadIndex);
+                    if (res.code === 200) {
+                        loadedDatabases[database] = true;
+                        // 更新当前数据库节点的子节点
+                        updateDatabaseChildren(database, res.data);
+                        // 显示数据库信息
+                        if (res.data && res.data.length > 0) {
+                            // 更新数据库节点的tableMeta
+                            const firstTable = res.data[0];
+                            if (firstTable && firstTable.tableMeta) {
+                                const dbNode = findDatabaseNode(database);
+                                if (dbNode) {
+                                    dbNode.tableCount = res.data.length;
+                                    if (!dbNode.tableMeta) {
+                                        dbNode.tableMeta = {};
+                                    }
+                                    dbNode.tableMeta.productName = firstTable.tableMeta.productName;
+                                    dbNode.tableMeta.productVersion = firstTable.tableMeta.productVersion;
+                                    dbNode.tableMeta.driverName = firstTable.tableMeta.driverName;
+                                    dbNode.tableMeta.readOnly = firstTable.tableMeta.readOnly;
+                                    dbNode.tableMeta.supportsTransactions = firstTable.tableMeta.supportsTransactions;
+                                    showDatabaseInfo(dbNode);
+                                }
+                            }
+                        }
+                    } else {
+                        layer.msg(res.msg || '加载表列表失败', {icon: 2});
+                    }
+                },
+                error: function () {
+                    layer.close(loadIndex);
+                    layer.msg('加载表列表失败', {icon: 2});
+                }
+            });
+        }
+
+        /**
+         * 查找数据库节点
+         */
+        function findDatabaseNode(database) {
+            for (let i = 0; i < treeData.length; i++) {
+                if (treeData[i].title === database) {
+                    return treeData[i];
+                }
+            }
+            return null;
+        }
+
+        /**
+         * 更新数据库节点的子节点
+         */
+        function updateDatabaseChildren(database, tables) {
+            for (let i = 0; i < treeData.length; i++) {
+                if (treeData[i].title === database) {
+                    treeData[i].children = tables;
+                    treeData[i].tableCount = tables.length;
+                    break;
+                }
+            }
+            tree.reload('tree-id-1', {
+                data: treeData
+            });
+        }
+
+        /**
+         * 后端搜索数据库和表
+         */
+        function searchFromBackend(keyword) {
+            if (!keyword || keyword.trim() === '') {
+                loadDatabaseList();
+                return;
+            }
+            isSearchMode = true;
+            const loadIndex = layer.load(0);
+            $.ajax({
+                type: "post",
+                url: ctx + "sqlManager/searchMetaTree?keyword=" + encodeURIComponent(keyword),
+                async: true,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (res) {
+                    layer.close(loadIndex);
+                    if (res.code === 200) {
+                        treeData = res.data;
+                        // 搜索模式下，标记所有返回的数据库为已加载
+                        res.data.forEach(function(db) {
+                            if (db.children && db.children.length > 0) {
+                                loadedDatabases[db.title] = true;
+                            }
+                        });
+                        tree.reload('tree-id-1', {
+                            data: res.data
+                        });
+                    } else {
+                        layer.msg(res.msg || '搜索失败', {icon: 2});
+                    }
+                },
+                error: function () {
+                    layer.close(loadIndex);
+                    layer.msg('搜索失败', {icon: 2});
+                }
+            });
         }
 
         // 刷新树
         util.event('lay-on', {
             reload: function () {
                 $("#searchInput").val('');
-                loadTreeData();
+                loadDatabaseList();
             }
         });
-        loadTreeData();
 
-        function filterTree(keyword) {
-            var filteredData = [];
-            if (keyword === '') {
-                filteredData = treeData;
-            } else {
-                function searchNodes(nodes) {
-                    return nodes.reduce((acc, node) => {
-                        if (node.title.toLowerCase().includes(keyword.toLowerCase())) {
-                            acc.push({...node});
-                        } else if (node.children && node.children.length > 0) {
-                            const children = searchNodes(node.children);
-                            if (children.length > 0) {
-                                acc.push({...node, children: children});
-                            }
-                        }
-                        return acc;
-                    }, []);
-                }
+        // 初始加载数据库列表
+        loadDatabaseList();
 
-                filteredData = searchNodes(treeData);
-            }
-            tree.reload('tree-id-1', {data: filteredData});
-        }
-
-
-        // Event listener for search input changes
+        // 搜索输入事件（延迟搜索，避免频繁请求）
         $('#searchInput').on('keyup', function () {
-            var keyword = $(this).val();
-            filterTree(keyword);
+            const keyword = $(this).val();
+            // 清除之前的定时器
+            if (searchTimer) {
+                clearTimeout(searchTimer);
+            }
+            // 延迟500ms后搜索
+            searchTimer = setTimeout(function() {
+                searchFromBackend(keyword);
+            }, 500);
         });
 
     });

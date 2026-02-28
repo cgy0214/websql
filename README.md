@@ -1,4 +1,4 @@
-<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v4.0.4</h1>
+<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v4.0.5</h1>
 <h4 align="center">网页SQL管理工具，SQL执行、Text2Sql、ETL同步、动态数据源、SQL管理等功能 ——— 简约而不简单</h4>
 
 <p align="center">
@@ -18,35 +18,34 @@
 
 - [快速开始](https://gitee.com/boy_0214/websql/wikis/Home)
 
-> 注：学习测试请拉取 `master` 分支，`dev` 是开发分支，有很多特性并不稳定（在项目根目录执行 `git checkout master`）。
-
 开源不易，点个 star 鼓励一下吧！⭐
 
 ---
 
 ## 🔧 webSql 核心介绍
 
-**webSql** 支持动态配置 `多数据源`、`权限控制`、在线 `执行SQL`、`AI` Text2Sql、常用 `SQL文本实时获取`、`导出、打印` 结果集、可控的 `日志记录`、团队 `数据隔离`、`危险` SQL限制运行、生产环境 `数据` 同步、`OpenAPI`、ETL抽取、元数据查询、SQL生成、定时 `监测数据趋势` 告警功能；众多功能集一身的 `SQL在线执行工具`。
+**webSql** 支持动态配置 `多数据源`、`权限控制`、在线 `执行SQL`、跨库 `查询`、数据`开发`、 AI` Text2Sql、常用 `SQL文本实时获取`、`导出、打印` 结果集、可控的 `日志记录`、团队 `数据隔离`、`危险` SQL限制运行、生产环境 `数据` 同步、`OpenAPI`、ETL抽取、元数据查询、SQL生成、定时 `监测数据趋势` 告警功能；众多功能集一身的 `SQL在线执行工具`。
 
 ---
 
 ## 🗄️ 支持的数据库产品
 
-| 数据库 | 适配度 | 功能描述 |
-|:------|:-----|:--------|
-| MySQL | ✅ | 支持所有功能 |
-| Oracle | ✅ | 支持所有功能 |
-| H2 | ✅ | 支持所有功能 |
-| PostgreSQL | ✅ | 支持所有功能 |
-| SQLite | ✅ | 支持所有功能 |
-| SQL Server | ✅ | 不支持元数据 |
-| 达梦数据库 | ✅ | 支持所有功能 |
-| Doris | ✅ | 支持所有功能 |
-| TiDB | ✅ | 支持所有功能 |
-| ClickHouse | ✅ | 支持所有功能 |
-| OceanBase | ✅ | 支持所有功能 |
+| 数据库            | 适配度 | 功能描述 |
+|:---------------|:-----|:--------|
+| MySQL          | ✅ | 支持所有功能 |
+| Oracle         | ✅ | 支持所有功能 |
+| H2             | ✅ | 支持所有功能 |
+| PostgreSQL     | ✅ | 支持所有功能 |
+| SQLite         | ✅ | 支持所有功能 |
+| SQL Server     | ✅ | 不支持元数据 |
+| 达梦数据库          | ✅ | 支持所有功能 |
+| Doris          | ✅ | 支持所有功能 |
+| TiDB           | ✅ | 支持所有功能 |
+| ClickHouse     | ✅ | 支持所有功能 |
+| OceanBase      | ✅ | 支持所有功能 |
+| 自定义数据源         | 部分 | 不支持元数据 |
 | 人大金仓 Kingbase8 | 部分 | 不支持元数据 |
-| 神州通用 Oscar | 部分 | 不支持元数据 |
+| 神州通用 Oscar     | 部分 | 不支持元数据 |
 | 阿里云 MaxCompute | 部分 | 不支持元数据 |
 
 ---
@@ -80,6 +79,7 @@ WebSql 主要功能模块：
 - **监测管理** —— 不同团队自定义SQL，定时执行数据监测，达到阈值自定义告警通知
 - **参数设置** —— 参数设置中可以操作更多细致化控制
 - **OpenAPI** —— 支持HTTP调用系统接口形式执行SQL动作 [<a href='https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7884992&doc_id=3405209'>查看示例</a>]
+- **枢易方舟** —— 实现多源、跨库数据无缝接入,数据开发
 - **开箱即用** —— 提供jar、docker镜像，内置H2数据库，一条命令即可启动，真正的开箱即用
 
 ---
@@ -105,13 +105,10 @@ nohup java -jar websql.jar >> web.log &
 ### Docker部署
 
 ```bash
-# 拉取镜像（如果pull失败，可以加群寻找国内镜像地址）
 docker pull registry.cn-beijing.aliyuncs.com/cgycms/websql:latest
 
-# 运行容器
 docker run -di --name websql -p 80:80 cgycms/websql:latest
 
-# 查看日志
 docker logs websql
 ```
 
@@ -143,13 +140,10 @@ docker logs websql
 - **聚焦大数据开发平台基础架构**  
   优化核心框架，提升稳定性与扩展性，支撑更高效的海量数据开发流程。
 
-- **构建异构数据集成与处理平台**  
-  实现多源、多类型数据的无缝接入与统一处理，打破传统困境，提升数据融合能力。
-
 - **整合轻量级数据可视化平台**  
   提供简洁、直观的数据展示与交互功能，助力快速洞察数据价值。
 
-始终秉持 **“简约而不简单”** 的理念，聚焦大数据开发领域，追求功能简洁、体验流畅、易用可靠。
+始终秉持 **"简约而不简单"** 的理念，聚焦大数据开发领域，追求功能简洁、体验流畅、易用可靠。
 
 欢迎参与贡献，共同打造一个实用, 高效的开源数据产品。
 

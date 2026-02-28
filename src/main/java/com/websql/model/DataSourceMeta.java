@@ -34,6 +34,8 @@ public class DataSourceMeta {
 
     private String dataSourceKey;
 
+    private String sourceIdentifier;
+
     private String databaseName;
 
     private String tableType;

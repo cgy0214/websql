@@ -4,6 +4,7 @@ package com.websql.task;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.cron.CronUtil;
 import cn.hutool.cron.task.Task;
+import com.websql.model.BigDataTaskModel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -79,6 +80,12 @@ public class ScheduleUtils {
         removeTask(taskId, "TIMING", false);
     }
 
+    /**
+     * 监测任务
+     * @param cron 定时
+     * @param taskId 任务id
+     * @param taskName 任务名称
+     */
     public static void addDetectionTask(String cron, Long taskId, String taskName) {
         DetectionJobFactory detectionJobFactory = new DetectionJobFactory(taskId, taskName);
         addTask(taskId, cron, detectionJobFactory, "DETECTION");
@@ -86,6 +93,23 @@ public class ScheduleUtils {
 
     public static void removeDetectionTask(Long taskId) {
         removeTask(taskId, "DETECTION", false);
+    }
+
+    /**
+     * 创建枢易方舟作业任务
+     * @param bigDataTaskModel 任务参数
+     */
+    public static void addBigDataTask(BigDataTaskModel bigDataTaskModel) {
+        BigDataJobFactory detectionJobFactory = new BigDataJobFactory(bigDataTaskModel);
+        addTask(bigDataTaskModel.getId(), bigDataTaskModel.getCron(), detectionJobFactory, "BIGDATA");
+    }
+
+    /**
+     * 删除枢易方舟作业任务
+     * @param taskId
+     */
+    public static void removeBigDataTask(Long taskId) {
+        removeTask(taskId, "BIGDATA", false);
     }
 
 

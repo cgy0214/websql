@@ -1,6 +1,5 @@
 package com.websql.config;
 
-import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.websql.model.DataSourceIndexMeta;
@@ -22,7 +21,31 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JdbcUtils {
 
-    public static Map<String, Object> updateByPreparedStatement(String sourceKey, String sql, List<Object> params) {
+    public static List<Map<String, Object>> executeQuery(Connection connection, String sql) throws SQLException {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            int columnCount = metaData.getColumnCount();
+            List<String> columnNames = new ArrayList<>();
+            for (int i = 1; i <= columnCount; i++) {
+                columnNames.add(metaData.getColumnLabel(i));
+            }
+
+            while (resultSet.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                for (String columnName : columnNames) {
+                    Object value = resultSet.getObject(columnName);
+                    row.put(columnName, value);
+                }
+                resultList.add(row);
+            }
+        }
+        return resultList;
+    }
+
+    public static Map<String, Object> updateByPreparedStatement(String sourceKey, String sql, List<?> params) {
         Map<String, Object> map = new HashMap<>(4);
         map.put("code", "1");
         map.put("msg", "执行成功");
@@ -422,19 +445,66 @@ public class JdbcUtils {
         }
         return keysMetas;
     }
-    
+
+    /**
+     * 批量插入数据
+     *
+     * @param sql  带参数的INSERT SQL语句
+     * @param data 要插入的数据列表，每个元素是一个Map，key为列名，value为值
+     * @return 插入成功的记录数
+     * @throws SQLException
+     */
+    public static int batchInsert(String sourceKey, String sql, List<Map<String, Object>> data) throws SQLException {
+        if (data == null || data.isEmpty()) {
+            return 0;
+        }
+        Connection connection = JdbcUtils.getConnections(sourceKey);
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement(sql);
+            Map<String, Object> firstRow = data.get(0);
+            List<String> columnNames = new ArrayList<>(firstRow.keySet());
+
+            for (Map<String, Object> row : data) {
+                for (int i = 0; i < columnNames.size(); i++) {
+                    String columnName = columnNames.get(i);
+                    Object value = row.get(columnName);
+                    if ("".equals(value)) {
+                        value = null;
+                    }
+                    pstmt.setObject(i + 1, value);
+                }
+                pstmt.addBatch();
+            }
+            int[] results = pstmt.executeBatch();
+            int successCount = 0;
+            for (int result : results) {
+                if (result >= 0) {
+                    successCount++;
+                }
+            }
+            return successCount;
+        } catch (Exception e) {
+            logErrorWithDetails(sql, e);
+        } finally {
+            releaseConn(null, pstmt, connection);
+        }
+        return 0;
+    }
+
     /**
      * SQL执行错误信息
-     * 
+     *
      * @param sql 执行的SQL语句
-     * @param e 异常对象
+     * @param e   异常对象
      */
     private static void logErrorWithDetails(String sql, Exception e) {
         log.error("\n==================== SQL执行失败 ====================\n" +
-                 "【原始语句】 {}\n\n" +
-                 "【错误信息】 {}\n\n" +
-                 "【异常类型】 {}\n" +
-                 "=====================================================", 
-                 sql, e.getMessage(), e.getClass().getName());
+                        "【原始语句】 {}\n\n" +
+                        "【错误信息】 {}\n\n" +
+                        "【异常类型】 {}\n" +
+                        "=====================================================",
+                sql, e.getMessage(), e.getClass().getName());
+        throw new RuntimeException(e);
     }
 }

@@ -96,7 +96,9 @@ public class DbSourceServiceImpl implements DbSourceService {
             SysDriverConfig type = driverConfigMap.get(dataSourceModel.getDriverClass());
             if (ObjectUtil.isNotNull(type)) {
                 dataSourceModel.setDriverTypeName(type.getTypeName());
-                dataSourceModel.setDruidFilterType(type.getDruidFilterType());
+                if (ObjectUtil.isEmpty(dataSourceModel.getDruidFilterType())) {
+                    dataSourceModel.setDruidFilterType(type.getDruidFilterType());
+                }
             }
         });
         return dataSourceModels;
@@ -252,7 +254,7 @@ public class DbSourceServiceImpl implements DbSourceService {
                 vo.setExecuteType(sqlParserVo.getMethodType());
                 vo.setParserSql(sqlParserVo.getSqlContent());
                 vo.setDataBaseKey(sql.getDataBaseName());
-                if (SqlParserHandler.SELECT.equals(sqlParserVo.getMethodType())) {
+                if (SqlOperationType.SELECT.getCode().equals(sqlParserVo.getMethodType())) {
                     Map<String, Object> moreResult = JdbcUtils.findMoreResult(sql.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());
                     vo.setData(moreResult.get("data"));
                     vo.setStatus(Integer.parseInt(moreResult.get("code").toString()));
@@ -362,10 +364,11 @@ public class DbSourceServiceImpl implements DbSourceService {
                 if (ObjectUtil.notEqual("有效", dataSourceModel.getDbState())) {
                     break;
                 }
-                Map<String, String> item = new HashMap<>(3);
+                Map<String, String> item = new HashMap<>(4);
                 item.put("code", dataSourceModel.getDbName());
                 item.put("value", dataSourceModel.getDbName());
                 item.put("id", dataSourceModel.getId().toString());
+                item.put("sourceIdentifier", dataSourceModel.getSourceIdentifier());
                 item.put("select", "false");
                 dataSourceList.add(item);
             }
@@ -723,12 +726,14 @@ public class DbSourceServiceImpl implements DbSourceService {
             Map<String, Object> tableMap = (Map<String, Object>) table.getData();
             List<MetaTreeTable> tableList = new ArrayList<>();
             int tableCount = tableMap.size();
+            String sourceIdentifier = database.getTableMeta() != null ? database.getTableMeta().getSourceIdentifier() : null;
             tableMap.forEach((k, v) -> {
                 AjaxResult tableField = this.findMetaTable(database.getTitle(), k);
                 DataSourceMeta tableFieldData = (DataSourceMeta) tableField.getData();
                 if (ObjectUtil.isNotNull(tableFieldData)) {
                     DataSourceMeta item = new DataSourceMeta();
                     BeanUtil.copyProperties(tableFieldData, item);
+                    item.setSourceIdentifier(sourceIdentifier);
                     tableList.add(createTableNode(item, tableCount));
                 }
             });
@@ -742,6 +747,10 @@ public class DbSourceServiceImpl implements DbSourceService {
                 item.setTablesMetaList(null);
                 item.setTableComment(null);
                 item.setTableName(null);
+                // 保留sourceIdentifier
+                if (database.getTableMeta() != null) {
+                    item.setSourceIdentifier(database.getTableMeta().getSourceIdentifier());
+                }
                 database.setTableCount(metaTreeTable.getTableCount());
                 database.setTableMeta(item);
             }
@@ -755,6 +764,11 @@ public class DbSourceServiceImpl implements DbSourceService {
         metaTreeTable.setId(item.get("id"));
         metaTreeTable.setTitle(item.get("value"));
         metaTreeTable.setField("database");
+        // 在tableMeta中保存sourceIdentifier
+        DataSourceMeta meta = new DataSourceMeta();
+        meta.setSourceIdentifier(item.get("sourceIdentifier"));
+        meta.setDataSourceKey(item.get("value"));
+        metaTreeTable.setTableMeta(meta);
         return metaTreeTable;
     }
 
@@ -784,5 +798,123 @@ public class DbSourceServiceImpl implements DbSourceService {
         field.setId(fieldMeta.getColumnName());
         field.setDisabled(true);
         return field;
+    }
+
+    @Override
+    public List<MetaTreeTable> metaDatabaseList() {
+        List<MetaTreeTable> resultList = new ArrayList<>();
+        List<Map<String, String>> databaseList = this.dbsourceSqlList(null);
+        if (databaseList == null || databaseList.isEmpty()) {
+            return resultList;
+        }
+        for (Map<String, String> item : databaseList) {
+            MetaTreeTable metaTreeTable = createDataSourceNode(item);
+            // 设置为未展开状态，子节点将异步加载
+            metaTreeTable.setChildren(null);
+            resultList.add(metaTreeTable);
+        }
+        return resultList;
+    }
+
+    @Override
+    public List<MetaTreeTable> metaTableListByDatabase(String database) {
+        List<MetaTreeTable> tableList = new ArrayList<>();
+        AjaxResult table = findTableField(database);
+        if (ObjectUtil.notEqual(table.getCode(), 200)) {
+            return tableList;
+        }
+        Map<String, Object> tableMap = (Map<String, Object>) table.getData();
+        int tableCount = tableMap.size();
+        // 获取数据库信息用于获取sourceIdentifier
+        List<Map<String, String>> databaseList = this.dbsourceSqlList(null);
+        String sourceIdentifier = null;
+        for (Map<String, String> item : databaseList) {
+            if (database.equals(item.get("value"))) {
+                sourceIdentifier = item.get("sourceIdentifier");
+                break;
+            }
+        }
+        String finalSourceIdentifier = sourceIdentifier;
+        tableMap.forEach((k, v) -> {
+            AjaxResult tableField = this.findMetaTable(database, k);
+            DataSourceMeta tableFieldData = (DataSourceMeta) tableField.getData();
+            if (ObjectUtil.isNotNull(tableFieldData)) {
+                DataSourceMeta item = new DataSourceMeta();
+                BeanUtil.copyProperties(tableFieldData, item);
+                item.setSourceIdentifier(finalSourceIdentifier);
+                tableList.add(createTableNode(item, tableCount));
+            }
+        });
+        return tableList;
+    }
+
+    @Override
+    public List<MetaTreeTable> searchMetaTree(String keyword) {
+        List<MetaTreeTable> resultList = new ArrayList<>();
+        if (ObjectUtil.isEmpty(keyword)) {
+            return metaDatabaseList();
+        }
+        String lowerKeyword = keyword.toLowerCase();
+        List<Map<String, String>> databaseList = this.dbsourceSqlList(null);
+        if (databaseList == null || databaseList.isEmpty()) {
+            return resultList;
+        }
+        for (Map<String, String> dbItem : databaseList) {
+            String dbName = dbItem.get("value");
+            boolean dbMatch = dbName.toLowerCase().contains(lowerKeyword);
+            MetaTreeTable dbNode = createDataSourceNode(dbItem);
+            // 获取该数据库下的表
+            AjaxResult table = findTableField(dbName);
+            if (ObjectUtil.notEqual(table.getCode(), 200)) {
+                if (dbMatch) {
+                    dbNode.setChildren(null);
+                    resultList.add(dbNode);
+                }
+                continue;
+            }
+            Map<String, Object> tableMap = (Map<String, Object>) table.getData();
+            int tableCount = tableMap.size();
+            String sourceIdentifier = dbItem.get("sourceIdentifier");
+            List<MetaTreeTable> matchedTables = new ArrayList<>();
+            for (String tableName : tableMap.keySet()) {
+                boolean tableMatch = tableName.toLowerCase().contains(lowerKeyword);
+                if (tableMatch || dbMatch) {
+                    AjaxResult tableField = this.findMetaTable(dbName, tableName);
+                    DataSourceMeta tableFieldData = (DataSourceMeta) tableField.getData();
+                    if (ObjectUtil.isNotNull(tableFieldData)) {
+                        DataSourceMeta item = new DataSourceMeta();
+                        BeanUtil.copyProperties(tableFieldData, item);
+                        item.setSourceIdentifier(sourceIdentifier);
+                        MetaTreeTable tableNode = createTableNode(item, tableCount);
+                        // 如果是表名匹配，添加到结果
+                        if (tableMatch) {
+                            matchedTables.add(tableNode);
+                        } else if (dbMatch) {
+                            matchedTables.add(tableNode);
+                        }
+                    }
+                }
+            }
+            // 如果数据库匹配或有匹配的表，则添加数据库节点
+            if (dbMatch || !matchedTables.isEmpty()) {
+                if (!matchedTables.isEmpty()) {
+                    MetaTreeTable firstTable = matchedTables.get(0);
+                    DataSourceMeta tableMeta = firstTable.getTableMeta();
+                    DataSourceMeta dbMeta = new DataSourceMeta();
+                    BeanUtil.copyProperties(tableMeta, dbMeta);
+                    dbMeta.setTablesKeysMetaList(null);
+                    dbMeta.setTablesIndexMetaList(null);
+                    dbMeta.setTablesMetaList(null);
+                    dbMeta.setTableComment(null);
+                    dbMeta.setTableName(null);
+                    dbMeta.setSourceIdentifier(sourceIdentifier);
+                    dbNode.setTableMeta(dbMeta);
+                    dbNode.setTableCount(tableCount);
+                }
+                dbNode.setChildren(matchedTables);
+                resultList.add(dbNode);
+            }
+        }
+        return resultList;
     }
 }

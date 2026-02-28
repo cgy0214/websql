@@ -46,8 +46,8 @@ public class DataSourceFactory {
             removeDataSource(config.getDbName());
             ds = new DruidDataSource();
             ds.setDriverClassName(config.getDriverClass().trim());
-            ds.setUsername(config.getDbAccount().trim());
-            ds.setPassword(config.getDbPassword().trim());
+            ds.setUsername(config.getDbAccount() == null ? "" : config.getDbAccount().trim());
+            ds.setPassword(config.getDbPassword() == null ? "" : config.getDbPassword().trim());
             ds.setUrl(config.getDbUrl().trim());
             ds.setInitialSize(config.getInitialSize());
             ds.setMaxActive(config.getMaxActive());
@@ -80,6 +80,7 @@ public class DataSourceFactory {
                 ds.setAsyncInit(true);
                 ds.init();
                 DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
+                DATA_KEY_IDENTIFIER_MAP.put(config.getSourceIdentifier(), config.getDbName().trim());
                 index++;
             } catch (Exception e) {
                 log.error("数据源初始化失败:{},错误信息：{}", config.getDbName(), e.getMessage());
@@ -104,8 +105,8 @@ public class DataSourceFactory {
         }
         DruidDataSource ds = new DruidDataSource();
         ds.setDriverClassName(config.getDriverClass().trim());
-        ds.setUsername(config.getDbAccount().trim());
-        ds.setPassword(config.getDbPassword().trim());
+        ds.setUsername(config.getDbAccount() ==null ? "" : config.getDbAccount().trim());
+        ds.setPassword(config.getDbPassword() ==null ? "" : config.getDbPassword().trim());
         ds.setUrl(config.getDbUrl().trim());
         ds.setInitialSize(config.getInitialSize());
         ds.setMaxActive(config.getMaxActive());
@@ -121,6 +122,7 @@ public class DataSourceFactory {
         try {
             ds.init();
             DATA_SOURCE_MAP.put(config.getDbName().trim(), ds);
+            DATA_KEY_IDENTIFIER_MAP.put(config.getSourceIdentifier(), config.getDbName().trim());
         } catch (Exception e) {
             DruidDataSourceStatManager.removeDataSource(ds);
             throw new RuntimeException(e);
@@ -224,6 +226,31 @@ public class DataSourceFactory {
         }
         return null;
     }
+
+
+    /**
+     * 获取数据库名称
+      * @param sourceIdentifier 数据源标识
+     * @return
+     */
+    public static DruidDataSource getBigDataSource(String sourceIdentifier) {
+            String sourceKey = DATA_KEY_IDENTIFIER_MAP.get(sourceIdentifier);
+            if(sourceKey == null) {
+                return null;
+            }
+            return getDataSource(sourceKey);
+    }
+
+    /**
+     * 获取数据库映射名称
+     * @param sourceIdentifier
+     * @return
+     */
+    public static String getBigDataSourceKeyName(String sourceIdentifier) {
+        return DATA_KEY_IDENTIFIER_MAP.get(sourceIdentifier);
+    }
+
+
 
     /**
      * 获取数据库产品名称

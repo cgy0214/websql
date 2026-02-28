@@ -10,6 +10,7 @@ import com.alibaba.druid.sql.ast.statement.SQLSelectQueryBlock;
 import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
 import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
 import com.alibaba.druid.stat.TableStat;
+import com.websql.model.SqlOperationType;
 import com.websql.model.SqlParserVo;
 import com.websql.model.SysSetup;
 import com.websql.util.CacheUtils;
@@ -30,19 +31,15 @@ public class SqlParserHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SqlParserHandler.class);
 
-    public static final String SELECT = "SELECT";
-    public static final String INSERT = "INSERT";
-    public static final String DELETE = "DELETE";
-    public static final String UPDATE = "UPDATE";
-
 
     public static List<SqlParserVo> getParserVo(String databaseKey, String sql) {
         String type = DataSourceFactory.getDbType(databaseKey);
         if (ObjectUtil.isEmpty(type)) {
-            throw new RuntimeException(databaseKey+"未获取到数据库类型，请检查数据源连接或重试一次！");
+            throw new RuntimeException(databaseKey + "未获取到数据库类型，请检查数据源连接或重试一次！");
         }
         DbType dbType = DbType.of(type);
         List<SqlParserVo> resultList = new ArrayList<>();
+        //todo 需兼容doris
         List<SQLStatement> statements = SQLUtils.parseStatements(sql, dbType);
         for (SQLStatement statement : statements) {
             SchemaStatVisitor visitor = SQLUtils.createSchemaStatVisitor(dbType);
@@ -92,15 +89,15 @@ public class SqlParserHandler {
         }
         String name = statement.getClass().getName();
         if (name.contains("Insert")) {
-            return INSERT;
+            return SqlOperationType.INSERT.getCode();
         } else if (name.contains("Update")) {
-            return UPDATE;
+            return SqlOperationType.UPDATE.getCode();
         } else if (name.contains("Delete")) {
-            return DELETE;
+            return SqlOperationType.DELETE.getCode();
         } else if (name.contains("Create")) {
-            return UPDATE;
+            return SqlOperationType.UPDATE.getCode();
         } else {
-            return SELECT;
+            return SqlOperationType.SELECT.getCode();
         }
     }
 
@@ -137,7 +134,7 @@ public class SqlParserHandler {
                         }
                         return PagerUtils.limit(sql, getPageType(sqlSelectStatement.getDbType()), 0, limitMax);
                     } catch (Exception e) {
-                        logger.error("生成分页拦截SQL失败，不支持{}数据库类型,可以关闭分页拦截继续使用。", sqlSelectStatement.getDbType(),e);
+                        logger.error("生成分页拦截SQL失败，不支持{}数据库类型,可以关闭分页拦截继续使用。", sqlSelectStatement.getDbType(), e);
                     }
                 }
             }
