@@ -62,10 +62,14 @@
         </colgroup>
         <tbody>
         <tr>
-            <td><b>数据源</b></td>
-            <td>{{= d.dataSourceKey}}</td>
             <td><b>名称</b></td>
-            <td>{{= d.databaseName}}</td>
+            <td>
+                <span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText('{{= d.dataSourceKey}}')" title="点击复制">{{= d.dataSourceKey}}</span>
+            </td>
+            <td><b>标识</b></td>
+            <td>
+                <span style="cursor: pointer; color: #16baaa;" onclick="copyTableText('{{= d.sourceIdentifier}}')" title="点击复制数据源标识">{{= d.sourceIdentifier}}</span>
+            </td>
             <td><b>类型</b></td>
             <td>{{= d.productName}}</td>
             <td><b>版本</b></td>

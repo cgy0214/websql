@@ -52,4 +52,9 @@ public interface BigDataService {
      */
     void deleteTaskAll();
 
+    /**
+     * 删除所有实例
+     */
+    void deleteInstanceAll();
+
 }

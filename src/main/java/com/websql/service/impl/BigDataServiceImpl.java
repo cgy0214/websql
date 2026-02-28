@@ -24,6 +24,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -52,6 +53,9 @@ public class BigDataServiceImpl implements BigDataService {
         PageRequest pageRequest = PageRequest.of(model.getPage() - 1, model.getLimit());
         Specification<BigDataTaskModel> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+            if (ObjectUtil.isNotNull(model.getId())) {
+                predicates.add(cb.equal(root.get("id"), model.getId()));
+            }
             if (ObjectUtil.isNotEmpty(model.getTaskName())) {
                 predicates.add(cb.like(root.get("taskName"), "%" + model.getTaskName() + "%"));
             }
@@ -60,7 +64,13 @@ public class BigDataServiceImpl implements BigDataService {
             }
             Long currentTeamId = StpUtils.getCurrentActiveTeam().getId();
             predicates.add(cb.equal(root.get("teamId"), currentTeamId));
-            query.orderBy(cb.desc(root.get("id")));
+            // 排序规则：已发布 > 未发布 > 草稿，然后按更新时间倒排序
+            Expression<Object> statusOrder = cb.selectCase()
+                    .when(cb.equal(root.get("status"), "已发布"), 1)
+                    .when(cb.equal(root.get("status"), "未发布"), 2)
+                    .when(cb.equal(root.get("status"), "草稿"), 3)
+                    .otherwise(4);
+            query.orderBy(cb.asc(statusOrder), cb.desc(root.get("updateTime")));
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         Page<BigDataTaskModel> all = bigDataTaskRepository.findAll(spec, pageRequest);
@@ -128,6 +138,9 @@ public class BigDataServiceImpl implements BigDataService {
         PageRequest pageRequest = PageRequest.of(model.getPage() - 1, model.getLimit());
         Specification<BigDataInstanceModel> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+            if (ObjectUtil.isNotNull(model.getTaskId())) {
+                predicates.add(cb.equal(root.get("taskId"), model.getTaskId()));
+            }
             if (ObjectUtil.isNotEmpty(model.getTaskName())) {
                 predicates.add(cb.like(root.get("taskName"), "%" + model.getTaskName() + "%"));
             }
@@ -204,6 +217,11 @@ public class BigDataServiceImpl implements BigDataService {
     @Override
     public void deleteTaskAll() {
         bigDataTaskRepository.deleteAll();
+        bigDataInstanceRepository.deleteAll();
+    }
+
+    @Override
+    public void deleteInstanceAll() {
         bigDataInstanceRepository.deleteAll();
     }
 

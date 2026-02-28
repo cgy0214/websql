@@ -11,6 +11,11 @@
     <div class="layui-panel">
         <div style="margin: 15px;">
             <div class="layui-form-item">
+                <label class="layui-form-label">任务ID:</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="id" id="id" placeholder="请输入任务ID" class="layui-input"
+                           lay-affix="clear">
+                </div>
                 <label class="layui-form-label">任务名称:</label>
                 <div class="layui-input-inline">
                     <input type="text" name="taskName" id="taskName" placeholder="请输入任务名称" class="layui-input"
@@ -65,7 +70,7 @@
             height: '525',
             cols: [
                 [
-                    {field: 'id', title: '主键', sort: true, fixed: true, width: '8%'},
+                    {field: 'id', title: '任务ID', sort: true, fixed: true, width: '8%'},
                     {field: 'taskName', title: '任务名称', sort: true, fixed: true, width: '25%', templet: function (d) {
                             return '<a href="#" lay-event="view" class="layui-table-link">' + d.taskName + '</a>'
                         }
@@ -92,11 +97,11 @@
             var data = obj.data;
             switch (obj.event) {
                 case 'view':
-                    var content = '<div style="padding: 20px;"><table class="layui-table"><tr><td>任务名称：</td><td>' + data.taskName + '</td></tr><tr><td>任务类型：</td><td>' + data.taskType + '</td></tr><tr><td>任务定时：</td><td>' + (data.cron || '') + '</td></tr><tr><td>下次执行：</td><td><button class="layui-btn layui-btn-xs layui-btn-normal" id="getNextTimeBtn" data-id="' + data.id + '">查询下次执行时间</button></td></tr><tr><td>任务描述：</td><td>' + (data.description || '') + '</td></tr><tr><td>状态：</td><td>' + data.status + '</td></tr><tr><td>创建人：</td><td>' + data.createUser + '</td></tr><tr><td>创建时间：</td><td>' + data.createTime + '</td></tr><tr><td>更新人：</td><td>' + data.updateUser + '</td></tr><tr><td>更新时间：</td><td>' + data.updateTime + '</td></tr><tr><td>发布/撤回人：</td><td>' + (data.releaseUser || '') + '</td></tr><tr><td>发布/撤回时间：</td><td>' + (data.releaseTime || '')  + '</td></tr></table></div>';
+                    var content = '<div style="padding: 10px;"><table class="layui-table"><tr><td>任务名称：</td><td>' + data.taskName + '</td></tr><tr><td>任务类型：</td><td>' + data.taskType + '</td></tr><tr><td>任务定时：</td><td>' + (data.cron || '') + '</td></tr><tr><td>下次执行：</td><td><button class="layui-btn layui-btn-xs layui-btn-normal" id="getNextTimeBtn" data-id="' + data.id + '">查询下次执行时间</button></td></tr><tr><td>任务描述：</td><td>' + (data.description || '') + '</td></tr><tr><td>状态：</td><td>' + data.status + '</td></tr><tr><td>创建人：</td><td>' + data.createUser + '</td></tr><tr><td>创建时间：</td><td>' + data.createTime + '</td></tr><tr><td>更新人：</td><td>' + data.updateUser + '</td></tr><tr><td>更新时间：</td><td>' + data.updateTime + '</td></tr><tr><td>发布/撤回人：</td><td>' + (data.releaseUser || '') + '</td></tr><tr><td>发布/撤回时间：</td><td>' + (data.releaseTime || '')  + '</td></tr></table></div>';
                     layer.open({
                         type: 1,
                         title: '查看任务详情',
-                        area: ['750px', '550px'],
+                        area: ['750px', '570px'],
                         content: content,
                         success: function() {
                             $('#getNextTimeBtn').on('click', function() {

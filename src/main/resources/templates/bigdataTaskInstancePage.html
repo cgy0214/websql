@@ -11,6 +11,11 @@
     <div class="layui-panel">
         <div style="margin: 15px;">
             <div class="layui-form-item">
+                <label class="layui-form-label">任务ID:</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="taskId" id="taskId" placeholder="请输入任务ID" class="layui-input"
+                           lay-affix="clear">
+                </div>
                 <label class="layui-form-label">任务名称:</label>
                 <div class="layui-input-inline">
                     <input type="text" name="taskName" id="taskName" placeholder="请输入任务名称" class="layui-input"
@@ -68,25 +73,36 @@
             page: true,
             height: '525',
             cols: [
-                    [
-                    {field: 'id', title: '主键', sort: true, width: '8%', fixed: true},
-                        {field: 'taskName', title: '任务名称', sort: true, width: '20%', fixed: true},
-                        {field: 'instanceStatus', title: '实例状态', sort: true, width: '10%', templet: function(d) {
-                                if (d.instanceStatus === '成功') {
-                                    return '<span style="color: green;">' + d.instanceStatus + '</span>';
-                                } else if (d.instanceStatus === '失败') {
-                                    return '<span style="color: red;">' + d.instanceStatus + '</span>';
-                                } else if (d.instanceStatus === '运行中') {
-                                    return '<span style="color: blue;">' + d.instanceStatus + '</span>';
-                                }
-                                return d.instanceStatus;
-                            }},
-                        {field: 'startTime', title: '开始时间', sort: true, width: '15%'},
-                        {field: 'endTime', title: '结束时间', sort: true, width: '15%'},
-                        {field: 'taskCreateUser', title: '任务创建人', sort: true, width: '10%'},
-                        {field: 'createTime', title: '创建时间', sort: true, width: '15%'},
-                        {fixed: 'right', title: '操作', width: '12%', toolbar: '#toolbarTable'}
-                    ]
+                [
+                    {
+                        field: 'taskName',
+                        title: '任务名称',
+                        sort: true,
+                        width: '25%',
+                        fixed: true,
+                        templet: function (d) {
+                            return '<a href="#" lay-event="viewTask" class="layui-table-link">' + d.taskName + '</a>'
+                        }
+                    },
+                    {field: 'id', title: '实例ID', sort: true, width: '8%'},
+                    {field: 'taskId', title: '任务ID', sort: true, width: '8%'},
+                    {
+                        field: 'instanceStatus', title: '实例状态', sort: true, width: '10%', templet: function (d) {
+                            if (d.instanceStatus === '成功') {
+                                return '<span style="color: green;">' + d.instanceStatus + '</span>';
+                            } else if (d.instanceStatus === '失败') {
+                                return '<span style="color: red;">' + d.instanceStatus + '</span>';
+                            } else if (d.instanceStatus === '运行中') {
+                                return '<span style="color: blue;">' + d.instanceStatus + '</span>';
+                            }
+                            return d.instanceStatus;
+                        }
+                    },
+                    {field: 'startTime', title: '开始时间', sort: true, width: '15%'},
+                    {field: 'endTime', title: '结束时间', sort: true, width: '15%'},
+                    {field: 'taskCreateUser', title: '任务创建人', sort: true, width: '10%'},
+                    {fixed: 'right', title: '操作', width: '8%', toolbar: '#toolbarTable'}
+                ]
             ],
             parseData: res => parseData(res)
         });
@@ -94,6 +110,24 @@
         table.on('tool(dataTable)', function (obj) {
             var data = obj.data;
             switch (obj.event) {
+                case 'viewTask':
+                    post(ctx + "bigdataManager/getTask/" + data.taskId, null, (res) => {
+                        if (res.code === 200 && res.data) {
+                            var taskData = res.data;
+                            var content = '<div style="padding: 10px;"><table class="layui-table"><tr><td>任务名称：</td><td>' + taskData.taskName + '</td></tr><tr><td>任务类型：</td><td>' + taskData.taskType + '</td></tr><tr><td>任务定时：</td><td>' + (taskData.cron || '') + '</td></tr><tr><td>任务描述：</td><td>' + (taskData.description || '') + '</td></tr><tr><td>状态：</td><td>' + taskData.status + '</td></tr><tr><td>创建人：</td><td>' + taskData.createUser + '</td></tr><tr><td>创建时间：</td><td>' + taskData.createTime + '</td></tr><tr><td>更新人：</td><td>' + taskData.updateUser + '</td></tr><tr><td>更新时间：</td><td>' + taskData.updateTime + '</td></tr><tr><td>发布/撤回人：</td><td>' + (taskData.releaseUser || '') + '</td></tr><tr><td>发布/撤回时间：</td><td>' + (taskData.releaseTime || '') + '</td></tr></table></div>';
+                            layer.open({
+                                type: 1,
+                                title: '查看任务详情',
+                                area: ['750px', '550px'],
+                                content: content,
+                                success: function () {
+                                }
+                            });
+                        } else {
+                            layer.msg('获取任务详情失败', {icon: 2});
+                        }
+                    });
+                    break;
                 case 'view':
                     layer.open({
                         type: 1,
@@ -120,7 +154,7 @@
                         icon: 3,
                         title: '确认删除',
                         btn: ['确认删除', '取消'],
-                        yes: function(index) {
+                        yes: function (index) {
                             post(ctx + "bigdataManager/deleteInstance/" + data.id, null, (res) => {
                                 layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
                                     if (res.code === 200) {

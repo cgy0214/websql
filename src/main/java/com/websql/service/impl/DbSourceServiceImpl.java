@@ -364,10 +364,11 @@ public class DbSourceServiceImpl implements DbSourceService {
                 if (ObjectUtil.notEqual("有效", dataSourceModel.getDbState())) {
                     break;
                 }
-                Map<String, String> item = new HashMap<>(3);
+                Map<String, String> item = new HashMap<>(4);
                 item.put("code", dataSourceModel.getDbName());
                 item.put("value", dataSourceModel.getDbName());
                 item.put("id", dataSourceModel.getId().toString());
+                item.put("sourceIdentifier", dataSourceModel.getSourceIdentifier());
                 item.put("select", "false");
                 dataSourceList.add(item);
             }
@@ -725,12 +726,14 @@ public class DbSourceServiceImpl implements DbSourceService {
             Map<String, Object> tableMap = (Map<String, Object>) table.getData();
             List<MetaTreeTable> tableList = new ArrayList<>();
             int tableCount = tableMap.size();
+            String sourceIdentifier = database.getTableMeta() != null ? database.getTableMeta().getSourceIdentifier() : null;
             tableMap.forEach((k, v) -> {
                 AjaxResult tableField = this.findMetaTable(database.getTitle(), k);
                 DataSourceMeta tableFieldData = (DataSourceMeta) tableField.getData();
                 if (ObjectUtil.isNotNull(tableFieldData)) {
                     DataSourceMeta item = new DataSourceMeta();
                     BeanUtil.copyProperties(tableFieldData, item);
+                    item.setSourceIdentifier(sourceIdentifier);
                     tableList.add(createTableNode(item, tableCount));
                 }
             });
@@ -744,6 +747,10 @@ public class DbSourceServiceImpl implements DbSourceService {
                 item.setTablesMetaList(null);
                 item.setTableComment(null);
                 item.setTableName(null);
+                // 保留sourceIdentifier
+                if (database.getTableMeta() != null) {
+                    item.setSourceIdentifier(database.getTableMeta().getSourceIdentifier());
+                }
                 database.setTableCount(metaTreeTable.getTableCount());
                 database.setTableMeta(item);
             }
@@ -757,6 +764,11 @@ public class DbSourceServiceImpl implements DbSourceService {
         metaTreeTable.setId(item.get("id"));
         metaTreeTable.setTitle(item.get("value"));
         metaTreeTable.setField("database");
+        // 在tableMeta中保存sourceIdentifier
+        DataSourceMeta meta = new DataSourceMeta();
+        meta.setSourceIdentifier(item.get("sourceIdentifier"));
+        meta.setDataSourceKey(item.get("value"));
+        metaTreeTable.setTableMeta(meta);
         return metaTreeTable;
     }
 

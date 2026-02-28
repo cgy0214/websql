@@ -107,6 +107,18 @@ public class BigDataManagerController {
         }
     }
 
+    @RequestMapping("/deleteInstanceAll")
+    @ResponseBody
+    public AjaxResult deleteInstanceAll() {
+        try {
+            bigDataService.deleteInstanceAll();
+            return AjaxResult.success("删除成功!");
+        } catch (Exception e) {
+            log.error("删除实例失败:{}", e.getMessage(), e);
+            return AjaxResult.error("删除失败:" + e.getMessage());
+        }
+    }
+
     @RequestMapping("/getTask/{id}")
     @ResponseBody
     public AjaxResult getTask(@PathVariable Long id) {

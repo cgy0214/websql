@@ -193,7 +193,8 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 "/bigdataManager/saveTaskContent",
                 "/bigdataManager/queryBigDataTemplateList",
                 "/bigdataManager/createDemoTask",
-                "/bigdataManager/execute"
+                "/bigdataManager/execute",
+                "/bigdataManager/getNextExecuteTime"
                 );
     }
 
