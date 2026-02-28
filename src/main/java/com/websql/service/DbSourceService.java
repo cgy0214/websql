@@ -76,4 +76,24 @@ public interface DbSourceService {
 
     List<MetaTreeTable> metaTreeTableList();
 
+    /**
+     * 获取数据库列表（只返回数据库节点，不加载表）
+     * @return 数据库节点列表
+     */
+    List<MetaTreeTable> metaDatabaseList();
+
+    /**
+     * 根据数据库名获取表列表
+     * @param database 数据库名
+     * @return 表节点列表
+     */
+    List<MetaTreeTable> metaTableListByDatabase(String database);
+
+    /**
+     * 搜索数据库和表（模糊搜索）
+     * @param keyword 搜索关键词
+     * @return 匹配的树节点列表
+     */
+    List<MetaTreeTable> searchMetaTree(String keyword);
+
 }

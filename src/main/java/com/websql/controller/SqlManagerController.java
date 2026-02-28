@@ -315,6 +315,44 @@ public class SqlManagerController {
         return AjaxResult.success(dbSourceService.metaTreeTableList());
     }
 
+    /**
+     * 获取数据库列表（只返回数据库节点，不加载表）
+     *
+     * @return
+     */
+    @RequestMapping("/metaDatabaseList")
+    @ResponseBody
+    public AjaxResult metaDatabaseList() {
+        return AjaxResult.success(dbSourceService.metaDatabaseList());
+    }
+
+    /**
+     * 根据数据库名获取表列表
+     *
+     * @param database 数据库名
+     * @return
+     */
+    @RequestMapping("/metaTableListByDatabase")
+    @ResponseBody
+    public AjaxResult metaTableListByDatabase(@RequestParam String database) {
+        if (ObjectUtil.isEmpty(database)) {
+            return AjaxResult.error("数据库名称不能为空!");
+        }
+        return AjaxResult.success(dbSourceService.metaTableListByDatabase(database));
+    }
+
+    /**
+     * 搜索数据库和表（模糊搜索）
+     *
+     * @param keyword 搜索关键词
+     * @return
+     */
+    @RequestMapping("/searchMetaTree")
+    @ResponseBody
+    public AjaxResult searchMetaTree(@RequestParam(required = false) String keyword) {
+        return AjaxResult.success(dbSourceService.searchMetaTree(keyword));
+    }
+
 
 }
 
