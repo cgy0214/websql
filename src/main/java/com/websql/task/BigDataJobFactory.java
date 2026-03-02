@@ -3,7 +3,7 @@ package com.websql.task;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.cron.task.Task;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.websql.model.BigDataInstanceModel;
 import com.websql.model.BigDataTaskModel;
 import com.websql.model.ExecuteResult;

@@ -4,7 +4,7 @@ import cn.hutool.core.codec.Base64Decoder;
 import cn.hutool.core.codec.Base64Encoder;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.cron.task.Task;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.websql.config.JdbcUtils;
 import com.websql.config.SqlParserHandler;
 import com.websql.model.JobLogs;

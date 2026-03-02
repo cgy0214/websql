@@ -36,3 +36,5 @@ build/
 .vscode-test/
 .trae/
 .qoder/
+.claude/
+.claude

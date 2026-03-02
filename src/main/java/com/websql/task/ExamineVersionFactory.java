@@ -6,7 +6,7 @@ import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.cron.task.Task;
 import cn.hutool.http.HttpUtil;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.websql.model.VersionModel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

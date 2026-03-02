@@ -9,7 +9,7 @@
     </parent>
     <groupId>com.websql</groupId>
     <artifactId>websql</artifactId>
-    <version>4.0.5</version>
+    <version>4.0.6</version>
     <name>webSql</name>
     <packaging>jar</packaging>
     <description>webSql project for Spring Boot</description>
@@ -28,11 +28,10 @@
         <hutool.version>5.8.26</hutool.version>
         <saToken.version>1.39.0</saToken.version>
         <easyCaptcha.version>1.6.2</easyCaptcha.version>
-        <fastjson.version>1.2.83</fastjson.version>
+        <fastjson2.version>2.0.53</fastjson2.version>
         <kingbase8.version>8.6.0</kingbase8.version>
         <DmDriver8.version>8.1.3.12</DmDriver8.version>
         <oscar.version>1.0</oscar.version>
-        <jsch.version>0.1.55</jsch.version>
         <postgresql.version>42.7.3</postgresql.version>
         <odps.version>3.5.6</odps.version>
         <easyexcel.version>4.0.3</easyexcel.version>
@@ -136,9 +135,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+            <version>${fastjson2.version}</version>
         </dependency>
 
         <dependency>
@@ -169,12 +168,6 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.jcraft</groupId>
-            <artifactId>jsch</artifactId>
-            <version>${jsch.version}</version>
         </dependency>
 
         <dependency>

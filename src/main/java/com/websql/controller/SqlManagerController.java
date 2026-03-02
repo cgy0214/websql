@@ -2,7 +2,7 @@ package com.websql.controller;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.websql.model.*;
 import com.websql.service.DbSourceService;
 import lombok.extern.slf4j.Slf4j;
