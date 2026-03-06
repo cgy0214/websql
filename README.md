@@ -104,11 +104,18 @@ nohup java -jar websql.jar >> web.log &
 
 ### Docker部署
 
+> 运行下面命令,拉取最新镜像并创建容器;参数可自行修改 📚 [开发文档](https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7676296&doc_id=3405209)
 ```bash
-docker pull registry.cn-beijing.aliyuncs.com/cgycms/websql:latest
-
-docker run -di --name websql -p 80:80 cgycms/websql:latest
-
+docker run -di \
+  -name websql \
+  -v Your Path:/websql/data \
+  -e H2_CONSOLE_ENABLED=true \
+  -e DRUID_ENABLED=true \
+  -e OPENAI_API_KEY=Your Key\
+  -p 80:80 \
+  registry.cn-beijing.aliyuncs.com/cgycms/websql:latest
+  
+  # 查看日志
 docker logs websql
 ```
 
