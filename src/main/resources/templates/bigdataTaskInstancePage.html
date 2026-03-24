@@ -132,7 +132,7 @@
                     layer.open({
                         type: 1,
                         title: '查看实例',
-                        area: ['800px', '600px'],
+                        area: ['800px', '680px'],
                         content: '<div style="padding: 20px;">' +
                             '<table class="layui-table" style="table-layout: fixed;">' +
                             '<colgroup><col width="120px"><col></colgroup>' +
@@ -141,12 +141,45 @@
                             '<tr><td>实例状态：</td><td>' + data.instanceStatus + '</td></tr>' +
                             '<tr><td>开始时间：</td><td>' + data.startTime + '</td></tr>' +
                             '<tr><td>结束时间：</td><td>' + data.endTime + '</td></tr>' +
+                            '<tr><td>AI总结：</td><td id="aiSummaryCell" style="word-wrap: break-word; white-space: normal;">' +
+                            '<button class="layui-btn layui-btn-normal layui-btn-xs" id="aiSummaryBtn">' +
+                            '<i class="layui-icon layui-icon-brain"></i> AI总结' +
+                            '</button>' +
+                            '<span id="aiSummaryResult" style="margin-left: 10px; color: #666;"></span>' +
+                            '</td></tr>' +
                             '<tr><td>执行SQL：</td><td><pre class="layui-code code-demo">' + (data.sqlContent || '') + '</pre></td></tr>' +
                             '<tr><td>执行结果：</td><td><pre class="layui-code code-demo">' + (data.executeResult || '') + '</pre></td></tr>' +
                             '<tr><td>错误信息：</td><td><pre class="layui-code code-demo">' + (data.errorMessage || '') + '</pre></td></tr>' +
                             '<tr><td>任务创建人：</td><td>' + data.taskCreateUser + '</td></tr>' +
                             '<tr><td>节点名称：</td><td>Master</td></tr>' +
-                            '</table></div>'
+                            '</table></div>',
+                        success: function (layero, index) {
+                            $('#aiSummaryBtn', layero).on('click', function () {
+                                var $resultSpan = $('#aiSummaryResult', layero);
+                                $resultSpan.text('AI总结中...');
+                                post(ctx + "bigdataManager/summarizeInstance", {
+                                    taskName: data.taskName,
+                                    instanceStatus: data.instanceStatus,
+                                    startTime: data.startTime,
+                                    endTime: data.endTime,
+                                    executeResult: data.executeResult,
+                                    sqlContent: data.sqlContent,
+                                    errorMessage: data.errorMessage
+                                }, function (res) {
+                                    if (res.code === 200 && res.data) {
+                                        var summaryText = res.data;
+                                        if (summaryText.startsWith('总结失败:')) {
+                                            summaryText = summaryText.replace('总结失败:', '');
+                                        }
+                                        $resultSpan.text(summaryText);
+                                    } else if (res.msg) {
+                                        $resultSpan.text(res.msg.replace(/^总结失败:/, ''));
+                                    } else {
+                                        $resultSpan.text('未获取到总结结果');
+                                    }
+                                });
+                            });
+                        }
                     });
                     break;
                 case 'delete':

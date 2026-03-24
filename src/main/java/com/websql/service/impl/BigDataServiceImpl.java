@@ -310,4 +310,202 @@ public class BigDataServiceImpl implements BigDataService {
 
         return results;
     }
+
+    @Override
+    public Map<String, Object> getTaskTrend(String startDate, String endDate, String taskId) {
+        Map<String, Object> result = new HashMap<>();
+        String currentUser = StpUtils.getCurrentUserName();
+        
+        Specification<BigDataTaskModel> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("createUser"), currentUser));
+            if (taskId != null && !taskId.isEmpty()) {
+                predicates.add(cb.equal(root.get("id"), Long.parseLong(taskId)));
+            }
+            if (startDate != null && !startDate.isEmpty()) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createTime"), startDate + " 00:00:00"));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createTime"), endDate + " 23:59:59"));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        
+        List<BigDataTaskModel> tasks = bigDataTaskRepository.findAll(spec);
+        
+        long publishedCount = tasks.stream().filter(t -> "已发布".equals(t.getStatus())).count();
+        long unpublishedCount = tasks.stream().filter(t -> "未发布".equals(t.getStatus())).count();
+        long draftCount = tasks.stream().filter(t -> "草稿".equals(t.getStatus())).count();
+        
+        result.put("statuses", Arrays.asList("已发布", "未发布", "草稿"));
+        result.put("counts", Arrays.asList(publishedCount, unpublishedCount, draftCount));
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getInstanceTrend(String startDate, String endDate, String groupBy, String taskId) {
+        Map<String, Object> result = new HashMap<>();
+        String currentUser = StpUtils.getCurrentUserName();
+        
+        Specification<BigDataInstanceModel> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("taskCreateUser"), currentUser));
+            if (taskId != null && !taskId.isEmpty()) {
+                predicates.add(cb.equal(root.get("taskId"), Long.parseLong(taskId)));
+            }
+            if (startDate != null && !startDate.isEmpty()) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createTime"), startDate + " 00:00:00"));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createTime"), endDate + " 23:59:59"));
+            }
+            query.orderBy(cb.asc(root.get("createTime")));
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        
+        List<BigDataInstanceModel> instances = bigDataInstanceRepository.findAll(spec);
+        
+        if ("hour".equals(groupBy)) {
+            Map<Integer, Long> hourCountMap = new HashMap<>();
+            
+            for (BigDataInstanceModel instance : instances) {
+                String createTime = instance.getCreateTime();
+                int spaceIdx = createTime.indexOf(" ");
+                if (spaceIdx > 0) {
+                    String timePart = createTime.substring(spaceIdx + 1);
+                    int colonIdx = timePart.indexOf(":");
+                    if (colonIdx > 0) {
+                        int hour = Integer.parseInt(timePart.substring(0, colonIdx));
+                        hourCountMap.put(hour, hourCountMap.getOrDefault(hour, 0L) + 1);
+                    }
+                }
+            }
+            
+            List<String> hours = new ArrayList<>();
+            List<Long> counts = new ArrayList<>();
+            
+            for (int i = 0; i < 24; i++) {
+                hours.add(String.format("%02d:00", i));
+                counts.add(hourCountMap.getOrDefault(i, 0L));
+            }
+            
+            result.put("dates", hours);
+            result.put("counts", counts);
+        } else {
+            Map<String, Long> dateCountMap = instances.stream()
+                .collect(Collectors.groupingBy(
+                    instance -> instance.getCreateTime().substring(0, 10),
+                    Collectors.counting()
+                ));
+            
+            List<String> dates = new ArrayList<>(dateCountMap.keySet());
+            Collections.sort(dates);
+            List<Long> counts = dates.stream().map(dateCountMap::get).collect(Collectors.toList());
+            
+            result.put("dates", dates);
+            result.put("counts", counts);
+        }
+        
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getInstanceStatusStats(String startDate, String endDate, String taskId) {
+        Map<String, Object> result = new HashMap<>();
+        String currentUser = StpUtils.getCurrentUserName();
+        
+        Specification<BigDataInstanceModel> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("taskCreateUser"), currentUser));
+            if (taskId != null && !taskId.isEmpty()) {
+                predicates.add(cb.equal(root.get("taskId"), Long.parseLong(taskId)));
+            }
+            if (startDate != null && !startDate.isEmpty()) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createTime"), startDate + " 00:00:00"));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createTime"), endDate + " 23:59:59"));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        
+        List<BigDataInstanceModel> instances = bigDataInstanceRepository.findAll(spec);
+        
+        Map<String, Long> statusCountMap = instances.stream()
+            .collect(Collectors.groupingBy(
+                BigDataInstanceModel::getInstanceStatus,
+                Collectors.counting()
+            ));
+        
+        List<String> statuses = Arrays.asList("成功", "失败", "运行中");
+        List<Long> counts = statuses.stream()
+            .map(status -> statusCountMap.getOrDefault(status, 0L))
+            .collect(Collectors.toList());
+        
+        result.put("statuses", statuses);
+        result.put("counts", counts);
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getTaskTimeDist(String startDate, String endDate, String taskId) {
+        Map<String, Object> result = new HashMap<>();
+        String currentUser = StpUtils.getCurrentUserName();
+        
+        Specification<BigDataInstanceModel> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("taskCreateUser"), currentUser));
+            if (taskId != null && !taskId.isEmpty()) {
+                predicates.add(cb.equal(root.get("taskId"), Long.parseLong(taskId)));
+            }
+            if (startDate != null && !startDate.isEmpty()) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createTime"), startDate + " 00:00:00"));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createTime"), endDate + " 23:59:59"));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        
+        List<BigDataInstanceModel> instances = bigDataInstanceRepository.findAll(spec);
+        
+        List<Map<String, Object>> items = new ArrayList<>();
+        long count0_10 = 0, count10_60 = 0, count60_300 = 0, count300plus = 0;
+        
+        for (BigDataInstanceModel instance : instances) {
+            if (instance.getStartTime() != null && instance.getEndTime() != null) {
+                try {
+                    long duration = (DateUtil.parse(instance.getEndTime()).getTime() - 
+                                   DateUtil.parse(instance.getStartTime()).getTime()) / 1000;
+                    if (duration < 10) count0_10++;
+                    else if (duration < 60) count10_60++;
+                    else if (duration < 300) count60_300++;
+                    else count300plus++;
+                } catch (Exception e) {}
+            }
+        }
+        
+        Map<String, Object> item1 = new HashMap<>();
+        item1.put("name", "0-10秒");
+        item1.put("value", count0_10);
+        items.add(item1);
+        
+        Map<String, Object> item2 = new HashMap<>();
+        item2.put("name", "10-60秒");
+        item2.put("value", count10_60);
+        items.add(item2);
+        
+        Map<String, Object> item3 = new HashMap<>();
+        item3.put("name", "1-5分钟");
+        item3.put("value", count60_300);
+        items.add(item3);
+        
+        Map<String, Object> item4 = new HashMap<>();
+        item4.put("name", "5分钟以上");
+        item4.put("value", count300plus);
+        items.add(item4);
+        
+        result.put("items", items);
+        return result;
+    }
 }

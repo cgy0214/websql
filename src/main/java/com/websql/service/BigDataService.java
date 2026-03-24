@@ -57,4 +57,24 @@ public interface BigDataService {
      */
     void deleteInstanceAll();
 
+    /**
+     * 获取任务创建趋势数据
+     */
+    Map<String, Object> getTaskTrend(String startDate, String endDate, String taskId);
+
+    /**
+     * 获取实例创建趋势数据
+     */
+    Map<String, Object> getInstanceTrend(String startDate, String endDate, String groupBy, String taskId);
+
+    /**
+     * 获取实例状态统计数据
+     */
+    Map<String, Object> getInstanceStatusStats(String startDate, String endDate, String taskId);
+
+    /**
+     * 获取任务执行时间分布数据
+     */
+    Map<String, Object> getTaskTimeDist(String startDate, String endDate, String taskId);
+
 }

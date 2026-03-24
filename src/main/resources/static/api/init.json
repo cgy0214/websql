@@ -136,6 +136,12 @@
                             "href": "bigdataManager/taskInstancePage",
                             "icon": "layui-icon",
                             "target": "_self"
+                        },
+                        {
+                            "title": "任务看板",
+                            "href": "bigdataManager/instanceDashboardPage",
+                            "icon": "layui-icon",
+                            "target": "_self"
                         }
                     ]
                 }

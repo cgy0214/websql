@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>实例看板</title>
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
+    <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <style>
+        .dashboard-container { padding: 15px; }
+        .chart-box {
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,.05);
+            transition: box-shadow 0.3s ease;
+        }
+        .chart-box:hover {
+            box-shadow: 0 4px 12px 0 rgba(0,0,0,.15);
+        }
+        .chart-title { font-size: 16px; font-weight: 500; margin-bottom: 15px; color: #333; }
+        .chart-item {
+            width: 100%;
+            height: 350px;
+        }
+        .chart-row {
+            display: flex;
+            gap: 15px;
+        }
+        .chart-row .chart-box {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <div class="chart-box">
+        <div class="layui-form">
+            <div class="layui-form-item" style="margin-bottom: 0;">
+                <label class="layui-form-label">日期范围:</label>
+                <div class="layui-input-inline" style="width: 150px;">
+                    <input type="text" id="startDate" class="layui-input" placeholder="开始日期">
+                </div>
+                <div class="layui-input-inline" style="width: 150px;">
+                    <input type="text" id="endDate" class="layui-input" placeholder="结束日期">
+                </div>
+                <label class="layui-form-label">任务:</label>
+                <div class="layui-input-inline" style="width: 250px;">
+                    <select name="taskId" id="taskId" lay-search="" lay-affix="clear"></select>
+                </div>
+                <div class="layui-input-inline">
+                    <button class="layui-btn layui-btn-primary layui-border-green search-btn" id="queryBtn">
+                        <i class="layui-icon layui-icon-search"></i> 查询
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="chart-box">
+        <div class="chart-title">任务统计</div>
+        <div id="taskTrendChart" class="chart-item"></div>
+    </div>
+    <div class="chart-box">
+        <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>实例统计</span>
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-xs" id="btnByDay" style="background-color: #1677ff;">按天</button>
+                <button class="layui-btn layui-btn-xs" id="btnByHour">按小时</button>
+            </div>
+        </div>
+        <div id="instanceTrendChart" class="chart-item"></div>
+    </div>
+    <div class="chart-row">
+        <div class="chart-box">
+            <div class="chart-title">实例状态</div>
+            <div id="statusChart" class="chart-item"></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">实例执行时间分布</div>
+            <div id="timeDistChart" class="chart-item"></div>
+        </div>
+    </div>
+</div>
+</body>
+<script th:src="@{/static/layui.js}"></script>
+<script th:src="@{/static/lay-config.js}"></script>
+<script th:src="@{/static/echarts.min.js}"></script>
+<script th:replace="~{base::ctx}"></script>
+<script>
+    layui.use(['jquery', 'layer', 'laydate', 'form', 'laySelect'], function () {
+        const $ = layui.jquery;
+        const layer = layui.layer;
+        const laydate = layui.laydate;
+        const form = layui.form;
+        const select = layui.laySelect;
+
+        const taskTrendChart = echarts.init(document.getElementById('taskTrendChart'));
+        const instanceTrendChart = echarts.init(document.getElementById('instanceTrendChart'));
+        const statusChart = echarts.init(document.getElementById('statusChart'));
+        const timeDistChart = echarts.init(document.getElementById('timeDistChart'));
+
+        let instanceGroupBy = 'day';
+
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+
+        const maxDate = new Date().toLocaleDateString();
+        
+        laydate.render({
+            elem: '#startDate',
+            value: thirtyDaysAgo,
+            max: maxDate,
+            done: function(value, date) {
+                if (value) {
+                    endDateInput.click();
+                }
+            }
+        });
+
+        laydate.render({
+            elem: '#endDate',
+            value: today,
+            max: maxDate,
+            done: function(value, date) {
+                if (value) {
+                    startDateInput.focus();
+                }
+            }
+        });
+
+        function getQueryParams() {
+            return {
+                startDate: $('#startDate').val(),
+                endDate: $('#endDate').val(),
+                groupBy: instanceGroupBy,
+                taskId: $('#taskId').val()
+            };
+        }
+        
+        // 加载任务列表
+        function loadTaskSelect() {
+            select.render({
+                elem: "#taskId",
+                url: ctx + 'bigdataManager/findDataList',
+                select: 10000,
+                title: '请选择任务',
+                format: function (data) {
+                    return parseSelectData(data);
+                },
+                onselect: function (data) {
+                    loadAllData();
+                }
+            });
+        }
+
+        function loadTaskTrend() {
+            post(ctx + 'bigdataManager/taskTrend', getQueryParams(), function (res) {
+                if (res.code === 200) {
+                    const data = res.data;
+                    taskTrendChart.setOption({
+                        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                        xAxis: { type: 'category', data: data.statuses },
+                        yAxis: { type: 'value', name: '任务数量' },
+                        series: [{
+                            name: '数量', type: 'bar', barWidth: '50%',
+                            itemStyle: {
+                                color: function(params) {
+                                    const colors = { '已发布': '#52c41a', '未发布': '#faad14', '草稿': '#d9d9d9' };
+                                    return colors[params.name] || '#1677ff';
+                                },
+                                borderRadius: [4, 4, 0, 0]
+                            },
+                            label: { show: true, position: 'top' },
+                            data: data.counts
+                        }]
+                    });
+                }
+            });
+        }
+
+        function loadInstanceTrend() {
+            post(ctx + 'bigdataManager/instanceTrend', getQueryParams(), function (res) {
+                if (res.code === 200) {
+                    const data = res.data;
+                    const xData = data.dates;
+                    const label = instanceGroupBy === 'hour' ? '每小时数量' : '实例数量';
+                    
+                    instanceTrendChart.setOption({
+                        tooltip: { trigger: 'axis' },
+                        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                        xAxis: { type: 'category', data: xData },
+                        yAxis: { type: 'value', name: label },
+                        series: [{
+                            name: label, type: 'line', smooth: true,
+                            areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(82, 196, 26, 0.3)' }, { offset: 1, color: 'rgba(82, 196, 26, 0.05)' }] } },
+                            itemStyle: { color: '#52c41a' },
+                            markLine: { data: [{ type: 'average', name: '平均值' }] },
+                            data: data.counts
+                        }]
+                    });
+                }
+            });
+        }
+
+        function loadInstanceStatus() {
+            post(ctx + 'bigdataManager/instanceStatus', getQueryParams(), function (res) {
+                if (res.code === 200) {
+                    const data = res.data;
+                    const {statuses, counts} = data;
+                    const items = statuses.map((status, index) => ({
+                        name: status,
+                        value: counts[index]
+                    }));
+                    statusChart.setOption({
+                        tooltip: { trigger: 'item' },
+                        legend: { bottom: '5%', left: 'center' },
+                        series: [{
+                            name: '实例状态',
+                            type: 'pie',
+                            radius: ['40%', '70%'],
+                            center: ['50%', '45%'],
+                            avoidLabelOverlap: false,
+                            itemStyle: { 
+                                borderRadius: 10, 
+                                borderColor: '#fff', 
+                                borderWidth: 2,
+                                color: function(params) {
+                                    const colors = { '成功': '#52c41a', '失败': '#ff4d4f', '运行中': '#1677ff' };
+                                    return colors[params.name] || '#1677ff';
+                                }
+                            },
+                            label: {
+                                show: true,
+                                formatter: '{b}: {c} ({d}%)',
+                                position: 'outside',
+                                alignTo: 'edge',
+                                edgeOffset: 10,
+                                distance: 15
+                            },
+                            labelLine: {
+                                show: true,
+                                length: 25,
+                                length2: 20,
+                                smooth: 0.5,
+                                maxSurfaceAngle: 80
+                            },
+                            data: items
+                        }]
+                    });
+                }
+            });
+        }
+
+        function loadTaskTimeDist() {
+            post(ctx + 'bigdataManager/taskTimeDist', getQueryParams(), function (res) {
+                if (res.code === 200) {
+                    const data = res.data;
+                    timeDistChart.setOption({
+                        tooltip: { trigger: 'item' },
+                        legend: { bottom: '5%', left: 'center' },
+                        series: [{
+                            name: '执行时间',
+                            type: 'pie',
+                            radius: ['40%', '70%'],
+                            center: ['50%', '45%'],
+                            avoidLabelOverlap: false,
+                            itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
+                            label: {
+                                show: true,
+                                formatter: '{b}: {c} ({d}%)',
+                                position: 'outside',
+                                alignTo: 'edge',
+                                edgeOffset: 10,
+                                distance: 15
+                            },
+                            labelLine: {
+                                show: true,
+                                length: 25,
+                                length2: 20,
+                                smooth: 0.5,
+                                maxSurfaceAngle: 80
+                            },
+                            data: data.items
+                        }]
+                    });
+                }
+            });
+        }
+
+        function loadAllData() {
+            loadTaskTrend();
+            loadInstanceTrend();
+            loadInstanceStatus();
+            loadTaskTimeDist();
+        }
+
+        $('#queryBtn').on('click', function() {
+            loadAllData();
+        });
+
+        $('#btnByDay').on('click', function() {
+            instanceGroupBy = 'day';
+            $('#btnByDay').css('background-color', '#1677ff');
+            $('#btnByHour').css('background-color', '');
+            loadInstanceTrend();
+        });
+
+        $('#btnByHour').on('click', function() {
+            instanceGroupBy = 'hour';
+            $('#btnByHour').css('background-color', '#1677ff');
+            $('#btnByDay').css('background-color', '');
+            loadInstanceTrend();
+        });
+
+        loadTaskSelect();
+        loadAllData();
+
+        window.addEventListener('resize', function () {
+            taskTrendChart.resize();
+            instanceTrendChart.resize();
+            statusChart.resize();
+            timeDistChart.resize();
+        });
+    });
+</script>
+</html>
