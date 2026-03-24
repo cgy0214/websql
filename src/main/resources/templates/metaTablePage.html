@@ -128,7 +128,7 @@
         <tbody>
         <tr>
             <td><b>表名称</b></td>
-            <td>{{= d.tableName}}</td>
+            <td><span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText('{{= d.tableName}}')" title="点击复制">{{= d.tableName}}</span></td>
             <td><b>表注释</b></td>
             <td>{{= d.tableComment}}</td>
             <td><b>字段数量</b></td>
