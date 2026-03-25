@@ -29,6 +29,15 @@
                         <option value="ETL">ETL任务</option>
                     </select>
                 </div>
+                <label class="layui-form-label">任务状态:</label>
+                <div class="layui-input-inline">
+                    <select name="status" id="status">
+                        <option value="">全部</option>
+                        <option value="草稿">草稿</option>
+                        <option value="未发布">未发布</option>
+                        <option value="已发布">已发布</option>
+                    </select>
+                </div>
                 <div class="layui-input-normal">
                     <button class="layui-btn layui-btn-primary layui-border-green search-btn" lay-submit id="search"
                             lay-filter="table-search">

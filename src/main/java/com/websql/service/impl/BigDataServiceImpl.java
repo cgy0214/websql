@@ -62,6 +62,9 @@ public class BigDataServiceImpl implements BigDataService {
             if (ObjectUtil.isNotEmpty(model.getTaskType())) {
                 predicates.add(cb.equal(root.get("taskType"), model.getTaskType()));
             }
+            if (ObjectUtil.isNotEmpty(model.getStatus())) {
+                predicates.add(cb.equal(root.get("status"), model.getStatus()));
+            }
             Long currentTeamId = StpUtils.getCurrentActiveTeam().getId();
             predicates.add(cb.equal(root.get("teamId"), currentTeamId));
             // 排序规则：已发布 > 未发布 > 草稿，然后按更新时间倒排序

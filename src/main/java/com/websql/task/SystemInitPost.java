@@ -61,7 +61,7 @@ public class SystemInitPost {
         initSystemConfig();
         initVersionCheck();
         initExcelClear();
-        initTimingTask();
+        //initTimingTask();
         initDetectionTask();
         initSseHeartBeat();
         initBigDataTask();
@@ -87,6 +87,7 @@ public class SystemInitPost {
     /**
      * 初始化作业任务，需要依赖数据源加载完成后执行。
      */
+    @Deprecated
     private void initTimingTask() {
         List<TimingVo> initList = timingService.queryTimingJobList(null);
         log.info("Successful initialization  {}  timerTask.", initList.size());
