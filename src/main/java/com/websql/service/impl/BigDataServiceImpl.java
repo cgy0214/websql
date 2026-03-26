@@ -28,6 +28,7 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -509,6 +510,71 @@ public class BigDataServiceImpl implements BigDataService {
         items.add(item4);
         
         result.put("items", items);
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getTaskInstanceTrend(String startDate, String endDate, String taskId) {
+        Map<String, Object> result = new HashMap<>();
+        String currentUser = StpUtils.getCurrentUserName();
+
+        List<String> dateList = new ArrayList<>();
+        if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
+            try {
+                LocalDate start = LocalDate.parse(startDate);
+                LocalDate end = LocalDate.parse(endDate);
+                while (!start.isAfter(end)) {
+                    dateList.add(start.toString());
+                    start = start.plusDays(1);
+                }
+            } catch (Exception e) {
+                LocalDate today = LocalDate.now();
+                for (int i = 30; i >= 0; i--) {
+                    dateList.add(today.minusDays(i).toString());
+                }
+            }
+        } else {
+            LocalDate today = LocalDate.now();
+            for (int i = 30; i >= 0; i--) {
+                dateList.add(today.minusDays(i).toString());
+            }
+        }
+
+        Specification<BigDataInstanceModel> instanceSpec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("taskCreateUser"), currentUser));
+            if (taskId != null && !taskId.isEmpty()) {
+                predicates.add(cb.equal(root.get("taskId"), Long.parseLong(taskId)));
+            }
+            if (startDate != null && !startDate.isEmpty()) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createTime"), startDate + " 00:00:00"));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createTime"), endDate + " 23:59:59"));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        List<BigDataInstanceModel> instances = bigDataInstanceRepository.findAll(instanceSpec);
+
+        Map<String, Set<Long>> taskIdsByDate = new HashMap<>();
+        Map<String, Long> instanceCountByDate = new HashMap<>();
+        for (BigDataInstanceModel instance : instances) {
+            String date = instance.getCreateTime().substring(0, 10);
+            instanceCountByDate.put(date, instanceCountByDate.getOrDefault(date, 0L) + 1);
+            taskIdsByDate.computeIfAbsent(date, k -> new HashSet<>()).add(instance.getTaskId());
+        }
+
+        List<Long> taskCounts = new ArrayList<>();
+        List<Long> instanceCounts = new ArrayList<>();
+        for (String date : dateList) {
+            Set<Long> taskIds = taskIdsByDate.get(date);
+            taskCounts.add(taskIds != null ? (long) taskIds.size() : 0L);
+            instanceCounts.add(instanceCountByDate.getOrDefault(date, 0L));
+        }
+
+        result.put("dates", dateList);
+        result.put("taskCounts", taskCounts);
+        result.put("instanceCounts", instanceCounts);
         return result;
     }
 }

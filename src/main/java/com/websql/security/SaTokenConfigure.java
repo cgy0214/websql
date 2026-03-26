@@ -203,6 +203,7 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 "/bigdataManager/instanceTrend",
                 "/bigdataManager/instanceStatus",
                 "/bigdataManager/taskTimeDist",
+                "/bigdataManager/taskInstanceTrend",
                 "/bigdataManager/summarizeInstance"
 
                 );

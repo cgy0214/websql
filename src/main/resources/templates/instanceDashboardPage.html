@@ -70,6 +70,10 @@
         </div>
         <div id="instanceTrendChart" class="chart-item"></div>
     </div>
+    <div class="chart-box">
+        <div class="chart-title">任务与实例趋势</div>
+        <div id="taskInstanceTrendChart" class="chart-item"></div>
+    </div>
     <div class="chart-row">
         <div class="chart-box">
             <div class="chart-title">实例状态</div>
@@ -98,6 +102,7 @@
         const instanceTrendChart = echarts.init(document.getElementById('instanceTrendChart'));
         const statusChart = echarts.init(document.getElementById('statusChart'));
         const timeDistChart = echarts.init(document.getElementById('timeDistChart'));
+        const taskInstanceTrendChart = echarts.init(document.getElementById('taskInstanceTrendChart'));
 
         let instanceGroupBy = 'day';
 
@@ -188,7 +193,7 @@
                 if (res.code === 200) {
                     const data = res.data;
                     const xData = data.dates;
-                    const label = instanceGroupBy === 'hour' ? '每小时数量' : '实例数量';
+                    const label = instanceGroupBy === 'hour' ? '实例数量' : '实例数量';
                     
                     instanceTrendChart.setOption({
                         tooltip: { trigger: 'axis' },
@@ -199,7 +204,6 @@
                             name: label, type: 'line', smooth: true,
                             areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(82, 196, 26, 0.3)' }, { offset: 1, color: 'rgba(82, 196, 26, 0.05)' }] } },
                             itemStyle: { color: '#52c41a' },
-                            markLine: { data: [{ type: 'average', name: '平均值' }] },
                             data: data.counts
                         }]
                     });
@@ -292,9 +296,37 @@
             });
         }
 
+        function loadTaskInstanceTrend() {
+            post(ctx + 'bigdataManager/taskInstanceTrend', getQueryParams(), function (res) {
+                if (res.code === 200) {
+                    const data = res.data;
+                    taskInstanceTrendChart.setOption({
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['任务数量', '实例数量'], bottom: '5%' },
+                        grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
+                        xAxis: { type: 'category', data: data.dates },
+                        yAxis: { type: 'value', name: '数量' },
+                        series: [
+                            {
+                                name: '任务数量', type: 'line', smooth: true,
+                                itemStyle: { color: '#722ed1' },
+                                data: data.taskCounts
+                            },
+                            {
+                                name: '实例数量', type: 'line', smooth: true,
+                                itemStyle: { color: '#13c2c2' },
+                                data: data.instanceCounts
+                            }
+                        ]
+                    });
+                }
+            });
+        }
+
         function loadAllData() {
             loadTaskTrend();
             loadInstanceTrend();
+            loadTaskInstanceTrend();
             loadInstanceStatus();
             loadTaskTimeDist();
         }
@@ -305,14 +337,14 @@
 
         $('#btnByDay').on('click', function() {
             instanceGroupBy = 'day';
-            $('#btnByDay').css('background-color', '#1677ff');
+            $('#btnByDay').css('background-color', '#16b77ff');
             $('#btnByHour').css('background-color', '');
             loadInstanceTrend();
         });
 
         $('#btnByHour').on('click', function() {
             instanceGroupBy = 'hour';
-            $('#btnByHour').css('background-color', '#1677ff');
+            $('#btnByHour').css('background-color', '#16b77ff');
             $('#btnByDay').css('background-color', '');
             loadInstanceTrend();
         });
@@ -323,6 +355,7 @@
         window.addEventListener('resize', function () {
             taskTrendChart.resize();
             instanceTrendChart.resize();
+            taskInstanceTrendChart.resize();
             statusChart.resize();
             timeDistChart.resize();
         });

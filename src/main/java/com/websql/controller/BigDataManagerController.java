@@ -109,6 +109,15 @@ public class BigDataManagerController {
         return AjaxResult.success(bigDataService.getTaskTimeDist(startDate, endDate, taskId));
     }
 
+    @RequestMapping("/taskInstanceTrend")
+    @ResponseBody
+    public AjaxResult taskInstanceTrend(@RequestBody(required = false) Map<String, String> params) {
+        String startDate = params != null ? params.get("startDate") : null;
+        String endDate = params != null ? params.get("endDate") : null;
+        String taskId = params != null ? params.get("taskId") : null;
+        return AjaxResult.success(bigDataService.getTaskInstanceTrend(startDate, endDate, taskId));
+    }
+
     @RequestMapping("/taskList")
     @ResponseBody
     public AjaxResult taskList(BigDataTaskModel model) {

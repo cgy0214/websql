@@ -77,4 +77,9 @@ public interface BigDataService {
      */
     Map<String, Object> getTaskTimeDist(String startDate, String endDate, String taskId);
 
+    /**
+     * 获取任务数量和实例数趋势数据(按天)
+     */
+    Map<String, Object> getTaskInstanceTrend(String startDate, String endDate, String taskId);
+
 }
