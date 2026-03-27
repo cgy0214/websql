@@ -341,8 +341,30 @@ public class BigDataServiceImpl implements BigDataService {
         long unpublishedCount = tasks.stream().filter(t -> "未发布".equals(t.getStatus())).count();
         long draftCount = tasks.stream().filter(t -> "草稿".equals(t.getStatus())).count();
         
+        Specification<BigDataInstanceModel> instanceSpec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("taskCreateUser"), currentUser));
+            if (taskId != null && !taskId.isEmpty()) {
+                predicates.add(cb.equal(root.get("taskId"), Long.parseLong(taskId)));
+            }
+            if (startDate != null && !startDate.isEmpty()) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createTime"), startDate + " 00:00:00"));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createTime"), endDate + " 23:59:59"));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        
+        List<BigDataInstanceModel> instances = bigDataInstanceRepository.findAll(instanceSpec);
+        
+        long successCount = instances.stream().filter(i -> "成功".equals(i.getInstanceStatus())).count();
+        long failedCount = instances.stream().filter(i -> "失败".equals(i.getInstanceStatus())).count();
+        
         result.put("statuses", Arrays.asList("已发布", "未发布", "草稿"));
         result.put("counts", Arrays.asList(publishedCount, unpublishedCount, draftCount));
+        result.put("instanceSuccessCount", successCount);
+        result.put("instanceFailedCount", failedCount);
         return result;
     }
 

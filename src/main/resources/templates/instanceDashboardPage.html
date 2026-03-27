@@ -6,7 +6,7 @@
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
     <style>
-        .dashboard-container { padding: 15px; }
+        .dashboard-container { padding: 15px; background: #f0f2f5; min-height: 100vh; }
         .chart-box {
             background: #fff;
             padding: 15px;
@@ -29,6 +29,27 @@
         }
         .chart-row .chart-box {
             flex: 1;
+        }
+        .task-stat-item {
+            flex: 1 0 15%;
+            border-radius: 8px;
+            padding: 12px 8px;
+            color: #fff;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 70px;
+        }
+        .task-stat-item .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .task-stat-item .stat-value {
+            font-size: 22px;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -56,9 +77,33 @@
             </div>
         </div>
     </div>
-    <div class="chart-box">
-        <div class="chart-title">任务统计</div>
-        <div id="taskTrendChart" class="chart-item"></div>
+    <div class="chart-box" style="padding: 12px 15px;">
+        <div style="display: flex; gap: 10px;" id="taskStatsContainer">
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #18b7ff, #00cc); flex: 1 0 15%;">
+                <div class="stat-label">任务全部</div>
+                <div class="stat-value" id="statAll">-</div>
+            </div>
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #52c41a, #237804); flex: 1 0 15%;">
+                <div class="stat-label">任务已发布</div>
+                <div class="stat-value" id="statPublished">-</div>
+            </div>
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #faad14, #d48806); flex: 1 0 15%;">
+                <div class="stat-label">任务未发布</div>
+                <div class="stat-value" id="statUnpublished">-</div>
+            </div>
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #bfbfbf, #8c8c8c); flex: 1 0 15%;">
+                <div class="stat-label">任务草稿</div>
+                <div class="stat-value" id="statDraft">-</div>
+            </div>
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #52c41a, #237804); flex: 1 0 15%;">
+                <div class="stat-label">实例运行成功</div>
+                <div class="stat-value" id="statInstanceSuccess">-</div>
+            </div>
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #ff4d4f, #cf1322); flex: 1 0 15%;">
+                <div class="stat-label">实例运行失败</div>
+                <div class="stat-value" id="statInstanceFailed">-</div>
+            </div>
+        </div>
     </div>
     <div class="chart-box">
         <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center;">
@@ -98,7 +143,30 @@
         const form = layui.form;
         const select = layui.laySelect;
 
-        const taskTrendChart = echarts.init(document.getElementById('taskTrendChart'));
+        function animateValue(element, end, duration) {
+            const start = 0;
+            const startTime = performance.now();
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const current = Math.floor(start + (end - start) * easeOut);
+                element.textContent = current;
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    element.textContent = end;
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        function animateElement(id, value) {
+            const el = document.getElementById(id);
+            if (el) animateValue(el, value, 1000);
+        }
+
+        //const taskTrendChart = echarts.init(document.getElementById('taskTrendChart'));
         const instanceTrendChart = echarts.init(document.getElementById('instanceTrendChart'));
         const statusChart = echarts.init(document.getElementById('statusChart'));
         const timeDistChart = echarts.init(document.getElementById('timeDistChart'));
@@ -163,27 +231,16 @@
         }
 
         function loadTaskTrend() {
-            post(ctx + 'bigdataManager/taskTrend', getQueryParams(), function (res) {
+            post(ctx + 'bigdataManager/taskTrend', {}, function (res) {
                 if (res.code === 200) {
                     const data = res.data;
-                    taskTrendChart.setOption({
-                        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-                        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-                        xAxis: { type: 'category', data: data.statuses },
-                        yAxis: { type: 'value', name: '任务数量' },
-                        series: [{
-                            name: '数量', type: 'bar', barWidth: '50%',
-                            itemStyle: {
-                                color: function(params) {
-                                    const colors = { '已发布': '#52c41a', '未发布': '#faad14', '草稿': '#d9d9d9' };
-                                    return colors[params.name] || '#1677ff';
-                                },
-                                borderRadius: [4, 4, 0, 0]
-                            },
-                            label: { show: true, position: 'top' },
-                            data: data.counts
-                        }]
-                    });
+                    const total = data.counts.reduce((a, b) => a + b, 0);
+                    animateElement('statAll', total);
+                    animateElement('statPublished', data.counts[0] || 0);
+                    animateElement('statUnpublished', data.counts[1] || 0);
+                    animateElement('statDraft', data.counts[2] || 0);
+                    animateElement('statInstanceSuccess', data.instanceSuccessCount || 0);
+                    animateElement('statInstanceFailed', data.instanceFailedCount || 0);
                 }
             });
         }
@@ -353,7 +410,7 @@
         loadAllData();
 
         window.addEventListener('resize', function () {
-            taskTrendChart.resize();
+            //taskTrendChart.resize();
             instanceTrendChart.resize();
             taskInstanceTrendChart.resize();
             statusChart.resize();
