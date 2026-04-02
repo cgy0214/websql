@@ -428,7 +428,16 @@ public class BigDataServiceImpl implements BigDataService {
             Collections.sort(dates);
             List<Long> counts = dates.stream().map(dateCountMap::get).collect(Collectors.toList());
             
-            result.put("dates", dates);
+            if (counts.isEmpty()) {
+                List<String> defaultDates = new ArrayList<>();
+                for (int i = 0; i < 30; i++) {
+                    defaultDates.add(DateUtil.format(DateUtil.offsetDay(new java.util.Date(), -i), "yyyy-MM-dd"));
+                }
+                counts = new ArrayList<>(Collections.nCopies(30, 0L));
+                result.put("dates", defaultDates);
+            } else {
+                result.put("dates", dates);
+            }
             result.put("counts", counts);
         }
         

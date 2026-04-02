@@ -95,7 +95,7 @@
                 <div class="stat-label">任务草稿</div>
                 <div class="stat-value" id="statDraft">-</div>
             </div>
-            <div class="task-stat-item" style="background: linear-gradient(135deg, #52c41a, #237804); flex: 1 0 15%;">
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #2c8345, #0b4e09); flex: 1 0 15%;">
                 <div class="stat-label">实例运行成功</div>
                 <div class="stat-value" id="statInstanceSuccess">-</div>
             </div>
@@ -249,9 +249,20 @@
             post(ctx + 'bigdataManager/instanceTrend', getQueryParams(), function (res) {
                 if (res.code === 200) {
                     const data = res.data;
-                    const xData = data.dates;
+                    let xData = data.dates;
                     const label = instanceGroupBy === 'hour' ? '实例数量' : '实例数量';
                     
+                    // If no data is returned, provide default values with 0 counts
+                    if (!data.counts || data.counts.length === 0) {
+                        const defaultDates = [];
+                        for (let i = 30; i >= 0; i--) {
+                            const date = new Date();
+                            date.setDate(date.getDate() - i);
+                            defaultDates.push(date.toLocaleDateString());
+                        }
+                        xData = defaultDates;
+                        data.counts = Array(30).fill(0);
+                    }
                     instanceTrendChart.setOption({
                         tooltip: { trigger: 'axis' },
                         grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
@@ -259,7 +270,10 @@
                         yAxis: { type: 'value', name: label },
                         series: [{
                             name: label, type: 'line', smooth: true,
-                            areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(82, 196, 26, 0.3)' }, { offset: 1, color: 'rgba(82, 196, 26, 0.05)' }] } },
+                            areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: 'rgba(82, 196, 26, 0.3)' },
+                                { offset: 1, color: 'rgba(82, 196, 26, 0.05)' }
+                            ]) },
                             itemStyle: { color: '#52c41a' },
                             data: data.counts
                         }]
@@ -394,14 +408,14 @@
 
         $('#btnByDay').on('click', function() {
             instanceGroupBy = 'day';
-            $('#btnByDay').css('background-color', '#16b77ff');
+            $('#btnByDay').css('background-color', '#167bff');
             $('#btnByHour').css('background-color', '');
             loadInstanceTrend();
         });
 
         $('#btnByHour').on('click', function() {
             instanceGroupBy = 'hour';
-            $('#btnByHour').css('background-color', '#16b77ff');
+            $('#btnByHour').css('background-color', '#167bff');
             $('#btnByDay').css('background-color', '');
             loadInstanceTrend();
         });
