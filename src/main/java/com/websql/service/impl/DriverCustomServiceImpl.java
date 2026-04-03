@@ -3,7 +3,7 @@ package com.websql.service.impl;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.websql.dao.SysDriverConfigRepository;
 import com.websql.model.*;
 import com.websql.service.DriverCustomService;

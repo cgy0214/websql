@@ -1,4 +1,4 @@
-<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v4.0.5</h1>
+<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">websql v4.0.6</h1>
 <h4 align="center">网页SQL管理工具，SQL执行、Text2Sql、ETL同步、动态数据源、SQL管理等功能 ——— 简约而不简单</h4>
 
 <p align="center">
@@ -72,14 +72,13 @@ WebSql 主要功能模块：
 
 - **数据源管理** —— 数据源动态配置多种数据库连接进行入池
 - **SQL管理** —— SQL窗口执行脚本，功能强大；SQL列表保存常用SQL文本
-- **ETL管理** —— 定时执行脚本，跨库同步数据结果并呈现；便捷执行计划ETL抽取，数据同步等
 - **日志管理** —— 执行脚本记录，登录系统会产生详细日志可供查询
 - **用户管理** —— 可新增不同用户，赋予不同操作权限登录系统使用
 - **团队管理** —— 不同团队之间，数据完全隔离，更细致的权限控制
 - **监测管理** —— 不同团队自定义SQL，定时执行数据监测，达到阈值自定义告警通知
 - **参数设置** —— 参数设置中可以操作更多细致化控制
 - **OpenAPI** —— 支持HTTP调用系统接口形式执行SQL动作 [<a href='https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7884992&doc_id=3405209'>查看示例</a>]
-- **枢易方舟** —— 实现多源、跨库数据无缝接入,数据开发
+- **枢易方舟** —— 实现多源、跨库的数据同步，支持定时ETL任务，并提供便捷的执行计划管理
 - **开箱即用** —— 提供jar、docker镜像，内置H2数据库，一条命令即可启动，真正的开箱即用
 
 ---
@@ -104,11 +103,18 @@ nohup java -jar websql.jar >> web.log &
 
 ### Docker部署
 
+> 运行下面命令,拉取最新镜像并创建容器;参数可自行修改 📚 [开发文档](https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7676296&doc_id=3405209)
 ```bash
-docker pull registry.cn-beijing.aliyuncs.com/cgycms/websql:latest
-
-docker run -di --name websql -p 80:80 cgycms/websql:latest
-
+docker run -di \
+  -name websql \
+  -v Your Path:/websql/data \
+  -e H2_CONSOLE_ENABLED=true \
+  -e DRUID_ENABLED=true \
+  -e OPENAI_API_KEY=Your Key\
+  -p 80:80 \
+  registry.cn-beijing.aliyuncs.com/cgycms/websql:latest
+  
+  # 查看日志
 docker logs websql
 ```
 

@@ -1,6 +1,7 @@
 package com.websql.service;
 
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 /**
  * AI文本转SQL服务接口
  * <p>
@@ -9,23 +10,31 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * </p>
  *
  * @author rabbit boy_0214@sina.com
- * @since 2025/11/04
  * @see SseEmitter
+ * @since 2025/11/04
  */
 
 public interface Text2SqlAdvancedService {
 
-    SseEmitter streamAnswer(String databaseName,String table,String text);
-    
+    SseEmitter streamAnswer(String databaseName, String table, String text);
+
     /**
      * 清除指定用户的聊天历史
      *
      * @param userId 用户ID
      */
     void clearUserChatHistory(String userId);
-    
+
     /**
      * 清除当前用户的聊天历史
      */
     void clearCurrentUserChatHistory();
+
+    /**
+     * AI总结任务实例信息
+     *
+     * @return 一句话总结
+     */
+    String summarizeInstance(String taskName, String instanceStatus, String startTime,
+                             String endTime, String executeResult, String sqlContent, String errorMessage);
 }

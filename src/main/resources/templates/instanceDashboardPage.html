@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>实例看板</title>
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
+    <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <style>
+        .dashboard-container { padding: 15px; background: #f0f2f5; min-height: 100vh; }
+        .chart-box {
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,.05);
+            transition: box-shadow 0.3s ease;
+        }
+        .chart-box:hover {
+            box-shadow: 0 4px 12px 0 rgba(0,0,0,.15);
+        }
+        .chart-title { font-size: 16px; font-weight: 500; margin-bottom: 15px; color: #333; }
+        .chart-item {
+            width: 100%;
+            height: 350px;
+        }
+        .chart-row {
+            display: flex;
+            gap: 15px;
+        }
+        .chart-row .chart-box {
+            flex: 1;
+        }
+        .task-stat-item {
+            flex: 1 0 15%;
+            border-radius: 8px;
+            padding: 12px 8px;
+            color: #fff;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 70px;
+        }
+        .task-stat-item .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .task-stat-item .stat-value {
+            font-size: 22px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <div class="chart-box">
+        <div class="layui-form">
+            <div class="layui-form-item" style="margin-bottom: 0;">
+                <label class="layui-form-label">日期范围:</label>
+                <div class="layui-input-inline" style="width: 150px;">
+                    <input type="text" id="startDate" class="layui-input" placeholder="开始日期">
+                </div>
+                <div class="layui-input-inline" style="width: 150px;">
+                    <input type="text" id="endDate" class="layui-input" placeholder="结束日期">
+                </div>
+                <label class="layui-form-label">任务:</label>
+                <div class="layui-input-inline" style="width: 250px;">
+                    <select name="taskId" id="taskId" lay-search="" lay-affix="clear"></select>
+                </div>
+                <div class="layui-input-inline">
+                    <button class="layui-btn layui-btn-primary layui-border-green search-btn" id="queryBtn">
+                        <i class="layui-icon layui-icon-search"></i> 查询
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="chart-box" style="padding: 12px 15px;">
+        <div style="display: flex; gap: 10px;" id="taskStatsContainer">
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #18b7ff, #00cc); flex: 1 0 15%;">
+                <div class="stat-label">任务全部</div>
+                <div class="stat-value" id="statAll">-</div>
+            </div>
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #52c41a, #237804); flex: 1 0 15%;">
+                <div class="stat-label">任务已发布</div>
+                <div class="stat-value" id="statPublished">-</div>
+            </div>
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #faad14, #d48806); flex: 1 0 15%;">
+                <div class="stat-label">任务未发布</div>
+                <div class="stat-value" id="statUnpublished">-</div>
+            </div>
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #bfbfbf, #8c8c8c); flex: 1 0 15%;">
+                <div class="stat-label">任务草稿</div>
+                <div class="stat-value" id="statDraft">-</div>
+            </div>
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #2c8345, #0b4e09); flex: 1 0 15%;">
+                <div class="stat-label">实例运行成功</div>
+                <div class="stat-value" id="statInstanceSuccess">-</div>
+            </div>
+            <div class="task-stat-item" style="background: linear-gradient(135deg, #ff4d4f, #cf1322); flex: 1 0 15%;">
+                <div class="stat-label">实例运行失败</div>
+                <div class="stat-value" id="statInstanceFailed">-</div>
+            </div>
+        </div>
+    </div>
+    <div class="chart-box">
+        <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>实例统计</span>
+            <div class="layui-btn-group">
+                <button class="layui-btn layui-btn-xs" id="btnByDay" style="background-color: #1677ff;">按天</button>
+                <button class="layui-btn layui-btn-xs" id="btnByHour">按小时</button>
+            </div>
+        </div>
+        <div id="instanceTrendChart" class="chart-item"></div>
+    </div>
+    <div class="chart-box">
+        <div class="chart-title">任务与实例趋势</div>
+        <div id="taskInstanceTrendChart" class="chart-item"></div>
+    </div>
+    <div class="chart-row">
+        <div class="chart-box">
+            <div class="chart-title">实例状态</div>
+            <div id="statusChart" class="chart-item"></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">实例执行时间分布</div>
+            <div id="timeDistChart" class="chart-item"></div>
+        </div>
+    </div>
+</div>
+</body>
+<script th:src="@{/static/layui.js}"></script>
+<script th:src="@{/static/lay-config.js}"></script>
+<script th:src="@{/static/echarts.min.js}"></script>
+<script th:replace="~{base::ctx}"></script>
+<script>
+    layui.use(['jquery', 'layer', 'laydate', 'form', 'laySelect'], function () {
+        const $ = layui.jquery;
+        const layer = layui.layer;
+        const laydate = layui.laydate;
+        const form = layui.form;
+        const select = layui.laySelect;
+
+        function animateValue(element, end, duration) {
+            const start = 0;
+            const startTime = performance.now();
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const current = Math.floor(start + (end - start) * easeOut);
+                element.textContent = current;
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    element.textContent = end;
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        function animateElement(id, value) {
+            const el = document.getElementById(id);
+            if (el) animateValue(el, value, 1000);
+        }
+
+        //const taskTrendChart = echarts.init(document.getElementById('taskTrendChart'));
+        const instanceTrendChart = echarts.init(document.getElementById('instanceTrendChart'));
+        const statusChart = echarts.init(document.getElementById('statusChart'));
+        const timeDistChart = echarts.init(document.getElementById('timeDistChart'));
+        const taskInstanceTrendChart = echarts.init(document.getElementById('taskInstanceTrendChart'));
+
+        let instanceGroupBy = 'day';
+
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+
+        const maxDate = new Date().toLocaleDateString();
+        
+        laydate.render({
+            elem: '#startDate',
+            value: thirtyDaysAgo,
+            max: maxDate,
+            done: function(value, date) {
+                if (value) {
+                    endDateInput.click();
+                }
+            }
+        });
+
+        laydate.render({
+            elem: '#endDate',
+            value: today,
+            max: maxDate,
+            done: function(value, date) {
+                if (value) {
+                    startDateInput.focus();
+                }
+            }
+        });
+
+        function getQueryParams() {
+            return {
+                startDate: $('#startDate').val(),
+                endDate: $('#endDate').val(),
+                groupBy: instanceGroupBy,
+                taskId: $('#taskId').val()
+            };
+        }
+        
+        // 加载任务列表
+        function loadTaskSelect() {
+            select.render({
+                elem: "#taskId",
+                url: ctx + 'bigdataManager/findDataList',
+                select: 10000,
+                title: '请选择任务',
+                format: function (data) {
+                    return parseSelectData(data);
+                },
+                onselect: function (data) {
+                    loadAllData();
+                }
+            });
+        }
+
+        function loadTaskTrend() {
+            post(ctx + 'bigdataManager/taskTrend', {}, function (res) {
+                if (res.code === 200) {
+                    const data = res.data;
+                    const total = data.counts.reduce((a, b) => a + b, 0);
+                    animateElement('statAll', total);
+                    animateElement('statPublished', data.counts[0] || 0);
+                    animateElement('statUnpublished', data.counts[1] || 0);
+                    animateElement('statDraft', data.counts[2] || 0);
+                    animateElement('statInstanceSuccess', data.instanceSuccessCount || 0);
+                    animateElement('statInstanceFailed', data.instanceFailedCount || 0);
+                }
+            });
+        }
+
+        function loadInstanceTrend() {
+            post(ctx + 'bigdataManager/instanceTrend', getQueryParams(), function (res) {
+                if (res.code === 200) {
+                    const data = res.data;
+                    let xData = data.dates;
+                    const label = instanceGroupBy === 'hour' ? '实例数量' : '实例数量';
+                    
+                    // If no data is returned, provide default values with 0 counts
+                    if (!data.counts || data.counts.length === 0) {
+                        const defaultDates = [];
+                        for (let i = 30; i >= 0; i--) {
+                            const date = new Date();
+                            date.setDate(date.getDate() - i);
+                            defaultDates.push(date.toLocaleDateString());
+                        }
+                        xData = defaultDates;
+                        data.counts = Array(30).fill(0);
+                    }
+                    instanceTrendChart.setOption({
+                        tooltip: { trigger: 'axis' },
+                        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                        xAxis: { type: 'category', data: xData },
+                        yAxis: { type: 'value', name: label },
+                        series: [{
+                            name: label, type: 'line', smooth: true,
+                            areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: 'rgba(82, 196, 26, 0.3)' },
+                                { offset: 1, color: 'rgba(82, 196, 26, 0.05)' }
+                            ]) },
+                            itemStyle: { color: '#52c41a' },
+                            data: data.counts
+                        }]
+                    });
+                }
+            });
+        }
+
+        function loadInstanceStatus() {
+            post(ctx + 'bigdataManager/instanceStatus', getQueryParams(), function (res) {
+                if (res.code === 200) {
+                    const data = res.data;
+                    const {statuses, counts} = data;
+                    const items = statuses.map((status, index) => ({
+                        name: status,
+                        value: counts[index]
+                    }));
+                    statusChart.setOption({
+                        tooltip: { trigger: 'item' },
+                        legend: { bottom: '5%', left: 'center' },
+                        series: [{
+                            name: '实例状态',
+                            type: 'pie',
+                            radius: ['40%', '70%'],
+                            center: ['50%', '45%'],
+                            avoidLabelOverlap: false,
+                            itemStyle: { 
+                                borderRadius: 10, 
+                                borderColor: '#fff', 
+                                borderWidth: 2,
+                                color: function(params) {
+                                    const colors = { '成功': '#52c41a', '失败': '#ff4d4f', '运行中': '#1677ff' };
+                                    return colors[params.name] || '#1677ff';
+                                }
+                            },
+                            label: {
+                                show: true,
+                                formatter: '{b}: {c} ({d}%)',
+                                position: 'outside',
+                                alignTo: 'edge',
+                                edgeOffset: 10,
+                                distance: 15
+                            },
+                            labelLine: {
+                                show: true,
+                                length: 25,
+                                length2: 20,
+                                smooth: 0.5,
+                                maxSurfaceAngle: 80
+                            },
+                            data: items
+                        }]
+                    });
+                }
+            });
+        }
+
+        function loadTaskTimeDist() {
+            post(ctx + 'bigdataManager/taskTimeDist', getQueryParams(), function (res) {
+                if (res.code === 200) {
+                    const data = res.data;
+                    timeDistChart.setOption({
+                        tooltip: { trigger: 'item' },
+                        legend: { bottom: '5%', left: 'center' },
+                        series: [{
+                            name: '执行时间',
+                            type: 'pie',
+                            radius: ['40%', '70%'],
+                            center: ['50%', '45%'],
+                            avoidLabelOverlap: false,
+                            itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
+                            label: {
+                                show: true,
+                                formatter: '{b}: {c} ({d}%)',
+                                position: 'outside',
+                                alignTo: 'edge',
+                                edgeOffset: 10,
+                                distance: 15
+                            },
+                            labelLine: {
+                                show: true,
+                                length: 25,
+                                length2: 20,
+                                smooth: 0.5,
+                                maxSurfaceAngle: 80
+                            },
+                            data: data.items
+                        }]
+                    });
+                }
+            });
+        }
+
+        function loadTaskInstanceTrend() {
+            post(ctx + 'bigdataManager/taskInstanceTrend', getQueryParams(), function (res) {
+                if (res.code === 200) {
+                    const data = res.data;
+                    taskInstanceTrendChart.setOption({
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['任务数量', '实例数量'], bottom: '5%' },
+                        grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
+                        xAxis: { type: 'category', data: data.dates },
+                        yAxis: { type: 'value', name: '数量' },
+                        series: [
+                            {
+                                name: '任务数量', type: 'line', smooth: true,
+                                itemStyle: { color: '#722ed1' },
+                                data: data.taskCounts
+                            },
+                            {
+                                name: '实例数量', type: 'line', smooth: true,
+                                itemStyle: { color: '#13c2c2' },
+                                data: data.instanceCounts
+                            }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function loadAllData() {
+            loadTaskTrend();
+            loadInstanceTrend();
+            loadTaskInstanceTrend();
+            loadInstanceStatus();
+            loadTaskTimeDist();
+        }
+
+        $('#queryBtn').on('click', function() {
+            loadAllData();
+        });
+
+        $('#btnByDay').on('click', function() {
+            instanceGroupBy = 'day';
+            $('#btnByDay').css('background-color', '#167bff');
+            $('#btnByHour').css('background-color', '');
+            loadInstanceTrend();
+        });
+
+        $('#btnByHour').on('click', function() {
+            instanceGroupBy = 'hour';
+            $('#btnByHour').css('background-color', '#167bff');
+            $('#btnByDay').css('background-color', '');
+            loadInstanceTrend();
+        });
+
+        loadTaskSelect();
+        loadAllData();
+
+        window.addEventListener('resize', function () {
+            //taskTrendChart.resize();
+            instanceTrendChart.resize();
+            taskInstanceTrendChart.resize();
+            statusChart.resize();
+            timeDistChart.resize();
+        });
+    });
+</script>
+</html>

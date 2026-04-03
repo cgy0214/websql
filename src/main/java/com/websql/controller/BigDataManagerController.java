@@ -5,12 +5,13 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.http.HttpStatus;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.websql.model.AjaxResult;
 import com.websql.model.BigDataInstanceModel;
 import com.websql.model.BigDataTaskModel;
 import com.websql.model.BigDataTemplateVo;
 import com.websql.service.BigDataService;
+import com.websql.service.Text2SqlAdvancedService;
 import com.websql.task.ScheduleUtils;
 import com.websql.util.CronUtils;
 import com.websql.util.StpUtils;
@@ -40,6 +41,9 @@ public class BigDataManagerController {
     @Resource
     private BigDataService bigDataService;
 
+    @Resource
+    private Text2SqlAdvancedService text2SqlAdvancedService;
+
     @RequestMapping("/dataDevPage")
     public ModelAndView dataDevPage(Long id) {
         String currentUserName = StpUtils.getCurrentUserName();
@@ -61,6 +65,57 @@ public class BigDataManagerController {
     @RequestMapping("/taskInstancePage")
     public String taskInstancePage() {
         return "bigdataTaskInstancePage";
+    }
+
+    @RequestMapping("/instanceDashboardPage")
+    public String instanceDashboardPage() {
+        return "instanceDashboardPage";
+    }
+
+    @RequestMapping("/taskTrend")
+    @ResponseBody
+    public AjaxResult taskTrend(@RequestBody(required = false) Map<String, String> params) {
+        String startDate = params != null ? params.get("startDate") : null;
+        String endDate = params != null ? params.get("endDate") : null;
+        String taskId = params != null ? params.get("taskId") : null;
+        return AjaxResult.success(bigDataService.getTaskTrend(startDate, endDate, taskId));
+    }
+
+    @RequestMapping("/instanceTrend")
+    @ResponseBody
+    public AjaxResult instanceTrend(@RequestBody(required = false) Map<String, String> params) {
+        String startDate = params != null ? params.get("startDate") : null;
+        String endDate = params != null ? params.get("endDate") : null;
+        String groupBy = params != null ? params.get("groupBy") : "day";
+        String taskId = params != null ? params.get("taskId") : null;
+        return AjaxResult.success(bigDataService.getInstanceTrend(startDate, endDate, groupBy, taskId));
+    }
+
+    @RequestMapping("/instanceStatus")
+    @ResponseBody
+    public AjaxResult instanceStatus(@RequestBody(required = false) Map<String, String> params) {
+        String startDate = params != null ? params.get("startDate") : null;
+        String endDate = params != null ? params.get("endDate") : null;
+        String taskId = params != null ? params.get("taskId") : null;
+        return AjaxResult.success(bigDataService.getInstanceStatusStats(startDate, endDate, taskId));
+    }
+
+    @RequestMapping("/taskTimeDist")
+    @ResponseBody
+    public AjaxResult taskTimeDist(@RequestBody(required = false) Map<String, String> params) {
+        String startDate = params != null ? params.get("startDate") : null;
+        String endDate = params != null ? params.get("endDate") : null;
+        String taskId = params != null ? params.get("taskId") : null;
+        return AjaxResult.success(bigDataService.getTaskTimeDist(startDate, endDate, taskId));
+    }
+
+    @RequestMapping("/taskInstanceTrend")
+    @ResponseBody
+    public AjaxResult taskInstanceTrend(@RequestBody(required = false) Map<String, String> params) {
+        String startDate = params != null ? params.get("startDate") : null;
+        String endDate = params != null ? params.get("endDate") : null;
+        String taskId = params != null ? params.get("taskId") : null;
+        return AjaxResult.success(bigDataService.getTaskInstanceTrend(startDate, endDate, taskId));
     }
 
     @RequestMapping("/taskList")
@@ -293,6 +348,26 @@ public class BigDataManagerController {
         } catch (Exception e) {
             log.error("获取下次执行时间失败:{}", e.getMessage(), e);
             return AjaxResult.error("获取失败:" + e.getMessage());
+        }
+    }
+
+    @RequestMapping("/summarizeInstance")
+    @ResponseBody
+    public AjaxResult summarizeInstance(@RequestBody BigDataInstanceModel model) {
+        try {
+            String summary = text2SqlAdvancedService.summarizeInstance(
+                model.getTaskName(),
+                model.getInstanceStatus(),
+                model.getStartTime(),
+                model.getEndTime(),
+                model.getExecuteResult(),
+                model.getSqlContent(),
+                model.getErrorMessage()
+            );
+            return AjaxResult.success(summary);
+        } catch (Exception e) {
+            log.error("AI总结失败:{}", e.getMessage(), e);
+            return AjaxResult.error("AI总结失败:" + e.getMessage());
         }
     }
 

@@ -1,7 +1,7 @@
 package com.websql.config;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.websql.model.DataSourceIndexMeta;
 import com.websql.model.DataSourceMeta;
 import com.websql.model.DataSourceTableMeta;

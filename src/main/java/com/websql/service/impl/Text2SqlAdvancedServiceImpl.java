@@ -14,6 +14,7 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
+import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,9 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
 
     @Autowired(required = false)
     private StreamingChatLanguageModel streamingChatLanguageModel;
+
+    @Autowired(required = false)
+    private ChatLanguageModel chatLanguageModel;
 
     @Autowired
     private SseEmitterService sseEmitterService;
@@ -157,7 +161,9 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
         String prompt = buildPrompt(text);
         String userId = StpUtils.getCurrentUserId();
         SseEmitter emitter = sseEmitterService.createConnection(userId);
-        if (!checkDemoTime(userId)) {
+        if (checkDemoTime()) {
+            sseEmitterService.sendToUser(userId, "每日10次体验机会,今日已用完请明天再试哦!");
+            sseEmitterService.closeConnection(userId);
             return emitter;
         }
         if (ObjectUtil.isNotNull(streamingChatLanguageModel)) {
@@ -176,7 +182,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
             log.debug("开始请求AI>>tokens:{}", prompt.length());
             streamingChatLanguageModel.generate(
                     chatMemory.messages(),
-                    new AiStreamingResponseHandler(emitter, chatMemory,prompt.length())
+                    new AiStreamingResponseHandler(emitter, chatMemory, prompt.length())
             );
         } else {
             log.error("请检查是否配置了OpenAI API Key,wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7676296&doc_id=3405209#-openai-%E6%A8%A1%E5%9E%8B%E9%85%8D%E7%BD%AE");
@@ -205,17 +211,73 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
         clearUserChatHistory(userId);
     }
 
-    private boolean checkDemoTime(String userId) {
+    private boolean checkDemoTime() {
         if (!StpUtil.hasRole("demo-admin")) {
-            return true;
-        }
-        String cache = CacheUtils.get("demo:admin:streamAnswer", String.class);
-        if (ObjectUtil.isNotNull(cache) && Integer.parseInt(cache) > 1) {
-            sseEmitterService.sendToUser(userId, "每日10次体验机会,今日已用完请明天再试哦!");
-            sseEmitterService.closeConnection(userId);
             return false;
         }
+        String cache = CacheUtils.get("demo:admin:streamAnswer", String.class);
+        if (ObjectUtil.isNotNull(cache) && Integer.parseInt(cache) > 10) {
+            return true;
+        }
         CacheUtils.put("demo:admin:streamAnswer", String.valueOf(Integer.parseInt(cache == null ? "0" : cache) + 1), 24 * 60 * 60);
-        return true;
+        return false;
+    }
+
+    @Override
+    public String summarizeInstance(String taskName, String instanceStatus, String startTime,
+                                    String endTime, String executeResult, String sqlContent, String errorMessage) {
+        if (ObjectUtil.isNull(chatLanguageModel)) {
+            return "AI服务未配置，请检查AI相关配置";
+        }
+
+        if (checkDemoTime()) {
+            return "每日10次体验机会,今日已用完请明天再试哦!";
+        }
+
+        long duration = 0;
+        if (ObjectUtil.isNotEmpty(startTime) && ObjectUtil.isNotEmpty(endTime)) {
+            try {
+                java.time.LocalDateTime start = java.time.LocalDateTime.parse(startTime.replace(" ", "T"));
+                java.time.LocalDateTime end = java.time.LocalDateTime.parse(endTime.replace(" ", "T"));
+                duration = java.time.Duration.between(start, end).toMillis();
+            } catch (Exception e) {
+                log.warn("解析时间失败", e);
+            }
+        }
+
+        String durationStr = duration > 0 ? String.format("%.1f", duration / 1000.0) : "未知";
+
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("请根据以下任务实例信息，用一句话简洁总结任务执行情况。\n");
+        prompt.append("要求：\n");
+        prompt.append("1. 一句话总结，80-100字左右\n");
+        prompt.append("2. 包含任务名称、任务状态、执行结果、耗时等信息\n");
+        prompt.append("3. 如果成功，格式：【名称】执行成功，[具体结果描述]，耗时约X秒\n");
+        prompt.append("4. 如果失败，格式：【名称】执行失败，原因：[错误原因]\n");
+        prompt.append("5. 不要使用Markdown格式\n");
+        prompt.append("6. 直接返回总结内容，不要有前缀\n");
+        prompt.append("\n任务信息：\n");
+        prompt.append("- 任务名称：").append(taskName != null ? taskName : "未知").append("\n");
+        prompt.append("- 任务状态：").append(instanceStatus != null ? instanceStatus : "未知").append("\n");
+        prompt.append("- 执行SQL：").append(sqlContent != null ? sqlContent : "无").append("\n");
+        prompt.append("- 执行结果：").append(executeResult != null ? executeResult : "无").append("\n");
+        prompt.append("- 错误信息：").append(errorMessage != null ? errorMessage : "无").append("\n");
+        prompt.append("- 耗时：").append(durationStr).append("秒\n");
+
+        try {
+            UserMessage userMessage = UserMessage.from(prompt.toString());
+            dev.langchain4j.model.output.Response<dev.langchain4j.data.message.AiMessage> response =
+                    chatLanguageModel.generate(userMessage);
+
+            String result = response.content().text();
+            if (ObjectUtil.isNotEmpty(result)) {
+                result = result.trim();
+                return result;
+            }
+        } catch (Exception e) {
+            log.error("AI总结失败", e);
+            return "AI总结失败：" + e.getMessage();
+        }
+        return "任务[" + taskName + "]" + instanceStatus + "，耗时约" + durationStr + "秒";
     }
 }

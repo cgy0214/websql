@@ -141,6 +141,9 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 "/sqlManager/saveSqlText",
                 "/sqlManager/metaTablePage",
                 "/sqlManager/metaTreeTableList",
+                "/sqlManager/metaDatabaseList",
+                "/sqlManager/metaTableListByDatabase",
+                "/sqlManager/searchMetaTree",
                 "/sqlManager/createAsyncExport",
                 "/sqlManager/queryExportData",
                 "/sqlManager/downloadExcelFile",
@@ -194,7 +197,15 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 "/bigdataManager/queryBigDataTemplateList",
                 "/bigdataManager/createDemoTask",
                 "/bigdataManager/execute",
-                "/bigdataManager/getNextExecuteTime"
+                "/bigdataManager/getNextExecuteTime",
+                "/bigdataManager/instanceDashboardPage",
+                "/bigdataManager/taskTrend",
+                "/bigdataManager/instanceTrend",
+                "/bigdataManager/instanceStatus",
+                "/bigdataManager/taskTimeDist",
+                "/bigdataManager/taskInstanceTrend",
+                "/bigdataManager/summarizeInstance"
+
                 );
     }
 
