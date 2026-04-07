@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
  * @author: rabbit boy_0214@sina.com
  * @create: 2019-09-17 15:58
  **/
+@Deprecated
 @Slf4j
 public class JobExecuteFactory implements Task {
 

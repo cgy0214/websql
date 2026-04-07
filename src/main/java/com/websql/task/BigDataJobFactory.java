@@ -70,6 +70,7 @@ public class BigDataJobFactory implements Task {
             instance.setCreateUser("SYSTEM");
             instance.setEndTime(DateUtil.now());
             instance.setTaskCreateUser(vo.getCreateUser());
+            instance.setTaskTeamId(vo.getTeamId());
             instance.setSqlContent(vo.getSqlContent());
             
             try {
