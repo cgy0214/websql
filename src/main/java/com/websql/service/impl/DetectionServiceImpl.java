@@ -159,36 +159,159 @@ public class DetectionServiceImpl implements DetectionService {
         model.setLimit(Integer.MAX_VALUE);
         Result<SysDetectionLogsModel> sysDetectionLogsModelResult = logList(model);
         List<SysDetectionLogsModel> list = sysDetectionLogsModelResult.getList();
-        Map<String, Object> resultMap = new HashMap<>(2);
-        Set<String> dateList = new TreeSet<>();
-        List<Map<String, Object>> dataList = new ArrayList<>();
-        Map<String, List<SysDetectionLogsModel>> listMap = list.stream().collect(Collectors.groupingBy(SysDetectionLogsModel::getName));
-        listMap.forEach((k, v) -> {
-            List<Object> itemList = new ArrayList<>();
-            for (SysDetectionLogsModel sysDetectionModel : v) {
-                String date = DateUtil.format(sysDetectionModel.getCreateTime(), "MMdd HH:mm:ss");
-                dateList.add(date);
-                List<Object> item2 = new ArrayList<>();
-                item2.add(date);
-                item2.add(sysDetectionModel.getData() == null ? 0 : sysDetectionModel.getData());
-                itemList.add(item2);
+        
+        Map<String, Object> resultMap = new HashMap<>();
+        
+        Map<String, Integer> statData = new HashMap<>();
+        statData.put("total", 0);
+        statData.put("normal", 0);
+        statData.put("urgent", 0);
+        statData.put("alarm", 0);
+        int total = list.size();
+        int normal = 0;
+        int urgent = 0;
+        int alarm = 0;
+        
+        for (SysDetectionLogsModel log : list) {
+            String alarmLevel = log.getAlarmLevel();
+            String stateName = log.getStateName();
+            if ("紧急".equals(alarmLevel)) {
+                urgent++;
+            } else {
+                normal++;
             }
-            HashMap<String, Object> label = new HashMap<>(1);
-            label.put("show", true);
-            Map<String, Object> itemMap = new HashMap<>(2);
-            itemMap.put("name", k);
-            itemMap.put("type", "line");
-            itemMap.put("connectNulls", true);
-            itemMap.put("stack", "a");
-            itemMap.put("smooth", true);
-            itemMap.put("symbol", "none");
-            itemMap.put("label", label);
-            itemMap.put("areaStyle", "{}");
-            itemMap.put("data", itemList);
-            dataList.add(itemMap);
-        });
-        resultMap.put("dateList", dateList);
-        resultMap.put("dataList", dataList);
+            if ("推送通知".equals(stateName)) {
+                alarm++;
+            }
+        }
+        statData.put("total", total);
+        statData.put("normal", normal);
+        statData.put("urgent", urgent);
+        statData.put("alarm", alarm);
+        resultMap.put("statData", statData);
+        
+        List<String> timeList = new ArrayList<>();
+        List<Integer> normalTrend = new ArrayList<>();
+        List<Integer> urgentTrend = new ArrayList<>();
+        
+        if (!list.isEmpty()) {
+            Map<String, List<SysDetectionLogsModel>> timeGroupMap = list.stream()
+                .collect(Collectors.groupingBy(log -> DateUtil.format(log.getCreateTime(), "HH:mm")));
+            TreeSet<String> sortedTimes = new TreeSet<>(timeGroupMap.keySet());
+            
+            timeList = new ArrayList<>(sortedTimes);
+            
+            for (String time : timeList) {
+                List<SysDetectionLogsModel> timeLogs = timeGroupMap.get(time);
+                int n = 0, u = 0;
+                for (SysDetectionLogsModel log : timeLogs) {
+                    String alarmLevel = log.getAlarmLevel();
+                    if ("紧急".equals(alarmLevel)) {
+                        u++;
+                    } else {
+                        n++;
+                    }
+                }
+                normalTrend.add(n);
+                urgentTrend.add(u);
+            }
+        }
+        
+        Map<String, Object> trendData = new HashMap<>();
+        trendData.put("timeList", timeList);
+        trendData.put("normalList", normalTrend);
+        trendData.put("urgentList", urgentTrend);
+        resultMap.put("trendData", trendData);
+        
+        int normalCount = 0;
+        int urgentCount = 0;
+        for (SysDetectionLogsModel log : list) {
+            String level = log.getAlarmLevel();
+            if ("紧急".equals(level)) {
+                urgentCount++;
+            } else {
+                normalCount++;
+            }
+        }
+        
+        List<Map<String, Object>> alarmLevelData = new ArrayList<>();
+        Map<String, Object> normalItem = new HashMap<>();
+        normalItem.put("name", "普通");
+        normalItem.put("value", normalCount);
+        alarmLevelData.add(normalItem);
+        Map<String, Object> urgentItem = new HashMap<>();
+        urgentItem.put("name", "紧急");
+        urgentItem.put("value", urgentCount);
+        alarmLevelData.add(urgentItem);
+        resultMap.put("alarmLevelData", alarmLevelData);
+        
+        List<String> taskNames = new ArrayList<>();
+        List<Integer> taskNoAlarmList = new ArrayList<>();
+        List<Integer> taskHasAlarmList = new ArrayList<>();
+        
+        if (!list.isEmpty()) {
+            Map<String, List<SysDetectionLogsModel>> taskGroupMap = list.stream()
+                .collect(Collectors.groupingBy(SysDetectionLogsModel::getName));
+            taskNames = new ArrayList<>(taskGroupMap.keySet());
+            
+            for (String taskName : taskNames) {
+                List<SysDetectionLogsModel> taskLogs = taskGroupMap.get(taskName);
+                int noAlarm = 0, hasAlarm = 0;
+                for (SysDetectionLogsModel log : taskLogs) {
+                    String stateName = log.getStateName();
+                    if ("推送通知".equals(stateName)) {
+                        hasAlarm++;
+                    } else {
+                        noAlarm++;
+                    }
+                }
+                taskNoAlarmList.add(noAlarm);
+                taskHasAlarmList.add(hasAlarm);
+            }
+        }
+        
+        Map<String, Object> taskStatusData = new HashMap<>();
+        taskStatusData.put("taskNames", taskNames);
+        taskStatusData.put("noAlarmList", taskNoAlarmList);
+        taskStatusData.put("hasAlarmList", taskHasAlarmList);
+        resultMap.put("taskStatusData", taskStatusData);
+        
+        Map<String, Integer> datasourceCount = new HashMap<>();
+        for (SysDetectionLogsModel log : list) {
+            String dbName = log.getDataBaseName();
+            if (dbName != null && !dbName.isEmpty()) {
+                datasourceCount.put(dbName, datasourceCount.getOrDefault(dbName, 0) + 1);
+            }
+        }
+        List<Map<String, Object>> datasourceData = new ArrayList<>();
+        if (datasourceCount.isEmpty()) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("name", "无数据");
+            item.put("value", 0);
+            datasourceData.add(item);
+        } else {
+            for (Map.Entry<String, Integer> entry : datasourceCount.entrySet()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("name", entry.getKey());
+                item.put("value", entry.getValue());
+                datasourceData.add(item);
+            }
+        }
+        resultMap.put("datasourceData", datasourceData);
+        
+        int[] execTimeRanges = new int[5];
+        for (SysDetectionLogsModel log : list) {
+            Long execTime = log.getExecTime();
+            if (execTime != null) {
+                if (execTime < 100) execTimeRanges[0]++;
+                else if (execTime < 500) execTimeRanges[1]++;
+                else if (execTime < 1000) execTimeRanges[2]++;
+                else if (execTime < 5000) execTimeRanges[3]++;
+                else execTimeRanges[4]++;
+            }
+        }
+        resultMap.put("execTimeData", execTimeRanges);
+        
         return resultMap;
     }
 

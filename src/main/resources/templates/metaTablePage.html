@@ -11,30 +11,91 @@
             height: 36px;
             font-size: 14px;
         }
-        /* Tree 样式美化 */
         #div-tree {
-            background: #fafafa;
-            border-radius: 4px;
-            padding: 6px;
+            background: #fff;
+            padding: 8px 0;
         }
-        /* 文字大小 */
-        #div-tree .layui-tree-txt {
-            font-size: 16px;
-            color: #333;
-        }
-        /* 节点间距 */
         #div-tree .layui-tree-set {
-            line-height: 26px;
+            position: relative;
+            padding: 2px 0;
         }
-        /* 搜索框区域 */
+        #div-tree .layui-tree-txt {
+            font-size: 14px;
+            color: #333;
+            font-weight: 400;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: inline-block;
+            background: transparent;
+        }
+        #div-tree .layui-tree-set:not(:has(.layui-tree-set)) > .layui-tree-entry > .layui-tree-txt {
+            color: #16b777 !important;
+            font-weight: 600;
+        }
+        #div-tree .layui-tree-txt:hover {
+            background: #e6f7f2;
+            color: #16b777 !important;
+        }
+        #div-tree .layui-tree-txt.layui-tree-checked,
+        #div-tree .layui-tree-set.layui-tree-checked > .layui-tree-txt {
+            background: #16b777;
+            color: #fff !important;
+        }
+        #div-tree .layui-tree-iconClick .layui-tree-icon {
+            transition: transform 0.3s ease;
+        }
+        #div-tree .layui-tree-icon {
+            background: #16b777;
+            border-radius: 4px;
+            width: 18px !important;
+            height: 18px !important;
+            line-height: 18px !important;
+        }
+        #div-tree .layui-tree-icon:after {
+            border-color: #fff !important;
+        }
+        #div-tree .layui-tree-entry {
+            position: relative;
+        }
+        #div-tree .layui-tree-set::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 0;
+            bottom: 20px;
+            width: 1px;
+            background: #ddd;
+        }
+        #div-tree .layui-tree-set::after {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            width: 12px;
+            height: 1px;
+            background: #ddd;
+        }
+        #div-tree .layui-tree-set:last-child::before {
+            height: 50%;
+            bottom: auto;
+            top: 0;
+        }
+        #div-tree .layui-tree-set:only-child::before,
+        #div-tree .layui-tree-set:only-child::after {
+            display: none;
+        }
+        #div-tree > .layui-tree-set::before,
+        #div-tree > .layui-tree-set::after {
+            display: none;
+        }
         .layui-input-group {
             margin-bottom: 10px;
         }
-        /* 左侧面板 */
         .tree-panel {
             background: #fff;
             border: 1px solid #e6e6e6;
-            border-radius: 6px;
+            border-radius: 0;
         }
     </style>
 </head>
@@ -244,12 +305,18 @@
             isJump: false,
             click: function (obj) {
                 const data = obj.data;
-                // 如果是数据库节点且未加载子节点，则异步加载表数据
+                if (data.children && data.children.length > 0) {
+                    const $elem = $(obj.elem);
+                    const $entry = $elem.closest('.layui-tree-entry');
+                    const $iconClick = $entry.find('.layui-tree-iconClick');
+                    if ($iconClick.length > 0) {
+                        $iconClick.trigger('click');
+                    }
+                }
                 if (data.field === "database" && !loadedDatabases[data.title] && !isSearchMode) {
                     loadTablesByDatabase(data.title, obj);
                     return;
                 }
-                // 如果是已加载的数据库节点，从treeData中获取最新数据
                 if (data.field === "database") {
                     const dbNode = findDatabaseNode(data.title);
                     if (dbNode) {
@@ -257,7 +324,6 @@
                         return;
                     }
                 }
-                // 显示数据库/表信息
                 showDatabaseInfo(data);
             }
         });
@@ -319,11 +385,21 @@
                     layer.close(loadIndex);
                     if (res.code === 200) {
                         loadedDatabases[database] = true;
-                        // 更新当前数据库节点的子节点
                         updateDatabaseChildren(database, res.data);
-                        // 显示数据库信息
+                        setTimeout(function() {
+                            var $treeEntries = $('#div-tree .layui-tree-entry');
+                            $treeEntries.each(function() {
+                                var $entry = $(this);
+                                var title = $entry.find('.layui-tree-txt').text();
+                                if (title === database) {
+                                    var $iconClick = $entry.find('.layui-tree-iconClick');
+                                    if ($iconClick.length > 0) {
+                                        $iconClick.trigger('click');
+                                    }
+                                }
+                            });
+                        }, 100);
                         if (res.data && res.data.length > 0) {
-                            // 更新数据库节点的tableMeta
                             const firstTable = res.data[0];
                             if (firstTable && firstTable.tableMeta) {
                                 const dbNode = findDatabaseNode(database);
@@ -400,7 +476,6 @@
                     layer.close(loadIndex);
                     if (res.code === 200) {
                         treeData = res.data;
-                        // 搜索模式下，标记所有返回的数据库为已加载
                         res.data.forEach(function(db) {
                             if (db.children && db.children.length > 0) {
                                 loadedDatabases[db.title] = true;
