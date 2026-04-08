@@ -85,6 +85,12 @@
                         }
                     },
                     {field: 'taskType', title: '任务类型', sort: true, width: '8%'},
+                    {field: 'cron', title: '任务定时', width: '10%', templet: function(d) {
+                            if (d.cron) {
+                                return '<a href="#" lay-event="viewNextTime" class="layui-table-link" data-id="' + d.id + '">' + d.cron + '</a>';
+                            }
+                            return '';
+                        }},
                     {field: 'status', title: '状态', sort: true, width: '8%', templet: function(d) {
                             if (d.status === '已发布') {
                                 return '<span style="color: green;">' + d.status + '</span>';
@@ -96,7 +102,7 @@
                     {field: 'createUser', title: '创建人', sort: true, width: '10%'},
                     {field: 'createTime', title: '创建时间', sort: true, width: '10%'},
                     {field: 'updateTime', title: '更新时间', sort: true, width: '10%'},
-                    {fixed: 'right', title: '操作', width: '19%', toolbar: '#toolbarTable'}
+                    {fixed: 'right', title: '操作', width: '10%', toolbar: '#toolbarTable'}
                 ]
             ],
             parseData: res => parseData(res)
@@ -105,6 +111,16 @@
         table.on('tool(dataTable)', function (obj) {
             var data = obj.data;
             switch (obj.event) {
+                case 'viewNextTime':
+                    var taskId = data.id;
+                    post(ctx + "bigdataManager/getNextExecuteTime?id=" + taskId, null, (res) => {
+                        if (res.code === 200) {
+                            layer.msg('下次执行时间: ' + (res.msg || '无'), {icon: 1});
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    });
+                    break;
                 case 'view':
                     var content = '<div style="padding: 10px;"><table class="layui-table"><tr><td>任务名称：</td><td>' + data.taskName + '</td></tr><tr><td>任务类型：</td><td>' + data.taskType + '</td></tr><tr><td>任务定时：</td><td>' + (data.cron || '') + '</td></tr><tr><td>下次执行：</td><td><button class="layui-btn layui-btn-xs layui-btn-normal" id="getNextTimeBtn" data-id="' + data.id + '">查询下次执行时间</button></td></tr><tr><td>任务描述：</td><td>' + (data.description || '') + '</td></tr><tr><td>状态：</td><td>' + data.status + '</td></tr><tr><td>创建人：</td><td>' + data.createUser + '</td></tr><tr><td>创建时间：</td><td>' + data.createTime + '</td></tr><tr><td>更新人：</td><td>' + data.updateUser + '</td></tr><tr><td>更新时间：</td><td>' + data.updateTime + '</td></tr><tr><td>发布/撤回人：</td><td>' + (data.releaseUser || '') + '</td></tr><tr><td>发布/撤回时间：</td><td>' + (data.releaseTime || '')  + '</td></tr></table></div>';
                     layer.open({

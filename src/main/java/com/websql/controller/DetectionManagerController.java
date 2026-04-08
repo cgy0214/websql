@@ -109,7 +109,7 @@ public class DetectionManagerController {
      */
     @RequestMapping("/executeOnce/{type}/{id}")
     @ResponseBody
-    public AjaxResult executeOnce(@PathVariable("type") int type, @PathVariable("id") Long id, String cron) {
+    public AjaxResult executeOnce(@PathVariable("type") int type, @PathVariable("id") Long id, String cron, Long messageId) {
         try {
             SysDetectionModel models = new SysDetectionModel();
             models.setId(id);
@@ -136,6 +136,13 @@ public class DetectionManagerController {
                     break;
                 case 5:
                     ScheduleUtils.addDetectionTask(vo.getCron(), id, vo.getName());
+                    break;
+                case 6:
+                    if (ObjectUtil.isNull(messageId)) {
+                        return AjaxResult.error("模板ID不能为空!");
+                    }
+                    vo.setMessageId(messageId);
+                    detectionService.updateById(vo);
                     break;
                 default:
                     throw new RuntimeException("错误的类型!" + type);

@@ -85,7 +85,9 @@
                     {field: 'expression', title: '告警表达式', sort: true, fixed: true},
                     {field: 'cron', title: 'CRON表达式', sort: true, fixed: true, width: 200},
                     {field: 'alarmLevel', title: '告警级别', sort: true, fixed: true},
-                    {field: 'messageName', title: '告警模板', sort: true, fixed: true},
+                    {field: 'messageName', title: '告警模板', sort: true, fixed: true, templet: function (d) {
+                            return '<a href="javascript:;" class="layui-table-link" lay-event="editTemplate" lay-data="'+ d.id +'|'+ d.messageId +'">' + (d.messageName || '未设置') + '</a>'
+                        }},
                     {field: 'state', title: '状态', sort: true, fixed: true},
                     {field: 'createUser', title: '创建人', sort: true, fixed: true},
                     {field: 'createTime', title: '创建时间', width: 200, sort: true, fixed: true},
@@ -103,6 +105,41 @@
                     const content = laytpl('<div style="margin: 5px;"><pre class="layui-code">{{= d.content}}</pre></div>')
                         .render({content: str});
                     openContent("查看作业SQL内容", content);
+                    break;
+                case 'editTemplate':
+                    post(ctx + "settingManager/findMessageTemplateList", null, (res) => {
+                        if (res.code !== 0) {
+                            layer.msg(res.msg, {icon: 2});
+                            return;
+                        }
+                        const templateList = res.data || [];
+                        const currentMessageId = data.messageId;
+                        let selectHtml = '<select id="templateSelect" lay-filter="templateSelect" lay-search>';
+                        templateList.forEach(item => {
+                            const selected = item.code == currentMessageId ? 'selected' : '';
+                            selectHtml += '<option value="' + item.code + '" ' + selected + '>' + item.value + '</option>';
+                        });
+                        selectHtml += '</select>';
+                        layer.open({
+                            type: 1,
+                            title: '选择告警模板',
+                            area: ['300px', '250px'],
+                            content: '<div style="padding: 20px;"><form class="layui-form">' + selectHtml + '</form></div>',
+                            btn: ['确认', '取消'],
+                            yes: function (index, layero) {
+                                const newMessageId = $('#templateSelect').val();
+                                post(ctx + "detectionManager/executeOnce/6/" + data.id + "?messageId=" + newMessageId, null, (res2) => {
+                                    layer.msg(res2.msg, {icon: res2.code === 200 ? 1 : 2}, () => {
+                                        if (res2.code === 200) {
+                                            $(".search-btn").click();
+                                            layer.closeAll();
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                        form.render('select');
+                    });
                     break;
                 case 'updateCron':
                     layer.prompt({
