@@ -35,8 +35,9 @@
         }
         .stat-cards {
             display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 12px;
+            margin: 12px;
+            justify-content: space-evenly;
         }
         .stat-card {
             flex: 1;
@@ -44,7 +45,14 @@
             border-radius: 8px;
             text-align: center;
             color: #fff;
-            max-width: 22%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 70px;
+        }
+        .stat-card:not(:first-child) {
+            margin-left: 15px;
         }
         .stat-card-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .stat-card-green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
@@ -87,8 +95,12 @@
         </div>
     </div>
 
-    <div class="layui-panel" style="margin-top: 15px;">
+    <div class="layui-panel">
         <div class="stat-cards" id="statCards">
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stat-card-value" id="taskCount">-</div>
+                <div class="stat-card-label">总检测任务数</div>
+            </div>
             <div class="stat-card stat-card-blue">
                 <div class="stat-card-value" id="totalCount">-</div>
                 <div class="stat-card-label">总检测次数</div>
@@ -177,43 +189,10 @@
 
         laydate.render({
             elem: "#date",
-            type: "datetime",
+            type: "date",
             range: true,
             value: getDefaultDateRangeStr(),
             shortcuts: [
-                {
-                    text: "30分钟",
-                    value: function () {
-                        const now = new Date();
-                        const thirtyMinAgo = new Date(now.getTime() - (60 * 1000 * 30));
-                        return [
-                            thirtyMinAgo,
-                            now
-                        ];
-                    }
-                },
-                {
-                    text: "1小时",
-                    value: function () {
-                        const now = new Date();
-                        const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
-                        return [
-                            oneHourAgo,
-                            now
-                        ];
-                    }
-                },
-                {
-                    text: "3小时",
-                    value: function () {
-                        const now = new Date();
-                        const threeHourAgo = new Date(now.getTime() - (60 * 60 * 1000 * 3));
-                        return [
-                            threeHourAgo,
-                            now
-                        ];
-                    }
-                },
                 {
                     text: "今天",
                     value: function () {
@@ -222,8 +201,8 @@
                         var month = date.getMonth();
                         var day = date.getDate();
                         return [
-                            new Date(year, month, day, 0, 0, 0),
-                            new Date(year, month, day, 23, 59, 59)
+                            new Date(year, month, day),
+                            new Date(year, month, day)
                         ];
                     }
                 },
@@ -235,9 +214,25 @@
                         var month = date.getMonth();
                         var day = date.getDate()-1;
                         return [
-                            new Date(year, month, day, 0, 0, 0),
-                            new Date(year, month, day, 23, 59, 59)
+                            new Date(year, month, day),
+                            new Date(year, month, day)
                         ];
+                    }
+                },
+                {
+                    text: "近7天",
+                    value: function () {
+                        const now = new Date();
+                        const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+                        return [sevenDaysAgo, now];
+                    }
+                },
+                {
+                    text: "近30天",
+                    value: function () {
+                        const now = new Date();
+                        const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+                        return [thirtyDaysAgo, now];
                     }
                 },
             ]
@@ -245,22 +240,26 @@
 
         function getDefaultDateRangeStr() {
             const now = new Date();
-            const thirtyMinAgo = new Date(now.getTime() - (30 * 60 * 1000));
+            const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
             const formatDate = function(d) {
                 var y = d.getFullYear();
                 var m = (d.getMonth() + 1).toString().padStart(2, '0');
                 var dd = d.getDate().toString().padStart(2, '0');
-                var h = d.getHours().toString().padStart(2, '0');
-                var min = d.getMinutes().toString().padStart(2, '0');
-                var s = d.getSeconds().toString().padStart(2, '0');
-                return y + '-' + m + '-' + dd + ' ' + h + ':' + min + ':' + s;
+                return y + '-' + m + '-' + dd;
             };
-            return formatDate(thirtyMinAgo) + ' - ' + formatDate(now);
+            return formatDate(sevenDaysAgo) + ' - ' + formatDate(now);
         }
+
+        let dateRange = getDefaultDateRange();
 
         table.render({
             elem: '#dataTable',
-            url: ctx + 'detectionManager/logList?taskId=' + activeId,
+            url: ctx + 'detectionManager/logList',
+            where: {
+                taskId: activeId ? parseInt(activeId) : null,
+                beginDate: dateRange[0],
+                endDate: dateRange[1]
+            },
             defaultToolbar: ['filter', 'exports', 'print'],
             page: true,
             height: '525',
@@ -294,8 +293,6 @@
             }
         });
 
-        let dateRange = getDefaultDateRange();
-        
         form.on('submit(table-search)', function (data) {
             const field = data.field;
             if (field.date) {
@@ -330,12 +327,12 @@
                 ...commonOption,
                 title: { text: '' },
                 tooltip: { trigger: 'axis' },
-                legend: { data: ['普通', '紧急'] },
+                legend: { data: ['未告警', '已告警'] },
                 xAxis: { type: 'category', data: [], boundaryGap: false },
                 yAxis: { type: 'value' },
                 series: [
-                    { name: '普通', type: 'line', smooth: true, data: [], itemStyle: { color: '#10b981' }, areaStyle: { opacity: 0.3 } },
-                    { name: '紧急', type: 'line', smooth: true, data: [], itemStyle: { color: '#ef4444' }, areaStyle: { opacity: 0.3 } }
+                    { name: '未告警', type: 'line', smooth: true, data: [], itemStyle: { color: '#10b981' }, areaStyle: { opacity: 0.3 } },
+                    { name: '已告警', type: 'line', smooth: true, data: [], itemStyle: { color: '#ef4444' }, areaStyle: { opacity: 0.3 } }
                 ]
             });
 
@@ -396,6 +393,7 @@
         }
 
         function updateStatCards(statData) {
+            document.getElementById('taskCount').textContent = statData.taskCount || 0;
             document.getElementById('totalCount').textContent = statData.total || 0;
             document.getElementById('successCount').textContent = statData.normal || 0;
             document.getElementById('warningCount').textContent = statData.urgent || 0;
@@ -404,10 +402,10 @@
 
         function updateTrendChart(trendData) {
             trendChart.setOption({
-                xAxis: { data: trendData.timeList },
+                xAxis: { data: trendData.hourList },
                 series: [
-                    { data: trendData.normalList },
-                    { data: trendData.urgentList }
+                    { data: trendData.noAlarmList },
+                    { data: trendData.hasAlarmList }
                 ]
             });
         }
@@ -444,19 +442,16 @@
         
         function getDefaultDateRange() {
             const now = new Date();
-            const thirtyMinAgo = new Date(now.getTime() - (30 * 60 * 1000));
+            const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
             const formatDate = function(d) {
                 var y = d.getFullYear();
                 var m = (d.getMonth() + 1).toString().padStart(2, '0');
                 var dd = d.getDate().toString().padStart(2, '0');
-                var h = d.getHours().toString().padStart(2, '0');
-                var min = d.getMinutes().toString().padStart(2, '0');
-                var s = d.getSeconds().toString().padStart(2, '0');
-                return y + '-' + m + '-' + dd + ' ' + h + ':' + min + ':' + s;
+                return y + '-' + m + '-' + dd;
             };
-            return [formatDate(thirtyMinAgo), formatDate(now)];
+            return [formatDate(sevenDaysAgo), formatDate(now)];
         }
-        
+
         window.addEventListener('resize', function() {
             trendChart.resize();
             alarmLevelChart.resize();

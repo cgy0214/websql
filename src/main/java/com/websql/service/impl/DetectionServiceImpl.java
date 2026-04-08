@@ -141,7 +141,13 @@ public class DetectionServiceImpl implements DetectionService {
                 predicates.add(cb.and(root.get("taskId").in(model.getTaskId())));
             }
             if (ObjectUtil.isNotEmpty(model.getBeginDate())) {
-                predicates.add(cb.between(root.get("createTime"), DateUtil.parseDateTime(model.getBeginDate()), DateUtil.parseDateTime(model.getEndDate())));
+                String beginStr = model.getBeginDate();
+                String endStr = model.getEndDate();
+                if (!beginStr.contains(":")) {
+                    beginStr = beginStr + " 00:00:00";
+                    endStr = endStr + " 23:59:59";
+                }
+                predicates.add(cb.between(root.get("createTime"), DateUtil.parseDateTime(beginStr), DateUtil.parseDateTime(endStr)));
             }
             predicates.add(cb.and(root.get("teamId").in(teamId)));
             query.orderBy(cb.desc(root.get("createTime")));
@@ -167,7 +173,9 @@ public class DetectionServiceImpl implements DetectionService {
         statData.put("normal", 0);
         statData.put("urgent", 0);
         statData.put("alarm", 0);
+        statData.put("taskCount", 0);
         int total = list.size();
+        long distinctTaskCount = list.stream().map(SysDetectionLogsModel::getTaskId).distinct().count();
         int normal = 0;
         int urgent = 0;
         int alarm = 0;
@@ -188,39 +196,40 @@ public class DetectionServiceImpl implements DetectionService {
         statData.put("normal", normal);
         statData.put("urgent", urgent);
         statData.put("alarm", alarm);
+        statData.put("taskCount", (int) distinctTaskCount);
         resultMap.put("statData", statData);
         
-        List<String> timeList = new ArrayList<>();
-        List<Integer> normalTrend = new ArrayList<>();
-        List<Integer> urgentTrend = new ArrayList<>();
+        List<String> hourList = new ArrayList<>();
+        List<Integer> noAlarmList = new ArrayList<>();
+        List<Integer> hasAlarmList = new ArrayList<>();
         
         if (!list.isEmpty()) {
-            Map<String, List<SysDetectionLogsModel>> timeGroupMap = list.stream()
-                .collect(Collectors.groupingBy(log -> DateUtil.format(log.getCreateTime(), "HH:mm")));
-            TreeSet<String> sortedTimes = new TreeSet<>(timeGroupMap.keySet());
+            Map<String, List<SysDetectionLogsModel>> hourGroupMap = list.stream()
+                .collect(Collectors.groupingBy(log -> DateUtil.format(log.getCreateTime(), "yyyy-MM-dd HH:00")));
+            TreeSet<String> sortedHours = new TreeSet<>(hourGroupMap.keySet());
             
-            timeList = new ArrayList<>(sortedTimes);
+            hourList = new ArrayList<>(sortedHours);
             
-            for (String time : timeList) {
-                List<SysDetectionLogsModel> timeLogs = timeGroupMap.get(time);
-                int n = 0, u = 0;
-                for (SysDetectionLogsModel log : timeLogs) {
-                    String alarmLevel = log.getAlarmLevel();
-                    if ("紧急".equals(alarmLevel)) {
-                        u++;
+            for (String hour : hourList) {
+                List<SysDetectionLogsModel> hourLogs = hourGroupMap.get(hour);
+                int noAlarm = 0, hasAlarm = 0;
+                for (SysDetectionLogsModel log : hourLogs) {
+                    String stateName = log.getStateName();
+                    if ("推送通知".equals(stateName)) {
+                        hasAlarm++;
                     } else {
-                        n++;
+                        noAlarm++;
                     }
                 }
-                normalTrend.add(n);
-                urgentTrend.add(u);
+                noAlarmList.add(noAlarm);
+                hasAlarmList.add(hasAlarm);
             }
         }
         
         Map<String, Object> trendData = new HashMap<>();
-        trendData.put("timeList", timeList);
-        trendData.put("normalList", normalTrend);
-        trendData.put("urgentList", urgentTrend);
+        trendData.put("hourList", hourList);
+        trendData.put("noAlarmList", noAlarmList);
+        trendData.put("hasAlarmList", hasAlarmList);
         resultMap.put("trendData", trendData);
         
         int normalCount = 0;
