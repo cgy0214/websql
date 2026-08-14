@@ -76,6 +76,20 @@ public class SqlParserHandler {
      * @return
      */
     private static String getExecuteType(Map tables, SQLStatement statement) {
+        // 优先根据 statement 类型精确判断（如 CREATE VIEW / CREATE TABLE AS SELECT 等包含子查询的场景）
+        if (ObjectUtil.isNotNull(statement)) {
+            String name = statement.getClass().getName();
+            if (name.contains("Insert")) {
+                return SqlOperationType.INSERT.getCode();
+            } else if (name.contains("Update")) {
+                return SqlOperationType.UPDATE.getCode();
+            } else if (name.contains("Delete")) {
+                return SqlOperationType.DELETE.getCode();
+            } else if (name.contains("Create")) {
+                return SqlOperationType.UPDATE.getCode();
+            }
+        }
+        // statement 类型无法判断时，回退到 visitor 解析的表操作类型
         if (ObjectUtil.isNotNull(tables) && !tables.isEmpty()) {
             for (Object value : tables.values()) {
                 if (ObjectUtil.isNotNull(value) && !value.toString().isEmpty()) {
@@ -87,18 +101,7 @@ public class SqlParserHandler {
             logger.error("解析语法错误，没有找到对应的执行类型!");
             return null;
         }
-        String name = statement.getClass().getName();
-        if (name.contains("Insert")) {
-            return SqlOperationType.INSERT.getCode();
-        } else if (name.contains("Update")) {
-            return SqlOperationType.UPDATE.getCode();
-        } else if (name.contains("Delete")) {
-            return SqlOperationType.DELETE.getCode();
-        } else if (name.contains("Create")) {
-            return SqlOperationType.UPDATE.getCode();
-        } else {
-            return SqlOperationType.SELECT.getCode();
-        }
+        return SqlOperationType.SELECT.getCode();
     }
 
 
