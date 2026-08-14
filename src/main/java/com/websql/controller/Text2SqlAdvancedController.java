@@ -1,6 +1,7 @@
 package com.websql.controller;
 
 import com.websql.model.AjaxResult;
+import com.websql.model.DataAnalysisQo;
 import com.websql.service.AiChatMemoryService;
 import com.websql.service.Text2SqlAdvancedService;
 import com.websql.task.ExamineVersionFactory;
@@ -49,6 +50,16 @@ public class Text2SqlAdvancedController {
         mav.addObject("database", database);
         mav.addObject("table", table);
         return mav;
+    }
+
+    /**
+     * 数据分析抽屉页面
+     *
+     * @return 页面
+     */
+    @RequestMapping("/dataAnalysisPage")
+    public ModelAndView dataAnalysisPage() {
+        return new ModelAndView("aiDataAnalysisPage");
     }
 
 
@@ -103,6 +114,19 @@ public class Text2SqlAdvancedController {
     public AjaxResult queryRecommend() {
         List<String> aiRecommend = examineVersionFactory.getVersionModel().getAiRecommend();
         return AjaxResult.success(aiRecommend);
+    }
+
+
+    /**
+     * 数据分析入口
+     *
+     * @param dataAnalysisQo 数据分析参数
+     * @return 生成的SQL语句
+     */
+    @PostMapping(value = "/streamDataAnalysis", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @ResponseBody
+    public SseEmitter streamDataAnalysis(@RequestBody DataAnalysisQo dataAnalysisQo) {
+        return text2SqlAdvancedService.streamDataAnalysis(dataAnalysisQo);
     }
 
 }

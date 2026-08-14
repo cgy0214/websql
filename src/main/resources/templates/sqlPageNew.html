@@ -579,9 +579,11 @@
          * @returns {boolean}
          */
         let elementTabCount = [];//tab总数
+        let resultSetMap = {};//结果集数据缓存 {elId:{data,tableNameList,sql}}
         function tableInit(data) {
             for (let i = 0; i < elementTabCount.length; i++) {
                 element.tabDelete('sqlTableTab', elementTabCount[i]);
+                delete resultSetMap[elementTabCount[i]];
             }
             $("#sqlTableDiv").hide();
             $("#msgDiv").hide();
@@ -631,6 +633,11 @@
                 //add Tab
                 let elId = "sqlTable" + index;
                 elementTabCount.push(elId);
+                resultSetMap[elId] = {
+                    data: rowsData,
+                    tableNameList: item.tableNameList,
+                    sql: item.parserSql
+                };
                 element.tabAdd('sqlTableTab', {
                     title: '结果集' + index,
                     content: "<table class='layui-table' id='" + elId + "'></table>",
@@ -639,6 +646,7 @@
                 })
                 table.render({
                     elem: '#' + elId
+                    , id: elId
                     , cols: [head]
                     , data: rowsData
                     , time: item.time
@@ -663,6 +671,61 @@
             }
             return false;
         }
+
+        /**
+         * AI智能分析当前结果集
+         * @param elId 结果集表格ID
+         */
+        window.aiDataAnalysis = function (elId) {
+            const info = resultSetMap[elId];
+            if (!info || !info.data || info.data.length === 0) {
+                layer.msg('当前结果集无数据，无法分析~', {icon: 2});
+                return false;
+            }
+            if (activeDataSource == null || activeDataSource === '') {
+                layer.msg('请先选择数据源~', {icon: 2});
+                return false;
+            }
+            //处理tableNameList,JSON字符串转数组
+            let tableNameList = [];
+            if (info.tableNameList) {
+                try {
+                    tableNameList = JSON.parse(info.tableNameList);
+                } catch (e) {
+                    tableNameList = String(info.tableNameList).split(',');
+                }
+                if (typeof tableNameList === 'string') {
+                    tableNameList = [tableNameList];
+                }
+            }
+            const params = {
+                dataBaseName: activeDataSource,
+                tableNameList: tableNameList,
+                sampleData: JSON.stringify(info.data),
+                sql: info.sql || editor.getValue(),
+                executeType: 'SELECT'
+            };
+            //参数通过sessionStorage传递给抽屉页面
+            sessionStorage.setItem('aiDataAnalysisParams', JSON.stringify(params));
+            //右侧抽屉展示,样式与AI智能助手一致
+            if (aiViewId != null) {
+                layer.close(aiViewId);
+            }
+            aiViewId = layer.open({
+                type: 2,
+                offset: 'r',
+                anim: 'slideLeft',
+                area: ['420px', '100%'],
+                shade: 0.1,
+                shadeClose: true,
+                title: false,
+                closeBtn: 0,
+                hideOnClose: true,
+                id: 'ai-analysis-layer-direction-r',
+                content: [ctx + 'aiManager/dataAnalysisPage', 'yes']
+            });
+            return false;
+        };
 
 
         /**
@@ -1095,7 +1158,7 @@
 
         util.on('lay-on', {
             'ai-offset-t': function () {
-                if (activeDataSource === null || activeDataSource === '') {
+                if (activeDataSource === null || activeDataSource === '' || activeDataSource === undefined) {
                     layer.msg('请选择数据源', {icon: 2});
                     return false;
                 }

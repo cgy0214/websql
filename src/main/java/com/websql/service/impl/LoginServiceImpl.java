@@ -528,7 +528,7 @@ public class LoginServiceImpl implements LoginService {
             sysSetup.setEnabledLockView(0);
             sysSetup.setPageLimitMax(1000);
             sysSetup.setFailLogin(3);
-            sysSetup.setRiskText("drop,truncate,delete,create");
+            sysSetup.setRiskText("drop,dropindex,truncate,delete,insert,update,alter,merge,insertselect");
             sysSetup.setEnabledHint(0);
             sysSetup.setEnabledNotification(0);
             sysSetUpRepository.save(sysSetup);
