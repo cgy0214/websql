@@ -1,234 +1,674 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <title>WebSql-AI智能助手</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
-    <link rel="stylesheet" th:href="@{/static/css/aiPage.css}" media="all"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Roboto, sans-serif;
+            background: #f0f2f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .ai-header {
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #16baaa 0%, #0f9d8f 100%);
+            color: #fff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 12px rgba(22, 186, 170, 0.35);
+            z-index: 10;
+        }
+
+        .ai-header .ai-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            flex-shrink: 0;
+            letter-spacing: -1px;
+        }
+
+        .ai-header .ai-title {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ai-header .ai-title h3 {
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .ai-header .ai-title .ai-sub {
+            font-size: 10.5px;
+            opacity: 0.85;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ai-chip-btn,
+        .ai-close {
+            flex-shrink: 0;
+            width: 26px;
+            height: 26px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .ai-chip-btn:hover,
+        .ai-close:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.08);
+        }
+
+        .ai-chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 14px;
+            scroll-behavior: smooth;
+            background: radial-gradient(circle at 20% 10%, rgba(22, 186, 170, 0.05), transparent 40%),
+            radial-gradient(circle at 80% 90%, rgba(15, 157, 143, 0.06), transparent 40%), #f0f2f5;
+        }
+
+        .ai-chat::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .ai-chat::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 3px;
+        }
+
+        .ai-message {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            animation: messageIn 0.3s ease;
+        }
+
+        @keyframes messageIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ai-message .msg-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            margin-top: 2px;
+        }
+
+        .ai-message.assistant .msg-avatar {
+            background: linear-gradient(135deg, #16baaa, #0f9d8f);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(22, 186, 170, 0.4);
+        }
+
+        .ai-message.user {
+            flex-direction: row-reverse;
+        }
+
+        .ai-message.user .msg-avatar {
+            background: linear-gradient(135deg, #2ec4b6, #16baaa);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(22, 186, 170, 0.4);
+        }
+
+        .ai-message .msg-bubble {
+            max-width: 82%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            line-height: 1.7;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .ai-message.assistant .msg-bubble {
+            background: #fff;
+            border: 1px solid #e8ecf3;
+            border-top-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            color: #2b3245;
+        }
+
+        .ai-message.user .msg-bubble {
+            background: linear-gradient(135deg, #16baaa, #2ec4b6);
+            color: #fff;
+            border-top-right-radius: 4px;
+            box-shadow: 0 2px 8px rgba(22, 186, 170, 0.25);
+        }
+
+        .ai-message .msg-bubble p {
+            margin: 0 0 6px;
+        }
+
+        .ai-message .msg-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .ai-message .msg-bubble strong {
+            font-weight: 600;
+        }
+
+        .thinking-dots {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 2px;
+            margin-right: 6px;
+        }
+
+        .thinking-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #16baaa;
+            animation: blink 1.2s infinite;
+        }
+
+        .thinking-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .thinking-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0%, 80%, 100% {
+                opacity: 0.25;
+                transform: scale(0.8);
+            }
+            40% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .ai-code {
+            margin: 0;
+            background: #f7f9fc;
+            border: 1px solid #e8ecf3;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 12px;
+            line-height: 1.8;
+            color: #1f2d3d;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-x: auto;
+        }
+
+        .ai-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .ai-action {
+            font-size: 11px;
+            color: #16baaa;
+            cursor: pointer;
+            border: 1px solid #16baaa;
+            border-radius: 6px;
+            padding: 3px 10px;
+            background: rgba(22, 186, 170, 0.06);
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .ai-action:hover {
+            background: #16baaa;
+            color: #fff;
+        }
+
+        .ai-err {
+            color: #e45757;
+            font-size: 13px;
+        }
+
+        .ai-input-area {
+            flex-shrink: 0;
+            background: #fff;
+            border-top: 1px solid #e8ecf3;
+            padding: 10px 14px 12px;
+            box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.03);
+        }
+
+        .ai-input-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f5f7fb;
+            border: 1px solid #e4e8f0;
+            border-radius: 14px;
+            padding: 10px 10px 10px 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .ai-input-box:focus-within {
+            border-color: #16baaa;
+            box-shadow: 0 0 0 3px rgba(22, 186, 170, 0.12);
+        }
+
+        .ai-input-box textarea {
+            flex: 1 1 auto;
+            border: none;
+            background: transparent;
+            resize: none;
+            overflow-y: hidden;
+            font-size: 13.5px;
+            line-height: 22px;
+            height: 22px;
+            max-height: 100px;
+            outline: none;
+            padding: 0;
+            color: #2b3245;
+            font-family: inherit;
+        }
+
+        .ai-input-box textarea::placeholder {
+            color: #9aa3b2;
+        }
+
+        .ai-send-btn {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #16baaa, #0f9d8f);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s, opacity 0.2s;
+            box-shadow: 0 2px 6px rgba(22, 186, 170, 0.35);
+        }
+
+        .ai-send-btn:hover {
+            transform: scale(1.06);
+        }
+
+        .ai-send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .ai-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .ai-input-tips {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            padding: 0 4px;
+        }
+
+        .ai-input-tips .ai-ds-tag {
+            font-size: 11px;
+            color: #8a93a6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ai-input-tips .ai-disclaimer {
+            font-size: 10.5px;
+            color: #b0b7c4;
+            flex-shrink: 0;
+        }
+
+        .ai-empty {
+            text-align: center;
+            color: #9aa3b2;
+            padding: 36px 16px;
+            font-size: 13px;
+            line-height: 2;
+        }
+
+        .ai-empty .ai-empty-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .ai-reco-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .ai-reco-chip {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #fff;
+            border: 1px solid #dbe3ef;
+            border-radius: 16px;
+            color: #16baaa;
+            font-size: 12px;
+            line-height: 1.6;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .ai-reco-chip:hover {
+            border-color: #16baaa;
+            background: rgba(22, 186, 170, 0.08);
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
 <body>
-<div class="layui-container">
-    <div class="copilot-container">
-        <div class="copilot-header">
-            <svg t="1762763574651" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-                 p-id="5532" width="48" height="48">
-                <path d="M511.994264 511.994264m-511.994264 0a511.994264 511.994264 0 1 0 1023.988529 0 511.994264 511.994264 0 1 0-1023.988529 0Z"
-                      fill="#28176D" p-id="5533"></path>
-                <path d="M769.87841 652.183853h-53.444341V522.260992h53.444341zM789.528583 522.260992h-19.650173v129.922861h84.898383V522.260992h-65.24821z"
-                      fill="#F8C642" p-id="5534"></path>
-                <path d="M772.012054 782.095242h-55.577985V652.172382H772.012054z" fill="#F8C642" p-id="5535"></path>
-                <path d="M842.777913 782.095242h-72.910974V652.183853h84.886912v117.923981a11.99888 11.99888 0 0 1-11.975938 11.987408z"
-                      fill="#7B49B6" p-id="5536"></path>
-                <path d="M836.571992 522.260992H716.434069V392.338132h120.137923z" fill="#FC3A64" p-id="5537"></path>
-                <path d="M854.776793 522.260992h-65.24821V392.338132h65.24821z" fill="#FFFFFF" p-id="5538"></path>
-                <path d="M348.518131 692.73456l-20.18932 88.95919H169.211736l126.951818-522.14628h224.124391l120.447646 522.157751H483.316253l-20.533455-88.959189z m28.047095-122.48952h58.170477l-28.735367-127.640091z"
-                      fill="#F8C642" p-id="5539"></path>
-                <path d="M296.163554 259.54747l-22.896524 94.190059H542.014406l-21.726461-94.190059H296.163554z"
-                      fill="#7B49B6" p-id="5540"></path>
-                <path d="M220.625674 570.24504h214.1215l28.047095 122.48952H190.846427l29.779247-122.48952z"
-                      fill="#FC3A64" p-id="5541"></path>
-                <path d="M406.000336 442.604949h156.513112l29.435111 127.640091H434.747174l-28.746838-127.640091z"
-                      fill="#FFFFFF" p-id="5542"></path>
-                <path d="M718.556241 241.893286h134.098379v47.61697H718.556241z" fill="#FC3A64" p-id="5543"></path>
-                <path d="M718.556241 288.087826h134.098379v47.61697H718.556241z" fill="#FC3A64" p-id="5544"></path>
+<div class="ai-header">
+    <div class="ai-logo">AI</div>
+    <div class="ai-title">
+        <h3>AI 智能助手</h3>
+        <div class="ai-sub">基于当前库表 · 支持多轮对话</div>
+    </div>
+    <button class="ai-chip-btn" id="newChatBtn" title="新对话">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="#fff" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round"/>
+            <path d="M20 3v5h-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+    <button class="ai-close" id="closeBtn" title="关闭">✕</button>
+</div>
+
+<div class="ai-chat" id="chatHistory"></div>
+
+<div class="ai-input-area">
+    <input type="hidden" th:value="${database}" name="dataBaseName" id="dataBaseName"/>
+    <input type="hidden" th:value="${table}" name="tableName" id="tableName"/>
+    <div class="ai-input-box">
+        <textarea id="question" rows="1" placeholder="输入自然语言生成SQL，可多轮追问..."></textarea>
+        <button class="ai-send-btn" id="sendBtn" title="发送">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round"/>
             </svg>
-            <h3>AI Data Copilot</h3>
-        </div>
-        <div class="copilot-chat-area">
-            <form class="layui-form">
-                <div id="chat-history">
-                </div>
-                <div class="chat-input-container">
-                    <div class="database-selector">
-                        [[${database}]]
-                        <input type="hidden" th:value="${database}" name="dataBaseName" id="dataBaseName"/>
-                        <input type="hidden" th:value="${table}" name="tableName" id="tableName"/>
-                        <i class="layui-icon layui-icon-addition"></i><a></a>
-                    </div>
-                    <div class="chat-input">
-                        <textarea id="question" placeholder="请问我SQL语句相关问题..."></textarea>
-                        <button type="button" lay-filter="query" id="query" lay-submit>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round"
-                                      stroke-linejoin="round"/>
-                                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="copilot-footer">
-            <p>请在使用前仔细查看输出内容</p>
-            <p>所有内容均由人工智能模型生成,其生成内容的准确性和完整性无法保证,不代表我们的态度或观点</p>
-        </div>
+        </button>
+    </div>
+    <div class="ai-input-tips">
+        <span class="ai-ds-tag" id="tableTag">库表: 未知</span>
+        <span class="ai-disclaimer">内容由AI生成，仅供参考</span>
     </div>
 </div>
+
 <script th:src="@{/static/layui.js}"></script>
 <script th:replace="~{base::ctx}"></script>
 <script th:src="@{/static/lay-config.js}"></script>
-<script th:src="@{/static/code/highlight.min.js}"></script>
-<script th:src="@{/static/code/sql-formatter.min.cjs}"></script>
-<script type="text/html" id="table-sql-code-tpl">
-    <strong><i class="layui-icon layui-icon-bot"></i>Ai</strong>
-    <br>
-    <pre class="layui-code chat-text-sql{{- d.id}}">
-    {{- d.data}}
-    </pre>
-</script>
 <script>
     const SQL_KEYWORD = ['select', 'insert', 'update', 'delete', 'from', 'where', 'order by', 'limit', 'offset', 'create', 'drop', 'alter', 'truncate', 'rename', 'set', 'show', 'desc', 'explain', 'begin', 'commit', 'rollback', 'lock', 'unlock', 'grant', 'revoke', 'call', 'declare', 'procedure', 'function', 'trigger', 'view', 'index'];
 
-    layui.use(['jquery', 'layer', 'form', 'code',], function () {
-        const layer = layui.layer;
-        const form = layui.form;
+    layui.use(['jquery', 'layer'], function () {
         const $ = layui.jquery;
-        const code = layui.code;
-        let codeInst;
-        let indexEl = 0;
+        const layer = layui.layer;
 
+        const chatHistory = document.getElementById('chatHistory');
+        const questionEl = document.getElementById('question');
+        const sendBtn = document.getElementById('sendBtn');
+        const newChatBtn = document.getElementById('newChatBtn');
+        let requesting = false;
+        let msgSeq = 0;
+
+        const dataBaseName = document.getElementById('dataBaseName').value;
+        const tableName = document.getElementById('tableName').value;
+        const dsLabel = (dataBaseName || '未知') + (tableName ? ' · ' + tableName : '');
+        document.getElementById('tableTag').textContent = '库表: ' + dsLabel;
+
+        const escapeHtml = function (str) {
+            if (str == null) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        };
 
         // 矫正模型给的换行错误问题
         const keywordHtml = function (text, index) {
             if (text == null || text === '') {
                 return text;
             }
-            if (text === '<br>') {
-                return '\n';
-            }
+            let t = escapeHtml(text);
+            t = t.replace(/&lt;br\s*\/?&gt;/ig, '\n').replace(/<br\s*\/?>/ig, '\n');
             for (let i = 0; i < SQL_KEYWORD.length; i++) {
                 const key = SQL_KEYWORD[i];
-                const number = text.toLowerCase().trim().indexOf(key);
-                if (number !== -1 && index === 0) {
-                    return text.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '$1\n');
+                if (t.toLowerCase().indexOf(key) !== -1 && index === 0) {
+                    return t.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '$1\n');
                 }
-                if (number !== -1 && index > 0) {
-                    return text.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '\n $1 \n');
+                if (t.toLowerCase().indexOf(key) !== -1 && index > 0) {
+                    return t.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '\n $1 \n');
                 }
             }
-            return text;
+            return t;
         };
 
-        //
-        $('.suggestion-card').on('click', function () {
-            const suggestionText = $(this).find('p').text();
-            $('#question').val(suggestionText);
+        const appendMessage = function (role, content) {
+            msgSeq++;
+            const avatar = role === 'assistant' ? '🤖' : '👤';
+            const div = document.createElement('div');
+            div.className = 'ai-message ' + role;
+            div.id = 'msg' + msgSeq;
+            div.innerHTML = '<div class="msg-avatar">' + avatar + '</div>' +
+                '<div class="msg-bubble">' + (role === 'assistant' && content === '' ?
+                    '<span class="thinking-dots"><span></span><span></span><span></span></span>AI思考中...' :
+                    escapeHtml(content)) + '</div>';
+            chatHistory.appendChild(div);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            return div;
+        };
+
+        //流式请求
+        const startStream = function (q, msgDiv) {
+            const bubble = $(msgDiv).find('.msg-bubble')[0];
+            const url = ctx + 'aiManager/stream?text=' + encodeURIComponent(q) +
+                '&dataBaseName=' + encodeURIComponent(dataBaseName) + '&tableName=' + encodeURIComponent(tableName);
+            const source = new EventSource(url);
+            let aiAnswer = '';
+            let index = 0;
+            requesting = true;
+            sendBtn.disabled = true;
+
+            source.onmessage = function (e) {
+                const t = keywordHtml(e.data, index);
+                index++;
+                if (t !== '') {
+                    aiAnswer += t;
+                    bubble.innerHTML = '<pre class="ai-code">' + aiAnswer + '</pre>';
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                }
+            };
+
+            //服务端清除历史信号
+            source.addEventListener('clear_history', function () {
+                chatHistory.innerHTML = '';
+                renderRecommend();
+            });
+
+            source.onerror = function () {
+                source.close();
+                requesting = false;
+                sendBtn.disabled = false;
+                if (aiAnswer.trim() === '') {
+                    bubble.innerHTML = '<span class="ai-err">AI 未返回内容，请重试~</span>';
+                } else {
+                    bubble.innerHTML = '<pre class="ai-code">' + aiAnswer + '</pre>' +
+                        '<div class="ai-actions">' +
+                        '<a class="ai-action" data-exec>执行SQL</a>' +
+                        '<a class="ai-action" data-copy>复制</a>' +
+                        '</div>';
+                }
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            };
+        };
+
+        const sendMessage = function (q) {
+            if (requesting) {
+                layer.msg('AI正在回答中，请稍候~', {icon: 2});
+                return false;
+            }
+            const question = String(q == null ? '' : q).trim();
+            if (question === '') {
+                layer.msg('请输入问题~', {icon: 2});
+                return false;
+            }
+            const recoWrap = document.getElementById('recoWrap');
+            if (recoWrap) {
+                recoWrap.remove();
+            }
+            appendMessage('user', question);
+            const msgDiv = appendMessage('assistant', '');
+            startStream(question, msgDiv);
+            questionEl.value = '';
+            autoResize();
+            return false;
+        };
+
+        //推荐初始化
+        const renderRecommend = function () {
+            chatHistory.innerHTML = '';
+            post(ctx + 'aiManager/queryRecommend', null, function (res) {
+                const wrap = document.createElement('div');
+                wrap.className = 'ai-empty';
+                wrap.id = 'recoWrap';
+                let html = '<span class="ai-empty-icon">🤖</span>' +
+                    '<div>你好，我是 AI 智能助手，可以帮你编写 SQL</div>' +
+                    '<div style="font-size:12px;opacity:.7;">选择或输入提示开始对话，可基于结果多轮追问</div>';
+                if (res.code === 200 && res.data != null && res.data.length > 0) {
+                    html += '<div class="ai-reco-list">';
+                    res.data.forEach(function (item) {
+                        html += '<a class="ai-reco-chip" href="javascript:void(0);" data-question="' + escapeHtml(item) + '">' + escapeHtml(item) + '</a>';
+                    });
+                    html += '</div>';
+                }
+                wrap.innerHTML = html;
+                chatHistory.appendChild(wrap);
+            });
+        };
+
+        //推荐/执行/复制事件
+        chatHistory.addEventListener('click', function (e) {
+            const chip = e.target.closest('.ai-reco-chip');
+            if (chip) {
+                sendMessage(chip.getAttribute('data-question'));
+                return;
+            }
+            const exec = e.target.closest('[data-exec]');
+            if (exec) {
+                if (window.parent) {
+                    window.parent.postMessage({type: 'executeSQL', sql: $(exec).closest('.msg-bubble').find('.ai-code')[0].innerText}, '*');
+                }
+                return;
+            }
+            const copy = e.target.closest('[data-copy]');
+            if (copy) {
+                navigator.clipboard.writeText($(copy).closest('.msg-bubble').find('.ai-code')[0].innerText)
+                    .then(function () {
+                        layer.msg('已复制');
+                    });
+            }
         });
 
         //新对话
-        $('.layui-icon-addition').on('click', function () {
-            post(ctx + "aiManager/clear", null, (res) => {
-                document.getElementById('chat-history').innerHTML = '';
-                recommend();
-            });
-        });
-
-        //推荐查询
-        $(document).on('click', '.recommendQuery', function () {
-            const labelText = $(this).find('.recommend-item').text();
-            $('#question').val(labelText);
-            $("#query").trigger('click');
-        });
-
-        //推荐初始化
-        function recommend() {
-            post(ctx + "aiManager/queryRecommend", null, (res) => {
-                if (res.code === 200) {
-                    const data = res.data;
-                    if (data!=null && data.length > 0) {
-                        const history = document.getElementById('chat-history');
-                        let container = '<div class="recommend-container"><div class="recommend-list">';
-                        data.forEach(item => {
-                            container += '<a class="recommendQuery" href="javascript:void(0);"><p class="chat-text recommend-item">' + item + '</p></a>';
-                        });
-                        container += '</div></div>';
-                        history.innerHTML += container;
-                    }
-                }
-            });
-        }
-
-        form.on('submit(query)', function (data) {
-
-            const q = $('#question').val();
-            if (!q) return layui.layer.msg('请输入问题');
-
-            const answerDom = document.getElementById('chat-history');
-
-            //关闭推荐
-            const isFirstQuestion = answerDom.querySelector('.recommend-container') !== null;
-            if (isFirstQuestion) {
-                const recommendContainer = answerDom.querySelector('.recommend-container');
-                if (recommendContainer) {
-                    recommendContainer.remove();
-                }
+        newChatBtn.onclick = function () {
+            if (requesting) {
+                layer.msg('AI正在回答中，请稍候~', {icon: 2});
+                return false;
             }
-
-            answerDom.innerHTML += '<p class="chat-text"><strong><i class="layui-icon layui-icon-username"></i></strong> ' + q + '</p>';
-            answerDom.innerHTML += '<p class="chat-text"><strong><i class="layui-icon layui-icon-bot"></i></strong> 正在思考中...</p>';
-            answerDom.scrollTop = answerDom.scrollHeight;
-
-            $('#question').val("");
-            const dataBaseName = document.getElementById('dataBaseName').value;
-            const tableName = document.getElementById('tableName').value;
-
-            let content = '/aiManager/stream?text=' + encodeURIComponent(q) + "&dataBaseName=" + dataBaseName + "&tableName=" + tableName;
-            const source = new EventSource(content);
-            let aiAnswer = '';
-            let index = 0;
-            indexEl++;
-
-            source.onmessage = e => {
-                aiAnswer += keywordHtml(e.data, index);
-                index++;
-                const aiMessages = answerDom.querySelectorAll('p > strong');
-                const lastAiMessage = aiMessages[aiMessages.length - 1].parentElement;
-                const head = "<strong><i class='layui-icon layui-icon-chat'></i>Ai</strong><br>";
-                const content = "<pre class='layui-code chat-text-sql" + indexEl + "'>" + aiAnswer + "</pre>";
-                lastAiMessage.innerHTML = head + content;
-                settingCode(indexEl);
-                answerDom.scrollTop = answerDom.scrollHeight;
-            };
-            source.onerror = function () {
-                source.close();
-                layui.layer.msg('回答完毕');
-                answerDom.scrollTop = answerDom.scrollHeight;
-            };
-            return false;
-        });
-
-
-        const settingCode = function (indexEl) {
-            codeInst = code({
-                elem: '.chat-text-sql' + indexEl,
-                highlighter: "hljs",
-                encode: false,
-                id: 'chat-text-sql' + indexEl,
-                preview: true,
-                layout: ['code'],
-                tools: [
-                    'copy',
-                    'full',
-                    {
-                        title: ['执行SQL'],
-                        type: 'link',
-                        event: function (obj) {
-                            if (window.parent) {
-                                window.parent.postMessage({
-                                    type: 'executeSQL',
-                                    sql: obj.finalCode
-                                }, '*');
-                            }
-                        }
-                    }
-                ]
+            post(ctx + 'aiManager/clear', null, function () {
+                renderRecommend();
             });
         };
-        recommend();
+
+        //关闭抽屉
+        window.closeAiPage = function () {
+            try {
+                const index = parent.layer.getFrameIndex(window.name);
+                parent.layer.close(index);
+            } catch (e) {
+                console.error('关闭AI助手抽屉失败', e);
+            }
+        };
+        document.getElementById('closeBtn').onclick = closeAiPage;
+
+        //发送事件
+        sendBtn.onclick = function () {
+            const q = questionEl.value;
+            if (q.trim() === '') {
+                layer.msg('请输入问题~', {icon: 2});
+                return false;
+            }
+            sendMessage(q);
+        };
+
+        //回车发送,Shift+Enter换行
+        questionEl.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+
+        //textarea自适应高度
+        const autoResize = function () {
+            questionEl.style.height = 'auto';
+            questionEl.style.height = Math.min(questionEl.scrollHeight, 100) + 'px';
+        };
+        questionEl.addEventListener('input', autoResize);
+        autoResize();
+
+        renderRecommend();
     });
 </script>
 </body>
