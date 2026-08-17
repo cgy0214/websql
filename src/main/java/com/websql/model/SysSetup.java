@@ -85,4 +85,46 @@ public class SysSetup {
      */
     @Column(length = 1)
     private Integer enabledNotification;
+
+    /**
+     *  默认首页配置 HomePage
+     */
+    @Column
+    private String homePage;
+
+    /**
+     * openai 接口地址
+     */
+    @Column
+    private String aiUrl;
+
+    /**
+     * openai api key
+     */
+    @Column
+    private String aiKey;
+
+    /**
+     * openai 模型名称
+     */
+    @Column
+    private String aiModelName;
+
+    /**
+     * openai temperature 温度
+     */
+    @Column
+    private Double aiTemperature;
+
+    /**
+     * openai 最大tokens
+     */
+    @Column
+    private Integer aiMaxTokens;
+
+    /**
+     * openai 最大历史消息
+     */
+    @Column
+    private Integer aiMaxMessages;
 }

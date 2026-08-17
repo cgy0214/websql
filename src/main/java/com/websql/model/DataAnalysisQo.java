@@ -37,4 +37,9 @@ public class DataAnalysisQo {
      */
     private String question;
 
+    /**
+     * 会话ID，用于多轮对话隔离，每次新分析生成新的会话ID
+     */
+    private String sessionId;
+
 }

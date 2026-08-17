@@ -15,8 +15,7 @@
             <span class="layui-badge"> {{= d.cols.length }}  <span style="margin-left:2px;">列</span></span>
             <span class="layui-badge layui-bg-green">{{= d.data.length }} <span style="margin-left:2px;">行</span></span>
             <span class="layui-badge layui-bg-blue">{{= d.time }} <span style="margin-left:2px;">毫秒</span></span>
-            <div onclick="aiDataAnalysis('{{= d.id }}')" title="AI智能分析"
-                 style="cursor:pointer;display:inline-block;vertical-align:middle;height:24px;line-height:24px;padding:0 14px;border-radius:12px;background:linear-gradient(135deg,#16baaa 0%,#0f9d8f 100%);color:#fff;font-weight:bold;font-size:12px;text-align:center;white-space:nowrap;text-shadow:1px 1px 1px rgba(0,0,0,0.3);">
+            <div class="ai-analysis-btn" onclick="aiDataAnalysis('{{= d.id }}')" title="AI智能分析">
                 AI分析
             </div>
             <!--<button class='layui-btn layui-btn-primary layui-border-purple layui-btn-xs'

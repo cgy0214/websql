@@ -358,6 +358,7 @@
         <h3>AI 智能数据分析</h3>
         <div class="ai-sub">基于当前结果集 · 支持多轮追问</div>
     </div>
+    <button class="ai-close" id="newChatBtn" title="新对话">↻</button>
     <button class="ai-close" id="closeBtn" title="关闭">✕</button>
 </div>
 
@@ -518,8 +519,10 @@
             return false;
         };
 
-        //自动发起首轮分析
         if (analysisParams) {
+            if (!analysisParams.sessionId) {
+                analysisParams.sessionId = 'ana-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+            }
             let tables = '';
             if (analysisParams.tableNameList && analysisParams.tableNameList.length > 0) {
                 tables = analysisParams.tableNameList.join(',');
@@ -532,6 +535,21 @@
         } else {
             chatHistory.innerHTML = '<div class="ai-empty"><span class="ai-empty-icon">📊</span>请先在结果集工具栏点击「AI智能分析」按钮</div>';
         }
+
+        document.getElementById('newChatBtn').onclick = function () {
+            if (requesting) {
+                layer.msg('AI正在回答中，请稍候~', {icon: 2});
+                return false;
+            }
+            if (!analysisParams) {
+                layer.msg('未获取到分析参数，请重新点击AI智能分析~', {icon: 2});
+                return false;
+            }
+            analysisParams.sessionId = 'ana-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+            chatHistory.innerHTML = '';
+            sendMessage('');
+            return false;
+        };
 
         //关闭抽屉
         window.closeAiAnalysis = function () {

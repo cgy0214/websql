@@ -75,8 +75,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
             + "1. 全部使用中文回答，内容必须基于之前提供的数据，严禁编造、猜测数据，如果数据不足或无法得出结论，请如实说明\n"
             + "2. 回答要精炼简短，控制在150字以内，使用短句直接给出结论\n"
             + "3. 对重点数据使用HTML标签突出显示，例如<strong>加粗</strong>、<span style='color:#FF4D4F'>红色文字</span>\n"
-            + "4. 不要使用Markdown格式和JSON格式，HTML标签中的属性使用单引号\n"
-            + "用户追问：";
+            + "4. 不要使用Markdown格式和JSON格式，HTML标签中的属性使用单引号\n";
 
 
     /**
@@ -324,14 +323,21 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
         try {
             String schema = buildSchema(dataAnalysisQo);
             boolean isFollowUp = ObjectUtil.isNotEmpty(dataAnalysisQo.getQuestion());
-            log.debug("开始请求AI数据分析>>schema:{},isFollowUp:{}", schema.length(), isFollowUp);
+            String sessionId = dataAnalysisQo.getSessionId();
+            String memoryId = ObjectUtil.isNotEmpty(sessionId) ? userId + ":analysis:" + sessionId : userId;
+            log.debug("开始请求AI数据分析>>schema:{},isFollowUp:{},memoryId:{}", schema.length(), isFollowUp, memoryId);
             if (ObjectUtil.isNotNull(chatMemoryProvider)) {
-                ChatMemory chatMemory = chatMemoryProvider.get(userId);
-                boolean needSchemaInfo = chatMemory.messages().stream()
-                        .noneMatch(msg -> msg instanceof SystemMessage &&
-                                ((SystemMessage) msg).text().contains("数据库信息:"));
-                if (needSchemaInfo) {
+                ChatMemory chatMemory = chatMemoryProvider.get(memoryId);
+                if (!isFollowUp) {
+                    chatMemory.clear();
                     chatMemory.add(new SystemMessage("以下是数据库结构信息，供你参考:\n" + schema));
+                } else {
+                    boolean needSchemaInfo = chatMemory.messages().stream()
+                            .noneMatch(msg -> msg instanceof SystemMessage &&
+                                    ((SystemMessage) msg).text().contains("数据库信息:"));
+                    if (needSchemaInfo) {
+                        chatMemory.add(new SystemMessage("以下是数据库结构信息，供你参考:\n" + schema));
+                    }
                 }
                 String prompt = isFollowUp
                         ? DATA_ANALYSIS_FOLLOW_UP_PROMPT + dataAnalysisQo.getQuestion()

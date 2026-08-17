@@ -7,9 +7,30 @@
     <link rel="stylesheet" th:href="@{/static/code/codemirror.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/show-hint.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/code/highlight.min.css}" media="all">
-    <link rel="stylesheet" th:href="@{/static/css/sqlPage.css}" media="all">
+    <link rel="stylesheet" th:href="@{/static/css/sqlPage.css?v=2}" media="all">
     <style>
+        .ai-analysis-btn {
+            cursor: pointer;
+            display: inline-block;
+            vertical-align: middle;
+            height: 24px;
+            line-height: 24px;
+            padding: 0 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #FC3A64 0%, #7B49B6 55%, #667eea 100%);
+            color: #fff;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+            white-space: nowrap;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.2s, transform 0.15s;
+        }
 
+        .ai-analysis-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -290,6 +311,17 @@
                 box.html('<span class="roll-item layui-anim layui-anim-upbit ">' + textArr[index] + '</span>');
             }, 200);
         }, 3000);
+
+        /**
+         * 跑马灯帮助文档
+         */
+        const helpToolbarConfig = function () {
+            window.open('https://gitee.com/boy_0214/websql/wikis/pages?sort_id=18061437&doc_id=3405209', '_blank');
+        };
+
+        //跑马灯点击打开帮助文档
+        box.css('cursor', 'pointer');
+        box.on('click', helpToolbarConfig);
 
 
         /**
@@ -703,11 +735,13 @@
                 tableNameList: tableNameList,
                 sampleData: JSON.stringify(info.data),
                 sql: info.sql || editor.getValue(),
-                executeType: 'SELECT'
+                executeType: 'SELECT',
+                //每次打开生成新的会话ID,确保与上次分析隔离
+                sessionId: 'ana-' + Date.now() + '-' + Math.floor(Math.random() * 10000)
             };
             //参数通过sessionStorage传递给抽屉页面
             sessionStorage.setItem('aiDataAnalysisParams', JSON.stringify(params));
-            //右侧抽屉展示,样式与AI智能助手一致
+            //右侧抽屉展示,每次点击都重新创建弹层(不固定id),保证刷新为最新结果集
             if (aiViewId != null) {
                 layer.close(aiViewId);
             }
@@ -721,7 +755,6 @@
                 title: false,
                 closeBtn: 0,
                 hideOnClose: true,
-                id: 'ai-analysis-layer-direction-r',
                 content: [ctx + 'aiManager/dataAnalysisPage', 'yes']
             });
             return false;
