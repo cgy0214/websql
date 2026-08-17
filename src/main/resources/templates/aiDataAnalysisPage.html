@@ -2,7 +2,7 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <title>WebSql-AI智能助手</title>
+    <title>WebSql-AI智能分析</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
     <style>
@@ -25,23 +25,23 @@
             flex-shrink: 0;
             background: linear-gradient(135deg, #16baaa 0%, #0f9d8f 100%);
             color: #fff;
-            padding: 12px 14px;
+            padding: 14px 18px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             box-shadow: 0 2px 12px rgba(22, 186, 170, 0.35);
             z-index: 10;
         }
 
         .ai-header .ai-logo {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.22);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
             flex-shrink: 0;
             letter-spacing: -1px;
@@ -53,13 +53,13 @@
         }
 
         .ai-header .ai-title h3 {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
             line-height: 1.3;
         }
 
         .ai-header .ai-title .ai-sub {
-            font-size: 10.5px;
+            font-size: 11px;
             opacity: 0.85;
             margin-top: 2px;
             white-space: nowrap;
@@ -67,7 +67,19 @@
             text-overflow: ellipsis;
         }
 
-        .ai-chip-btn,
+        .ai-header .ai-datasource {
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 11px;
+            max-width: 130px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .ai-close {
             flex-shrink: 0;
             width: 26px;
@@ -76,7 +88,7 @@
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.18);
             color: #fff;
-            font-size: 14px;
+            font-size: 15px;
             line-height: 1;
             cursor: pointer;
             display: flex;
@@ -85,7 +97,6 @@
             transition: background 0.2s, transform 0.15s;
         }
 
-        .ai-chip-btn:hover,
         .ai-close:hover {
             background: rgba(255, 255, 255, 0.35);
             transform: scale(1.08);
@@ -192,12 +203,15 @@
             font-weight: 600;
         }
 
+        .ai-message .msg-bubble span[style*="color"] {
+            font-weight: 600;
+        }
+
         .thinking-dots {
             display: inline-flex;
             align-items: center;
             gap: 4px;
             padding: 4px 2px;
-            margin-right: 6px;
         }
 
         .thinking-dots span {
@@ -225,49 +239,6 @@
                 opacity: 1;
                 transform: scale(1);
             }
-        }
-
-        .ai-code {
-            margin: 0;
-            background: #f7f9fc;
-            border: 1px solid #e8ecf3;
-            border-radius: 8px;
-            padding: 10px 12px;
-            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-            font-size: 12px;
-            line-height: 1.8;
-            color: #1f2d3d;
-            white-space: pre-wrap;
-            word-break: break-word;
-            overflow-x: auto;
-        }
-
-        .ai-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .ai-action {
-            font-size: 11px;
-            color: #16baaa;
-            cursor: pointer;
-            border: 1px solid #16baaa;
-            border-radius: 6px;
-            padding: 3px 10px;
-            background: rgba(22, 186, 170, 0.06);
-            transition: all 0.2s;
-            user-select: none;
-        }
-
-        .ai-action:hover {
-            background: #16baaa;
-            color: #fff;
-        }
-
-        .ai-err {
-            color: #e45757;
-            font-size: 13px;
         }
 
         .ai-input-area {
@@ -363,13 +334,12 @@
         .ai-input-tips .ai-disclaimer {
             font-size: 10.5px;
             color: #b0b7c4;
-            flex-shrink: 0;
         }
 
         .ai-empty {
             text-align: center;
             color: #9aa3b2;
-            padding: 36px 16px;
+            padding: 40px 20px;
             font-size: 13px;
             line-height: 2;
         }
@@ -379,70 +349,33 @@
             margin-bottom: 8px;
             display: block;
         }
-
-        .ai-reco-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            margin-top: 12px;
-        }
-
-        .ai-reco-chip {
-            display: inline-block;
-            padding: 6px 12px;
-            background: #fff;
-            border: 1px solid #dbe3ef;
-            border-radius: 16px;
-            color: #16baaa;
-            font-size: 12px;
-            line-height: 1.6;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-
-        .ai-reco-chip:hover {
-            border-color: #16baaa;
-            background: rgba(22, 186, 170, 0.08);
-            transform: translateY(-1px);
-        }
     </style>
 </head>
 <body>
 <div class="ai-header">
     <div class="ai-logo">AI</div>
     <div class="ai-title">
-        <h3>AI 智能助手</h3>
-        <div class="ai-sub">基于当前库表 · 支持多轮对话</div>
+        <h3>AI 智能数据分析</h3>
+        <div class="ai-sub">基于当前结果集 · 支持多轮追问</div>
     </div>
-    <button class="ai-chip-btn" id="newChatBtn" title="新对话">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="#fff" stroke-width="2" stroke-linecap="round"
-                  stroke-linejoin="round"/>
-            <path d="M20 3v5h-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    </button>
+    <button class="ai-close" id="newChatBtn" title="新对话">↻</button>
     <button class="ai-close" id="closeBtn" title="关闭">✕</button>
 </div>
 
 <div class="ai-chat" id="chatHistory"></div>
 
 <div class="ai-input-area">
-    <input type="hidden" th:value="${database}" name="dataBaseName" id="dataBaseName"/>
-    <input type="hidden" th:value="${table}" name="tableName" id="tableName"/>
     <div class="ai-input-box">
-        <textarea id="question" rows="1" placeholder="输入自然语言生成SQL，可多轮追问..."></textarea>
+        <textarea id="question" rows="1" placeholder="基于分析结果继续提问，如：哪个产品价格最高？"></textarea>
         <button class="ai-send-btn" id="sendBtn" title="发送">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round"
-                      stroke-linejoin="round"/>
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </button>
     </div>
     <div class="ai-input-tips">
-        <span class="ai-ds-tag" id="tableTag">库表: 未知</span>
+        <span class="ai-ds-tag" id="tableTag"></span>
         <span class="ai-disclaimer">内容由AI生成，仅供参考</span>
     </div>
 </div>
@@ -451,47 +384,27 @@
 <script th:replace="~{base::ctx}"></script>
 <script th:src="@{/static/lay-config.js}"></script>
 <script>
-    const SQL_KEYWORD = ['select', 'insert', 'update', 'delete', 'from', 'where', 'order by', 'limit', 'offset', 'create', 'drop', 'alter', 'truncate', 'rename', 'set', 'show', 'desc', 'explain', 'begin', 'commit', 'rollback', 'lock', 'unlock', 'grant', 'revoke', 'call', 'declare', 'procedure', 'function', 'trigger', 'view', 'index'];
-
     layui.use(['jquery', 'layer'], function () {
         const $ = layui.jquery;
         const layer = layui.layer;
 
+        let analysisParams = null;
+        try {
+            analysisParams = JSON.parse(sessionStorage.getItem('aiDataAnalysisParams'));
+        } catch (e) {
+            analysisParams = null;
+        }
+
         const chatHistory = document.getElementById('chatHistory');
         const questionEl = document.getElementById('question');
         const sendBtn = document.getElementById('sendBtn');
-        const newChatBtn = document.getElementById('newChatBtn');
         let requesting = false;
         let msgSeq = 0;
-
-        const dataBaseName = document.getElementById('dataBaseName').value;
-        const tableName = document.getElementById('tableName').value;
-        const dsLabel = (dataBaseName || '未知') + (tableName ? ' · ' + tableName : '');
-        document.getElementById('tableTag').textContent = '库表: ' + dsLabel;
 
         const escapeHtml = function (str) {
             if (str == null) return '';
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-        };
-
-        // 矫正模型给的换行错误问题
-        const keywordHtml = function (text, index) {
-            if (text == null || text === '') {
-                return text;
-            }
-            let t = escapeHtml(text);
-            t = t.replace(/&lt;br\s*\/?&gt;/ig, '\n').replace(/<br\s*\/?>/ig, '\n');
-            for (let i = 0; i < SQL_KEYWORD.length; i++) {
-                const key = SQL_KEYWORD[i];
-                if (t.toLowerCase().indexOf(key) !== -1 && index === 0) {
-                    return t.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '$1\n');
-                }
-                if (t.toLowerCase().indexOf(key) !== -1 && index > 0) {
-                    return t.replace(new RegExp('\\b(' + key + ')\\b', 'gi'), '\n $1 \n');
-                }
-            }
-            return t;
         };
 
         const appendMessage = function (role, content) {
@@ -501,146 +414,153 @@
             div.className = 'ai-message ' + role;
             div.id = 'msg' + msgSeq;
             div.innerHTML = '<div class="msg-avatar">' + avatar + '</div>' +
-                '<div class="msg-bubble">' + (role === 'assistant' && content === '' ?
-                    '<span class="thinking-dots"><span></span><span></span><span></span></span>AI思考中...' :
-                    escapeHtml(content)) + '</div>';
+                '<div class="msg-bubble">' + (role === 'assistant' ? '<span class="thinking-dots"><span></span><span></span><span></span></span> AI分析中...' : escapeHtml(content)) + '</div>';
             chatHistory.appendChild(div);
             chatHistory.scrollTop = chatHistory.scrollHeight;
             return div;
         };
 
         //流式请求
-        const startStream = function (q, msgDiv) {
+        const streamRequest = function (params, msgDiv) {
             const bubble = $(msgDiv).find('.msg-bubble')[0];
-            const url = ctx + 'aiManager/stream?text=' + encodeURIComponent(q) +
-                '&dataBaseName=' + encodeURIComponent(dataBaseName) + '&tableName=' + encodeURIComponent(tableName);
-            const source = new EventSource(url);
             let aiAnswer = '';
-            let index = 0;
+            let lastIndex = 0;
+            let pending = '';
+            let dataBuffer = '';
+            let firstEvent = true;
+            const processLine = function (line) {
+                if (line === '') {
+                    const content = dataBuffer;
+                    dataBuffer = '';
+                    //首个事件为"连接成功"状态消息,忽略并替换为AI分析内容
+                    if (firstEvent) {
+                        firstEvent = false;
+                        if (content.indexOf('连接成功') !== -1) {
+                            return;
+                        }
+                    }
+                    aiAnswer += content;
+                    if (aiAnswer.trim() !== '') {
+                        bubble.innerHTML = aiAnswer;
+                    }
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                } else if (line.startsWith('data:')) {
+                    dataBuffer = line.substring(5);
+                } else if (line.startsWith(':')) {
+                    //忽略注释行
+                } else {
+                    //多行data延续
+                    dataBuffer += '\n' + line;
+                }
+            };
             requesting = true;
             sendBtn.disabled = true;
-
-            source.onmessage = function (e) {
-                const t = keywordHtml(e.data, index);
-                index++;
-                if (t !== '') {
-                    aiAnswer += t;
-                    bubble.innerHTML = '<pre class="ai-code">' + aiAnswer + '</pre>';
-                    chatHistory.scrollTop = chatHistory.scrollHeight;
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', ctx + 'aiManager/streamDataAnalysis', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onprogress = function () {
+                const newText = xhr.responseText.substring(lastIndex);
+                lastIndex = xhr.responseText.length;
+                pending += newText;
+                let idx;
+                while ((idx = pending.indexOf('\n')) >= 0) {
+                    processLine(pending.substring(0, idx));
+                    pending = pending.substring(idx + 1);
                 }
             };
-
-            //服务端清除历史信号
-            source.addEventListener('clear_history', function () {
-                chatHistory.innerHTML = '';
-                renderRecommend();
-            });
-
-            source.onerror = function () {
-                source.close();
+            xhr.onload = function () {
+                if (pending.length > 0) {
+                    processLine(pending.replace(/\n+$/, ''));
+                    pending = '';
+                }
+                if (dataBuffer.length > 0) {
+                    aiAnswer += dataBuffer;
+                    dataBuffer = '';
+                }
+                if (xhr.status !== 200) {
+                    bubble.innerHTML = '请求失败，状态码:' + xhr.status;
+                } else if (aiAnswer.trim() === '') {
+                    bubble.innerHTML = 'AI未返回内容，请重试~';
+                } else {
+                    bubble.innerHTML = aiAnswer;
+                }
                 requesting = false;
                 sendBtn.disabled = false;
-                if (aiAnswer.trim() === '') {
-                    bubble.innerHTML = '<span class="ai-err">AI 未返回内容，请重试~</span>';
-                } else {
-                    bubble.innerHTML = '<pre class="ai-code">' + aiAnswer + '</pre>' +
-                        '<div class="ai-actions">' +
-                        '<a class="ai-action" data-exec>执行</a>' +
-                        '<a class="ai-action" data-copy>复制</a>' +
-                        '</div>';
-                }
+                questionEl.disabled = false;
                 chatHistory.scrollTop = chatHistory.scrollHeight;
             };
+            xhr.onerror = function () {
+                bubble.innerHTML = 'AI分析请求失败~';
+                requesting = false;
+                sendBtn.disabled = false;
+                questionEl.disabled = false;
+            };
+            xhr.send(JSON.stringify(params));
         };
 
-        const sendMessage = function (q) {
+        //发送消息(question为空时为首轮分析)
+        const sendMessage = function (question) {
             if (requesting) {
                 layer.msg('AI正在回答中，请稍候~', {icon: 2});
                 return false;
             }
-            const question = String(q == null ? '' : q).trim();
-            if (question === '') {
-                layer.msg('请输入问题~', {icon: 2});
+            const q = (question == null ? '' : String(question)).trim();
+            if (!analysisParams) {
+                layer.msg('未获取到分析参数，请重新点击AI智能分析~', {icon: 2});
                 return false;
             }
-            const recoWrap = document.getElementById('recoWrap');
-            if (recoWrap) {
-                recoWrap.remove();
+            if (q !== '') {
+                appendMessage('user', q);
             }
-            appendMessage('user', question);
             const msgDiv = appendMessage('assistant', '');
-            startStream(question, msgDiv);
-            questionEl.value = '';
-            autoResize();
+            questionEl.disabled = true;
+            const params = $.extend({}, analysisParams, {question: q});
+            streamRequest(params, msgDiv);
             return false;
         };
 
-        //推荐初始化
-        const renderRecommend = function () {
-            chatHistory.innerHTML = '';
-            post(ctx + 'aiManager/queryRecommend', null, function (res) {
-                const wrap = document.createElement('div');
-                wrap.className = 'ai-empty';
-                wrap.id = 'recoWrap';
-                let html = '<span class="ai-empty-icon">🤖</span>' +
-                    '<div>你好，我是 AI 智能助手，可以帮你编写 SQL</div>' +
-                    '<div style="font-size:12px;opacity:.7;">选择或输入提示开始对话，可基于结果多轮追问</div>';
-                if (res.code === 200 && res.data != null && res.data.length > 0) {
-                    html += '<div class="ai-reco-list">';
-                    res.data.forEach(function (item) {
-                        html += '<a class="ai-reco-chip" href="javascript:void(0);" data-question="' + escapeHtml(item) + '">' + escapeHtml(item) + '</a>';
-                    });
-                    html += '</div>';
-                }
-                wrap.innerHTML = html;
-                chatHistory.appendChild(wrap);
-            });
-        };
+        if (analysisParams) {
+            if (!analysisParams.sessionId) {
+                analysisParams.sessionId = 'ana-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+            }
+            let tables = '';
+            if (analysisParams.tableNameList && analysisParams.tableNameList.length > 0) {
+                tables = analysisParams.tableNameList.join(',');
+            }
+            $('#tableTag').text('数据表: ' + (tables || '未知'));
+            if (analysisParams.data && analysisParams.data.length > 0) {
+                $('#tableTag').text('数据表: ' + (tables || '未知') + ' · 共' + analysisParams.data.length + '行');
+            }
+            sendMessage('');
+        } else {
+            chatHistory.innerHTML = '<div class="ai-empty"><span class="ai-empty-icon">📊</span>请先在结果集工具栏点击「AI智能分析」按钮</div>';
+        }
 
-        //推荐/执行/复制事件
-        chatHistory.addEventListener('click', function (e) {
-            const chip = e.target.closest('.ai-reco-chip');
-            if (chip) {
-                sendMessage(chip.getAttribute('data-question'));
-                return;
-            }
-            const exec = e.target.closest('[data-exec]');
-            if (exec) {
-                if (window.parent) {
-                    window.parent.postMessage({type: 'executeSQL', sql: $(exec).closest('.msg-bubble').find('.ai-code')[0].innerText}, '*');
-                }
-                return;
-            }
-            const copy = e.target.closest('[data-copy]');
-            if (copy) {
-                navigator.clipboard.writeText($(copy).closest('.msg-bubble').find('.ai-code')[0].innerText)
-                    .then(function () {
-                        layer.msg('已复制');
-                    });
-            }
-        });
-
-        //新对话
-        newChatBtn.onclick = function () {
+        document.getElementById('newChatBtn').onclick = function () {
             if (requesting) {
                 layer.msg('AI正在回答中，请稍候~', {icon: 2});
                 return false;
             }
-            post(ctx + 'aiManager/clear', null, function () {
-                renderRecommend();
-            });
+            if (!analysisParams) {
+                layer.msg('未获取到分析参数，请重新点击AI智能分析~', {icon: 2});
+                return false;
+            }
+            analysisParams.sessionId = 'ana-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+            chatHistory.innerHTML = '';
+            sendMessage('');
+            return false;
         };
 
         //关闭抽屉
-        window.closeAiPage = function () {
+        window.closeAiAnalysis = function () {
             try {
                 const index = parent.layer.getFrameIndex(window.name);
                 parent.layer.close(index);
             } catch (e) {
-                console.error('关闭AI助手抽屉失败', e);
+                console.error('关闭AI分析抽屉失败', e);
             }
         };
-        document.getElementById('closeBtn').onclick = closeAiPage;
+        document.getElementById('closeBtn').onclick = closeAiAnalysis;
 
         //发送事件
         sendBtn.onclick = function () {
@@ -650,6 +570,7 @@
                 return false;
             }
             sendMessage(q);
+            questionEl.value = '';
         };
 
         //回车发送,Shift+Enter换行
@@ -667,8 +588,6 @@
         };
         questionEl.addEventListener('input', autoResize);
         autoResize();
-
-        renderRecommend();
     });
 </script>
 </body>

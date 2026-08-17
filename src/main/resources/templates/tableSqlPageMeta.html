@@ -15,6 +15,9 @@
             <span class="layui-badge"> {{= d.cols.length }}  <span style="margin-left:2px;">列</span></span>
             <span class="layui-badge layui-bg-green">{{= d.data.length }} <span style="margin-left:2px;">行</span></span>
             <span class="layui-badge layui-bg-blue">{{= d.time }} <span style="margin-left:2px;">毫秒</span></span>
+            <div class="ai-analysis-btn" onclick="aiDataAnalysis('{{= d.id }}')" title="AI智能分析">
+                AI分析
+            </div>
             <!--<button class='layui-btn layui-btn-primary layui-border-purple layui-btn-xs'
                     onclick='window.scrollTo({top: document.documentElement.scrollHeight, behavior:"smooth"})'>分页区
             </button>-->

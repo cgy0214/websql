@@ -140,8 +140,10 @@ public class BigDataServiceImpl implements BigDataService {
     public Result<BigDataInstanceModel> queryInstanceList(BigDataInstanceModel model) {
         Result<BigDataInstanceModel> result = new Result<>();
         PageRequest pageRequest = PageRequest.of(model.getPage() - 1, model.getLimit());
+        Long teamId = StpUtils.getCurrentActiveTeam().getId();
         Specification<BigDataInstanceModel> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("taskTeamId"), teamId));
             if (ObjectUtil.isNotNull(model.getTaskId())) {
                 predicates.add(cb.equal(root.get("taskId"), model.getTaskId()));
             }
@@ -174,7 +176,9 @@ public class BigDataServiceImpl implements BigDataService {
 
     @Override
     public List<Map<String, String>> findDataList() {
-        return bigDataTaskRepository.findAll().stream()
+        Long teamId = StpUtils.getCurrentActiveTeam().getId();
+        Specification<BigDataTaskModel> spec = (root, query, cb) -> cb.equal(root.get("teamId"), teamId);
+        return bigDataTaskRepository.findAll(spec).stream()
                 .sorted(Comparator.comparing(BigDataTaskModel::getId, Comparator.reverseOrder())).map(model -> {
                     Map<String, String> item = new HashMap<>(2);
                     item.put("code", model.getId().toString());
@@ -318,11 +322,11 @@ public class BigDataServiceImpl implements BigDataService {
     @Override
     public Map<String, Object> getTaskTrend(String startDate, String endDate, String taskId) {
         Map<String, Object> result = new HashMap<>();
-        String currentUser = StpUtils.getCurrentUserName();
+        Long teamId = StpUtils.getCurrentActiveTeam().getId();
         
         Specification<BigDataTaskModel> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("createUser"), currentUser));
+            predicates.add(cb.equal(root.get("teamId"), teamId));
             if (taskId != null && !taskId.isEmpty()) {
                 predicates.add(cb.equal(root.get("id"), Long.parseLong(taskId)));
             }
@@ -343,7 +347,7 @@ public class BigDataServiceImpl implements BigDataService {
         
         Specification<BigDataInstanceModel> instanceSpec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("taskCreateUser"), currentUser));
+            predicates.add(cb.equal(root.get("taskTeamId"), teamId));
             if (taskId != null && !taskId.isEmpty()) {
                 predicates.add(cb.equal(root.get("taskId"), Long.parseLong(taskId)));
             }
@@ -371,11 +375,11 @@ public class BigDataServiceImpl implements BigDataService {
     @Override
     public Map<String, Object> getInstanceTrend(String startDate, String endDate, String groupBy, String taskId) {
         Map<String, Object> result = new HashMap<>();
-        String currentUser = StpUtils.getCurrentUserName();
+        Long teamId = StpUtils.getCurrentActiveTeam().getId();
         
         Specification<BigDataInstanceModel> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("taskCreateUser"), currentUser));
+            predicates.add(cb.equal(root.get("taskTeamId"), teamId));
             if (taskId != null && !taskId.isEmpty()) {
                 predicates.add(cb.equal(root.get("taskId"), Long.parseLong(taskId)));
             }
@@ -447,11 +451,11 @@ public class BigDataServiceImpl implements BigDataService {
     @Override
     public Map<String, Object> getInstanceStatusStats(String startDate, String endDate, String taskId) {
         Map<String, Object> result = new HashMap<>();
-        String currentUser = StpUtils.getCurrentUserName();
+        Long teamId = StpUtils.getCurrentActiveTeam().getId();
         
         Specification<BigDataInstanceModel> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("taskCreateUser"), currentUser));
+            predicates.add(cb.equal(root.get("taskTeamId"), teamId));
             if (taskId != null && !taskId.isEmpty()) {
                 predicates.add(cb.equal(root.get("taskId"), Long.parseLong(taskId)));
             }
@@ -485,11 +489,11 @@ public class BigDataServiceImpl implements BigDataService {
     @Override
     public Map<String, Object> getTaskTimeDist(String startDate, String endDate, String taskId) {
         Map<String, Object> result = new HashMap<>();
-        String currentUser = StpUtils.getCurrentUserName();
+        Long teamId = StpUtils.getCurrentActiveTeam().getId();
         
         Specification<BigDataInstanceModel> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("taskCreateUser"), currentUser));
+            predicates.add(cb.equal(root.get("taskTeamId"), teamId));
             if (taskId != null && !taskId.isEmpty()) {
                 predicates.add(cb.equal(root.get("taskId"), Long.parseLong(taskId)));
             }
@@ -547,7 +551,7 @@ public class BigDataServiceImpl implements BigDataService {
     @Override
     public Map<String, Object> getTaskInstanceTrend(String startDate, String endDate, String taskId) {
         Map<String, Object> result = new HashMap<>();
-        String currentUser = StpUtils.getCurrentUserName();
+        Long teamId = StpUtils.getCurrentActiveTeam().getId();
 
         List<String> dateList = new ArrayList<>();
         if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
@@ -573,7 +577,7 @@ public class BigDataServiceImpl implements BigDataService {
 
         Specification<BigDataInstanceModel> instanceSpec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("taskCreateUser"), currentUser));
+            predicates.add(cb.equal(root.get("taskTeamId"), teamId));
             if (taskId != null && !taskId.isEmpty()) {
                 predicates.add(cb.equal(root.get("taskId"), Long.parseLong(taskId)));
             }

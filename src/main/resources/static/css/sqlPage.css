@@ -94,9 +94,28 @@ body {
 }
 
 #rollBox .roll-item {
-    color: #958d8d;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 12px;
+    color: #5a6478;
     font-size: 12px;
+    font-weight: 500;
     font-family: var(--font-family), serif;
+    letter-spacing: 0.3px;
+    line-height: 40px;
+    transition: color 0.3s ease;
+    user-select: none;
+}
+
+#rollBox .roll-item::before {
+    content: '✨';
+    font-size: 11px;
+    margin-right: 5px;
+}
+
+#rollBox:hover .roll-item {
+    color: #16baaa;
+    text-shadow: 0 0 10px rgba(22, 186, 170, 0.45);
 }
 
 .layui-form-item {

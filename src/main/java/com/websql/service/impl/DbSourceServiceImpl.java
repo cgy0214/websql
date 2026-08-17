@@ -236,7 +236,7 @@ public class DbSourceServiceImpl implements DbSourceService {
     public AjaxResult executeSqlNew(ExecuteSql sql) {
         SysLog log = new SysLog("sql执行记录", "1", sql.getDataBaseName(), Base64Encoder.encode(sql.getSqlText()), StpUtils.getUserExtName(), DateUtil.now());
         try {
-            List<SqlParserVo> parserVoList = SqlParserHandler.getParserVo(sql.getDataBaseName(), sql.getSqlText());
+            List<SqlParserVo> parserVoList = SqlParserHandler.getParserVo(sql.getDataBaseName(), sql.getSqlText(), sql.isExport());
             if (parserVoList.isEmpty()) {
                 return AjaxResult.error("解析SQL失败,返回为空请重试!");
             }
@@ -257,15 +257,15 @@ public class DbSourceServiceImpl implements DbSourceService {
                 if (SqlOperationType.SELECT.getCode().equals(sqlParserVo.getMethodType())) {
                     Map<String, Object> moreResult = JdbcUtils.findMoreResult(sql.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());
                     vo.setData(moreResult.get("data"));
-                    vo.setStatus(Integer.parseInt(moreResult.get("code").toString()));
+                    vo.setStatus(ObjectUtil.isNull(moreResult.get("code")) ? 2 : Integer.parseInt(moreResult.get("code").toString()));
                     vo.setType(0);
-                    vo.setErrorMessage(moreResult.get("msg").toString());
+                    vo.setErrorMessage(ObjectUtil.isNull(moreResult.get("msg")) ? "" : moreResult.get("msg").toString());
                 } else {
                     Map<String, Object> moreResult = JdbcUtils.updateByPreparedStatement(sql.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());
                     vo.setType(1);
                     vo.setData(moreResult.get("data"));
-                    vo.setStatus(Integer.parseInt(moreResult.get("code").toString()));
-                    vo.setErrorMessage(moreResult.get("msg").toString());
+                    vo.setStatus(ObjectUtil.isNull(moreResult.get("code")) ? 2 : Integer.parseInt(moreResult.get("code").toString()));
+                    vo.setErrorMessage(ObjectUtil.isNull(moreResult.get("msg")) ? "" : moreResult.get("msg").toString());
                 }
                 vo.setTime(timer.intervalRestart());
                 resultVos.add(vo);
@@ -283,8 +283,10 @@ public class DbSourceServiceImpl implements DbSourceService {
             return AjaxResult.error(e.getMessage());
         } finally {
             SysSetup sysSetup = CacheUtils.get("sys_setup", SysSetup.class);
-            if (sysSetup.getEnabledSqlLog() == 1) {
-                sysLogRepository.save(log);
+            if (ObjectUtil.isNotNull(sysSetup) && sysSetup.getEnabledSqlLog() == 1) {
+                ThreadUtil.execAsync(() -> {
+                    sysLogRepository.save(log);
+                });
             }
         }
     }

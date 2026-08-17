@@ -1,5 +1,6 @@
 package com.websql.service;
 
+import com.websql.model.DataAnalysisQo;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
@@ -37,4 +38,11 @@ public interface Text2SqlAdvancedService {
      */
     String summarizeInstance(String taskName, String instanceStatus, String startTime,
                              String endTime, String executeResult, String sqlContent, String errorMessage);
+
+    /**
+     * 查询结果数据分析
+     * @param dataAnalysisQo
+     * @return
+     */
+    SseEmitter streamDataAnalysis(DataAnalysisQo dataAnalysisQo);
 }

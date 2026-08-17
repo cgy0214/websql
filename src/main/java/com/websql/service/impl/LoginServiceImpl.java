@@ -198,6 +198,27 @@ public class LoginServiceImpl implements LoginService {
         if (ObjectUtil.isNotEmpty(sys.getEnabledNotification())) {
             sysSetup.setEnabledNotification(sys.getEnabledNotification());
         }
+        if (ObjectUtil.isNotEmpty(sys.getHomePage())) {
+            sysSetup.setHomePage(sys.getHomePage());
+        }
+        if (ObjectUtil.isNotEmpty(sys.getAiUrl())) {
+            sysSetup.setAiUrl(sys.getAiUrl());
+        }
+        if (ObjectUtil.isNotEmpty(sys.getAiKey())) {
+            sysSetup.setAiKey(sys.getAiKey());
+        }
+        if (ObjectUtil.isNotEmpty(sys.getAiModelName())) {
+            sysSetup.setAiModelName(sys.getAiModelName());
+        }
+        if (ObjectUtil.isNotEmpty(sys.getAiTemperature())) {
+            sysSetup.setAiTemperature(sys.getAiTemperature());
+        }
+        if (ObjectUtil.isNotEmpty(sys.getAiMaxTokens())) {
+            sysSetup.setAiMaxTokens(sys.getAiMaxTokens());
+        }
+        if (ObjectUtil.isNotEmpty(sys.getAiMaxMessages())) {
+            sysSetup.setAiMaxMessages(sys.getAiMaxMessages());
+        }
         CacheUtils.removeAll();
         sysSetUpRepository.save(sysSetup);
         CacheUtils.putNoDue("sys_setup", sysSetup);
@@ -528,8 +549,9 @@ public class LoginServiceImpl implements LoginService {
             sysSetup.setEnabledLockView(0);
             sysSetup.setPageLimitMax(1000);
             sysSetup.setFailLogin(3);
-            sysSetup.setRiskText("drop,truncate,delete,create");
+            sysSetup.setRiskText("drop,dropindex,truncate,delete,insert,update,alter,merge,insertselect");
             sysSetup.setEnabledHint(0);
+            sysSetup.setHomePage("/main");
             sysSetup.setEnabledNotification(0);
             sysSetUpRepository.save(sysSetup);
             driverCustomService.systemLoadConfigDriver();

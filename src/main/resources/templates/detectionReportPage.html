@@ -5,6 +5,69 @@
     <title>检测任务报表</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <style>
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .chart-box {
+            width: calc(50% - 8px);
+            height: 320px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .chart-box-full {
+            width: 100%;
+            height: 350px;
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .stat-cards {
+            display: flex;
+            gap: 12px;
+            margin: 12px;
+            justify-content: space-evenly;
+        }
+        .stat-card {
+            flex: 1;
+            padding: 18px 10px;
+            border-radius: 8px;
+            text-align: center;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 70px;
+        }
+        .stat-card:not(:first-child) {
+            margin-left: 15px;
+        }
+        .stat-card-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .stat-card-green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .stat-card-orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .stat-card-red { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 0%, #feada6 100%); }
+        .stat-card-value {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .stat-card-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+    </style>
 </head>
 <body>
 <form class="layui-form">
@@ -27,18 +90,56 @@
                             lay-filter="table-search">
                         <i class="layui-icon layui-icon-search"> </i>查 询
                     </button>
-                    <!--<button class="layui-btn layui-btn-primary layui-border-green search-btn"
-                            onclick="window.location=ctx+'detectionManager/listPage'">
-                        <i class="layui-icon layui-icon-prev"> </i>返 回
-                    </button>-->
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="layui-panel" style="margin-top: 15px;">
-        <div class="layui-form nowrap">
-            <div id="main" style="width: 100%;height:300px;"></div>
+    <div class="layui-panel">
+        <div class="stat-cards" id="statCards">
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stat-card-value" id="taskCount">-</div>
+                <div class="stat-card-label">总检测任务数</div>
+            </div>
+            <div class="stat-card stat-card-blue">
+                <div class="stat-card-value" id="totalCount">-</div>
+                <div class="stat-card-label">总检测次数</div>
+            </div>
+            <div class="stat-card stat-card-green">
+                <div class="stat-card-value" id="successCount">-</div>
+                <div class="stat-card-label">普通次数</div>
+            </div>
+            <div class="stat-card stat-card-orange">
+                <div class="stat-card-value" id="warningCount">-</div>
+                <div class="stat-card-label">紧急次数</div>
+            </div>
+            <div class="stat-card stat-card-red">
+                <div class="stat-card-value" id="errorCount">-</div>
+                <div class="stat-card-label">已告警次数</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <div class="chart-box chart-box-full">
+            <div class="chart-title">告警趋势图</div>
+            <div id="trendChart" style="width: 100%;height:280px;"></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">告警级别分布</div>
+            <div id="alarmLevelChart" style="width: 100%;height:260px;"></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">任务执行状态</div>
+            <div id="taskStatusChart" style="width: 100%;height:260px;"></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">数据源检测分布</div>
+            <div id="datasourceChart" style="width: 100%;height:260px;"></div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">响应时间分布(毫秒)</div>
+            <div id="execTimeChart" style="width: 100%;height:260px;"></div>
         </div>
     </div>
 
@@ -57,7 +158,6 @@
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
         <a class="layui-btn layui-btn-xs" lay-event="view">SQL内容</a>
-        <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
 <script th:inline="javascript">
@@ -71,9 +171,6 @@
         const laydate = layui.laydate;
         let activeId = [[${id}]] == null ? -1 : [[${id}]];
 
-        /**
-         * 数据去向
-         */
         select.render({
             elem: "#taskId",
             url: ctx + 'detectionManager/findDataSelect?activeId=' + activeId,
@@ -90,56 +187,12 @@
             }
         });
 
-
         laydate.render({
             elem: "#date",
-            type: "datetime",
+            type: "date",
             range: true,
+            value: getDefaultDateRangeStr(),
             shortcuts: [
-                {
-                    text: "3分钟",
-                    value: function () {
-                        const now = new Date();
-                        const oneHourAgo = new Date(now.getTime() - (60 * 1000 * 3));
-                        return [
-                            oneHourAgo,
-                            Date.now()
-                        ];
-                    }
-                },
-                {
-                    text: "30分钟",
-                    value: function () {
-                        const now = new Date();
-                        const oneHourAgo = new Date(now.getTime() - (60 * 1000 * 30));
-                        return [
-                            oneHourAgo,
-                            Date.now()
-                        ];
-                    }
-                },
-                {
-                    text: "1小时",
-                    value: function () {
-                        const now = new Date();
-                        const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
-                        return [
-                            oneHourAgo,
-                            Date.now()
-                        ];
-                    }
-                },
-                {
-                    text: "2小时",
-                    value: function () {
-                        const now = new Date();
-                        const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000 * 2));
-                        return [
-                            oneHourAgo,
-                            Date.now()
-                        ];
-                    }
-                },
                 {
                     text: "今天",
                     value: function () {
@@ -148,8 +201,8 @@
                         var month = date.getMonth();
                         var day = date.getDate();
                         return [
-                            new Date(year, month, day, 0, 0, 0),
-                            new Date(year, month, day, 23, 59, 59)
+                            new Date(year, month, day),
+                            new Date(year, month, day)
                         ];
                     }
                 },
@@ -161,37 +214,59 @@
                         var month = date.getMonth();
                         var day = date.getDate()-1;
                         return [
-                            new Date(year, month, day, 0, 0, 0),
-                            new Date(year, month, day, 23, 59, 59)
+                            new Date(year, month, day),
+                            new Date(year, month, day)
                         ];
                     }
                 },
                 {
-                    text: "上月",
+                    text: "近7天",
                     value: function () {
-                        var date = new Date();
-                        var year = date.getFullYear();
-                        var month = date.getMonth() - 1;
-                        return [
-                            new Date(year, month, 1),
-                            new Date(year, month + 1, 0, 23, 59, 59)
-                        ];
+                        const now = new Date();
+                        const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+                        return [sevenDaysAgo, now];
+                    }
+                },
+                {
+                    text: "近30天",
+                    value: function () {
+                        const now = new Date();
+                        const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+                        return [thirtyDaysAgo, now];
                     }
                 },
             ]
         });
 
+        function getDefaultDateRangeStr() {
+            const now = new Date();
+            const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+            const formatDate = function(d) {
+                var y = d.getFullYear();
+                var m = (d.getMonth() + 1).toString().padStart(2, '0');
+                var dd = d.getDate().toString().padStart(2, '0');
+                return y + '-' + m + '-' + dd;
+            };
+            return formatDate(sevenDaysAgo) + ' - ' + formatDate(now);
+        }
+
+        let dateRange = getDefaultDateRange();
+
         table.render({
             elem: '#dataTable',
-            url: ctx + 'detectionManager/logList?taskId=' + activeId,
+            url: ctx + 'detectionManager/logList',
+            where: {
+                taskId: activeId ? parseInt(activeId) : null,
+                beginDate: dateRange[0],
+                endDate: dateRange[1]
+            },
             defaultToolbar: ['filter', 'exports', 'print'],
             page: true,
             height: '525',
             toolbar: "<div>监测任务记录</div>",
             cols: [
                 [
-                    {field: 'id', title: 'id', sort: true, fixed: true},
-                    {field: 'taskId', title: '任务ID', sort: true, fixed: true},
+                    {field: 'taskId', title: '任务ID', sort: true, fixed: true, width: 100},
                     {field: 'name', title: '名称', sort: true, fixed: true},
                     {field: 'dataBaseName', title: '数据源', sort: true, fixed: true},
                     {field: 'data', title: '结果值', sort: true, fixed: true},
@@ -200,7 +275,7 @@
                     {field: 'stateName', title: '是否告警', sort: true, fixed: true, width: 100},
                     {field: 'errorMessage', title: '描述', sort: true, fixed: true},
                     {field: 'createTime', title: '创建时间', sort: true, fixed: true, width: 200},
-                    {fixed: 'right', title: '操作', width: 200, toolbar: '#toolbarTable'}
+                    {fixed: 'right', title: '操作', width: 100, toolbar: '#toolbarTable'}
                 ]
             ],
             parseData: res => parseData(res)
@@ -215,23 +290,14 @@
                         .render({content: str});
                     openContent("查看作业SQL内容", content);
                     break;
-                case 'delete':
-                    layer.confirm("您确认要删除此任务吗？", function () {
-                        post(ctx + "detectionManager/deleteLog?id=" + data.id, null, (res) => {
-                            layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
-                                if(res.code === 200) $(".search-btn").click();
-                            });
-                        })
-                    })
-                    break;
             }
         });
 
-        // 选中的日期
-        let dateRange = [];
         form.on('submit(table-search)', function (data) {
             const field = data.field;
-            dateRange = field.date.split(" - ");
+            if (field.date) {
+                dateRange = field.date.split(" - ");
+            }
             field.beginDate = dateRange[0];
             field.endDate = dateRange[1];
             field.page = 1;
@@ -245,78 +311,154 @@
             return false;
         });
 
+        let trendChart = echarts.init(document.getElementById('trendChart'));
+        let alarmLevelChart = echarts.init(document.getElementById('alarmLevelChart'));
+        let taskStatusChart = echarts.init(document.getElementById('taskStatusChart'));
+        let datasourceChart = echarts.init(document.getElementById('datasourceChart'));
+        let execTimeChart = echarts.init(document.getElementById('execTimeChart'));
 
-        //折线图
-        let myChart = echarts.init(document.getElementById('main'));
-
-        function chartReport() {
-            var option = {
-                title: {
-                    text: '监测结果趋势'
-                },
-                tooltip: {
-                    trigger: 'axis'
-                },
-                legend: {
-                    data: []
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    containLabel: true
-                },
-                toolbox: {
-                    feature: {
-                        saveAsImage: {}
-                    }
-                },
-                xAxis: {
-                    type: 'category',
-                    boundaryGap: false,
-                    data: []
-                },
-                yAxis: {
-                    type: 'value'
-                },
-                series: []
+        function initCharts() {
+            const commonOption = {
+                tooltip: { trigger: 'axis' },
+                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true }
             };
-            myChart.setOption(option);
+            
+            trendChart.setOption({
+                ...commonOption,
+                title: { text: '' },
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['未告警', '已告警'] },
+                xAxis: { type: 'category', data: [], boundaryGap: false },
+                yAxis: { type: 'value' },
+                series: [
+                    { name: '未告警', type: 'line', smooth: true, data: [], itemStyle: { color: '#10b981' }, areaStyle: { opacity: 0.3 } },
+                    { name: '已告警', type: 'line', smooth: true, data: [], itemStyle: { color: '#ef4444' }, areaStyle: { opacity: 0.3 } }
+                ]
+            });
+
+            alarmLevelChart.setOption({
+                ...commonOption,
+                tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+                legend: { orient: 'vertical', left: 'left' },
+                series: [{ type: 'pie', radius: ['40%', '70%'], data: [], label: { show: true } }]
+            });
+
+            taskStatusChart.setOption({
+                ...commonOption,
+                tooltip: { trigger: 'axis' },
+                xAxis: { type: 'category', data: [] },
+                yAxis: { type: 'value' },
+                series: [
+                    { name: '未告警', type: 'bar', stack: 'total', data: [], itemStyle: { color: '#10b981' } },
+                    { name: '已告警', type: 'bar', stack: 'total', data: [], itemStyle: { color: '#ef4444' } }
+                ]
+            });
+
+            datasourceChart.setOption({
+                ...commonOption,
+                tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+                legend: { orient: 'vertical', left: 'left' },
+                series: [{ type: 'pie', radius: ['40%', '70%'], data: [], label: { show: true } }]
+            });
+
+            execTimeChart.setOption({
+                ...commonOption,
+                tooltip: { trigger: 'axis' },
+                xAxis: { type: 'category', data: ['<100ms', '100-500ms', '500ms-1s', '1s-5s', '>5s'] },
+                yAxis: { type: 'value' },
+                series: [{ type: 'bar', data: [], itemStyle: { color: '#667eea' }, barWidth: '50%' }]
+            });
+
             loadChartData();
         }
 
         function loadChartData() {
-            myChart.showLoading();
-            post(ctx + "detectionManager/logCharts", {
-                "taskId": parseInt(activeId),
+            const requestData = {
+                "taskId": activeId ? parseInt(activeId) : null,
                 "beginDate": dateRange.length > 0 ? dateRange[0] : null,
                 "endDate": dateRange.length > 1 ? dateRange[1] : null
-            }, (res) => {
-                myChart.hideLoading();
+            };
+
+            post(ctx + "detectionManager/logCharts", requestData, (res) => {
                 if (res.code === 200) {
-                    myChart.setOption({
-                        xAxis: {
-                            data: res.data.dateList,
-                            type: 'category',
-                            stack: 'x',
-                            areaStyle: {},
-                        },
-                        legend: {
-                            data: []
-                        },
-                        yAxis: {
-                            type: 'value'
-                        },
-                        series: res.data.dataList
-                    });
+                    const data = res.data;
+                    updateStatCards(data.statData);
+                    updateTrendChart(data.trendData);
+                    updateAlarmLevelChart(data.alarmLevelData);
+                    updateTaskStatusChart(data.taskStatusData);
+                    updateDatasourceChart(data.datasourceData);
+                    updateExecTimeChart(data.execTimeData);
                 }
-            })
+            });
         }
 
-        chartReport();
-        setInterval(function () {
-            loadChartData();
-        }, 10000);
+        function updateStatCards(statData) {
+            document.getElementById('taskCount').textContent = statData.taskCount || 0;
+            document.getElementById('totalCount').textContent = statData.total || 0;
+            document.getElementById('successCount').textContent = statData.normal || 0;
+            document.getElementById('warningCount').textContent = statData.urgent || 0;
+            document.getElementById('errorCount').textContent = statData.alarm || 0;
+        }
+
+        function updateTrendChart(trendData) {
+            trendChart.setOption({
+                xAxis: { data: trendData.hourList },
+                series: [
+                    { data: trendData.noAlarmList },
+                    { data: trendData.hasAlarmList }
+                ]
+            });
+        }
+
+        function updateAlarmLevelChart(alarmLevelData) {
+            alarmLevelChart.setOption({
+                series: [{ data: alarmLevelData }]
+            });
+        }
+
+        function updateTaskStatusChart(taskStatusData) {
+            taskStatusChart.setOption({
+                xAxis: { data: taskStatusData.taskNames },
+                series: [
+                    { data: taskStatusData.noAlarmList },
+                    { data: taskStatusData.hasAlarmList }
+                ]
+            });
+        }
+
+        function updateDatasourceChart(datasourceData) {
+            datasourceChart.setOption({
+                series: [{ data: datasourceData }]
+            });
+        }
+
+        function updateExecTimeChart(execTimeData) {
+            execTimeChart.setOption({
+                series: [{ data: execTimeData }]
+            });
+        }
+
+        initCharts();
+        
+        function getDefaultDateRange() {
+            const now = new Date();
+            const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+            const formatDate = function(d) {
+                var y = d.getFullYear();
+                var m = (d.getMonth() + 1).toString().padStart(2, '0');
+                var dd = d.getDate().toString().padStart(2, '0');
+                return y + '-' + m + '-' + dd;
+            };
+            return [formatDate(sevenDaysAgo), formatDate(now)];
+        }
+
+        window.addEventListener('resize', function() {
+            trendChart.resize();
+            alarmLevelChart.resize();
+            taskStatusChart.resize();
+            datasourceChart.resize();
+            execTimeChart.resize();
+        });
     });
 </script>
 </html>

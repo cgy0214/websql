@@ -71,6 +71,7 @@ public class ScheduleUtils {
      * @param taskId   同步任务id
      * @param taskName 同步任务名称
      */
+    @Deprecated
     public static void addTimingTask(String cron, Long taskId, String taskName) {
         JobExecuteFactory jobExecuteFactory = new JobExecuteFactory(taskId, taskName);
         addTask(taskId, cron, jobExecuteFactory, "TIMING");

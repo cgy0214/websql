@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.websql.config.AiStreamingResponseHandler;
 import com.websql.config.JdbcUtils;
+import com.websql.model.DataAnalysisQo;
 import com.websql.model.DataSourceMeta;
 import com.websql.service.AiChatMemoryService;
 import com.websql.service.SseEmitterService;
@@ -25,6 +26,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 
 /**
  * ClassName  Text2SqlAdvancedServiceImpl
@@ -52,6 +54,28 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
     private AiChatMemoryService aiChatMemoryService;
 
     private static final String CACHE_NAME = "databaseSchema:";
+
+    /**
+     * 数据分析提示词
+     */
+    private static final String DATA_ANALYSIS_PROMPT = "你是一位专业的数据分析师，请根据提供的数据库表结构信息和查询结果数据，进行简明扼要的数据分析。\n"
+            + "要求：\n"
+            + "1. 全部使用中文回答，内容必须基于提供的数据，严禁编造、猜测数据，如果数据不足或无法得出结论，请如实说明\n"
+            + "2. 结果要精炼简短，整体控制在200字以内，使用短句，不要长篇大论，不要凑字数，不要重复描述数据\n"
+            + "3. 优先输出结论：数据概览（数量、最大/最小/平均值）、明显趋势、异常值、1-2条最有价值的业务建议\n"
+            + "4. 只分析实际返回的字段数据，无需提及字段不一致、行号字段无意义等无关内容\n"
+            + "5. 对重点数据使用HTML标签突出显示，例如<strong>加粗</strong>、<span style='color:#FF4D4F'>红色文字</span>\n"
+            + "6. 不要使用Markdown格式和JSON格式，HTML标签中的属性使用单引号";
+
+    /**
+     * 数据分析追问提示词
+     */
+    private static final String DATA_ANALYSIS_FOLLOW_UP_PROMPT = "请基于之前的分析结果和对话上下文，回答用户对数据的追问。\n"
+            + "要求：\n"
+            + "1. 全部使用中文回答，内容必须基于之前提供的数据，严禁编造、猜测数据，如果数据不足或无法得出结论，请如实说明\n"
+            + "2. 回答要精炼简短，控制在150字以内，使用短句直接给出结论\n"
+            + "3. 对重点数据使用HTML标签突出显示，例如<strong>加粗</strong>、<span style='color:#FF4D4F'>红色文字</span>\n"
+            + "4. 不要使用Markdown格式和JSON格式，HTML标签中的属性使用单引号\n";
 
 
     /**
@@ -279,5 +303,106 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
             return "AI总结失败：" + e.getMessage();
         }
         return "任务[" + taskName + "]" + instanceStatus + "，耗时约" + durationStr + "秒";
+    }
+
+    @Override
+    public SseEmitter streamDataAnalysis(DataAnalysisQo dataAnalysisQo) {
+        String userId = StpUtils.getCurrentUserId();
+        SseEmitter emitter = sseEmitterService.createConnection(userId);
+        if (checkDemoTime()) {
+            sseEmitterService.sendToUser(userId, "每日10次体验机会,今日已用完请明天再试哦!");
+            sseEmitterService.closeConnection(userId);
+            return emitter;
+        }
+        if (ObjectUtil.isNull(streamingChatLanguageModel)) {
+            log.error("请检查是否配置了OpenAI API Key,wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7676296&doc_id=3405209#-openai-%E6%A8%A1%E5%9E%8B%E9%85%8D%E7%BD%AE");
+            sseEmitterService.sendToUser(userId, "请检查是否配置AI相关参数，请参考LOG Wiki配置！");
+            sseEmitterService.closeConnection(userId);
+            return emitter;
+        }
+        try {
+            String schema = buildSchema(dataAnalysisQo);
+            boolean isFollowUp = ObjectUtil.isNotEmpty(dataAnalysisQo.getQuestion());
+            String sessionId = dataAnalysisQo.getSessionId();
+            String memoryId = ObjectUtil.isNotEmpty(sessionId) ? userId + ":analysis:" + sessionId : userId;
+            log.debug("开始请求AI数据分析>>schema:{},isFollowUp:{},memoryId:{}", schema.length(), isFollowUp, memoryId);
+            if (ObjectUtil.isNotNull(chatMemoryProvider)) {
+                ChatMemory chatMemory = chatMemoryProvider.get(memoryId);
+                if (!isFollowUp) {
+                    chatMemory.clear();
+                    chatMemory.add(new SystemMessage("以下是数据库结构信息，供你参考:\n" + schema));
+                } else {
+                    boolean needSchemaInfo = chatMemory.messages().stream()
+                            .noneMatch(msg -> msg instanceof SystemMessage &&
+                                    ((SystemMessage) msg).text().contains("数据库信息:"));
+                    if (needSchemaInfo) {
+                        chatMemory.add(new SystemMessage("以下是数据库结构信息，供你参考:\n" + schema));
+                    }
+                }
+                String prompt = isFollowUp
+                        ? DATA_ANALYSIS_FOLLOW_UP_PROMPT + dataAnalysisQo.getQuestion()
+                        : buildDataAnalysisPrompt(dataAnalysisQo, null);
+                chatMemory.add(UserMessage.from(prompt));
+                log.debug("开始请求AI数据分析>>tokens:{}", prompt.length());
+                streamingChatLanguageModel.generate(
+                        chatMemory.messages(),
+                        new AiStreamingResponseHandler(emitter, chatMemory, prompt.length())
+                );
+            } else {
+                String prompt = isFollowUp
+                        ? DATA_ANALYSIS_FOLLOW_UP_PROMPT + dataAnalysisQo.getQuestion() + "\n数据库表结构信息:\n" + schema
+                        : buildDataAnalysisPrompt(dataAnalysisQo, schema);
+                log.debug("开始请求AI数据分析>>tokens:{}", prompt.length());
+                streamingChatLanguageModel.generate(
+                        Collections.singletonList(UserMessage.from(prompt)),
+                        new AiStreamingResponseHandler(emitter)
+                );
+            }
+        } catch (Exception e) {
+            log.error("数据分析请求失败", e);
+            sseEmitterService.sendToUser(userId, "数据分析失败：" + e.getMessage());
+            sseEmitterService.closeConnection(userId);
+        }
+        return emitter;
+    }
+
+    /**
+     * 构建数据库表结构信息
+     *
+     * @param dataAnalysisQo 数据分析参数
+     * @return 表结构信息字符串
+     * @throws SQLException SQL异常
+     */
+    private String buildSchema(DataAnalysisQo dataAnalysisQo) throws SQLException {
+        StringBuilder schemaBuilder = new StringBuilder();
+        appendDataBaseSchema(dataAnalysisQo.getDataBaseName(), null, schemaBuilder);
+        if (ObjectUtil.isNotEmpty(dataAnalysisQo.getTableNameList())) {
+            try (Connection connection = JdbcUtils.getConnections(dataAnalysisQo.getDataBaseName())) {
+                DatabaseMetaData metaData = connection.getMetaData();
+                for (String tableName : dataAnalysisQo.getTableNameList()) {
+                    appendTableSchema(schemaBuilder, metaData, tableName);
+                }
+            }
+        }
+        return schemaBuilder.toString();
+    }
+
+    /**
+     * 构建数据分析提示词
+     *
+     * @param dataAnalysisQo 数据分析参数
+     * @param schema         数据库表结构信息，为null时不拼接到提示词中（由SystemMessage携带）
+     * @return 构建好的提示词
+     */
+    private String buildDataAnalysisPrompt(DataAnalysisQo dataAnalysisQo, String schema) {
+        StringBuilder prompt = new StringBuilder();
+        prompt.append(DATA_ANALYSIS_PROMPT).append("\n");
+        if (ObjectUtil.isNotEmpty(schema)) {
+            prompt.append("\n数据库表结构信息:\n").append(schema).append("\n");
+        }
+        prompt.append("执行的SQL语句: ").append(ObjectUtil.defaultIfNull(dataAnalysisQo.getSql(), "")).append("\n");
+        prompt.append("查询结果数据(JSON格式): ").append(ObjectUtil.defaultIfNull(dataAnalysisQo.getSampleData(), "")).append("\n");
+        prompt.append("开始分析:");
+        return prompt.toString();
     }
 }

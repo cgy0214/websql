@@ -77,7 +77,11 @@ public class LoginController implements ErrorController {
 
     @RequestMapping("main")
     public String mainIndex() {
-        return "main";
+        SysSetup sysSetup = systemInitPost.getSystemSetup();
+        if (ObjectUtil.isEmpty(sysSetup.getHomePage()) || "main".equals(sysSetup.getHomePage()) || "/main".equals(sysSetup.getHomePage())) {
+            return "main";
+        }
+        return "redirect:" + sysSetup.getHomePage();
     }
 
     @RequestMapping("/getUsersPage")

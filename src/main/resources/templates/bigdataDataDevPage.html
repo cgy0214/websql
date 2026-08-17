@@ -637,6 +637,15 @@
                         $('#cron').val(data.cron);
                         $('#taskName').val(data.taskName);
                         $('#status').val(data.status).attr("readonly", true);
+                        if (data.status === '已发布') {
+                            return layer.msg('任务已发布,请撤回后在进行修改', {
+                                icon: 2,
+                                shade: this.shade,
+                                scrollbar: false,
+                                time: 5000,
+                                shadeClose: true
+                            });
+                        }
                         layer.open({
                             type: 1,
                             area: ['800px', '500px'],

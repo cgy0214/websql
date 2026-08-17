@@ -51,4 +51,7 @@ public class BigDataInstanceModel extends Pages implements Serializable {
 
     @Column
     private String taskCreateUser;
+
+    @Column
+    private Long taskTeamId;
 }
