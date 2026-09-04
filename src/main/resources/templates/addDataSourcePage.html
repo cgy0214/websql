@@ -151,7 +151,9 @@
         if (copyData && urlParams.get('copy') === 'true') {
             var data = JSON.parse(copyData);
             setTimeout(function() {
-                document.getElementById('dbAccount').value = data.dbAccount || '';
+                document.getElementById('driverTypeName').value = '复制数据源';
+                document.getElementById('dbName').value = data.dbName || '';
+                document.getElementById('dbAccount').value = '';
                 document.getElementById('dbUrl').value = data.dbUrl || '';
                 document.getElementById('driverClass').value = data.driverClass || '';
                 document.getElementById('initialSize').value = data.initialSize || 5;

@@ -12,7 +12,7 @@ body {
     background-color: var(--background-color);
     color: var(--text-color);
     margin: 0;
-    padding: 10px;
+    padding: 2px;
 }
 
 /* 块级卡片 */
@@ -25,36 +25,10 @@ body {
     margin: 2px;
 }
 
-/* 悬浮导航栏 */
-#menu-id {
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border-radius: 8px;
-}
-
-.nav-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 99%;
-    padding: 5px;
-    z-index: 999;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
-    backdrop-filter: blur(6px);
-    background-color: rgba(255, 255, 255, 0.92);
-    border-radius: 8px;
-    transform: translateY(-100%);
-    opacity: 0;
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.nav-container.show {
-    transform: translateY(0);
-    opacity: 1;
-}
-
 .layui-btn {
-    border-radius: 5px;
-    transition: all 0.3s ease;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    margin: 0 1px;
 }
 
 .layui-select-sm {
@@ -72,6 +46,7 @@ body {
 .button-row {
     display: flex;
     align-items: center;
+    gap: 1px;
 }
 
 
@@ -84,8 +59,9 @@ body {
 
 /* 编辑器 */
 .CodeMirror {
-    border-radius: 2px;
+    border-radius: 0 0 6px 6px;
     border: 0 solid #ddd;
+    border-top: 1px solid #e8ecef;
 }
 
 /* 跑马灯 */
@@ -129,6 +105,15 @@ body {
 
 .layui-tab {
     margin: 0;
+}
+
+#ai-btn {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#ai-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 pre.CodeMirror-placeholder {
