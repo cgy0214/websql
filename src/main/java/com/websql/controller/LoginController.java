@@ -43,6 +43,11 @@ import java.util.*;
 @Slf4j
 public class LoginController implements ErrorController {
 
+    /**
+     * 登录请求有效期默认值(毫秒),配置 login-captcha-timeout 缺失或非法时使用
+     */
+    private static final int LOGIN_TIMEOUT_DEFAULT = 100000;
+
     @Autowired
     private LoginService loginService;
 
@@ -100,35 +105,63 @@ public class LoginController implements ErrorController {
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     @ResponseBody
-    public AjaxResult login(@RequestBody String param, HttpServletRequest request) throws Exception {
+    public AjaxResult login(@RequestBody String param, HttpServletRequest request) {
         if (ObjectUtil.isEmpty(param)) {
             return AjaxResult.error("账号或密码不能为空!");
         }
-        Boolean loginEnabled = EnvBeanUtil.getBoolean("login-enabled");
-        if (!loginEnabled) {
+        if (!Boolean.TRUE.equals(EnvBeanUtil.getBoolean("login-enabled"))) {
             return AjaxResult.error("系统已关闭登录入口,请联系管理员!");
         }
-        Map map = JSON.parseObject(Base64Decoder.decodeStr(param), Map.class);
-        String userName = MapUtil.getStr(map, "userName");
-        String password = MapUtil.getStr(map, "password");
-        String code = MapUtil.getStr(map, "captcha");
-        Long timestamp = MapUtil.getLong(map, "timestamp");
+        Map<String, Object> map;
+        String userName;
+        String password;
+        String code;
+        Long timestamp;
+        try {
+            map = JSON.parseObject(Base64Decoder.decodeStr(param), Map.class);
+            if (ObjectUtil.isEmpty(map)) {
+                return AjaxResult.error("请求错误,请刷新页面重新登录!");
+            }
+            userName = MapUtil.getStr(map, "userName");
+            password = MapUtil.getStr(map, "password");
+            code = MapUtil.getStr(map, "captcha");
+            timestamp = MapUtil.getLong(map, "loginTimestamp");
+        } catch (Exception e) {
+            log.warn("登录参数解析失败,{}", e.getMessage());
+            return AjaxResult.error("请求错误,请刷新页面重新登录!");
+        }
         if (ObjectUtil.isEmpty(userName) || ObjectUtil.isEmpty(password)) {
             return AjaxResult.error("账号或密码不能为空!");
         }
-        Boolean captchaEnabled = EnvBeanUtil.getBoolean("login-captcha-enabled");
-        if (captchaEnabled) {
+        if (Boolean.TRUE.equals(EnvBeanUtil.getBoolean("login-captcha-enabled"))) {
             Integer failCount = sysUserLogRepository.findLastLoginFail(userName.trim().toLowerCase());
-            if (failCount > 0 && (ObjectUtil.isEmpty(code) || !CaptchaUtil.ver(code.trim().toLowerCase(), request))) {
+            if (failCount != null && failCount > 0 && (ObjectUtil.isEmpty(code) || !CaptchaUtil.ver(code.trim().toLowerCase(), request))) {
                 CaptchaUtil.clear(request);
                 return AjaxResult.error("验证码不正确!");
             }
         }
-        if (DateUtil.date().getTime() - timestamp > Integer.parseInt(EnvBeanUtil.getString("login-captcha-timeout"))) {
+        long nowTime = DateUtil.date().getTime();
+        int timeout = getLoginTimeout();
+        if (timestamp == null || nowTime - timestamp > timeout) {
+            log.warn("登录请求超时,前端:{},后端:{},差值:{},允许误差:{}", timestamp, nowTime, timestamp == null ? null : nowTime - timestamp, timeout);
             return AjaxResult.error("请求超时,请刷新页面重新登录!");
         }
         String ip = ServletUtil.getClientIP(request);
         return loginService.login(userName.trim().toLowerCase(), password.trim().toLowerCase(), ip);
+    }
+
+    /**
+     * 登录请求有效期(毫秒),配置缺失或非法时降级为默认值
+     *
+     * @return 有效期
+     */
+    private int getLoginTimeout() {
+        try {
+            return Integer.parseInt(EnvBeanUtil.getString("login-captcha-timeout"));
+        } catch (Exception e) {
+            log.warn("login-captcha-timeout 配置缺失或非法,使用默认值:{}", LOGIN_TIMEOUT_DEFAULT);
+            return LOGIN_TIMEOUT_DEFAULT;
+        }
     }
 
     @RequestMapping("/logout")
@@ -143,6 +176,12 @@ public class LoginController implements ErrorController {
     public AjaxResult updateUsers(@RequestBody SysUser sysUser) {
         if (StpUtil.hasRole("demo-admin")) {
             return AjaxResult.error("抱歉,演示角色不允许修改个人信息!");
+        }
+        Long currentUserId = Long.parseLong(StpUtil.getLoginId().toString());
+        if (ObjectUtil.isNull(sysUser.getUserId())
+                || (!ObjectUtil.equal(currentUserId, sysUser.getUserId())
+                && !StpUtil.hasRole("super-admin"))) {
+            return AjaxResult.error("无权限修改他人信息!");
         }
         return AjaxResult.success(loginService.updateUsers(sysUser));
     }

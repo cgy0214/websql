@@ -273,9 +273,21 @@ public class LoginServiceImpl implements LoginService {
         sysUserRepository.deleteById(id);
         sysUserRoleRepository.delete(new SysUserRole().setUserId(id));
         teamResourceRepository.deleteResourceByResId(Collections.singletonList(id), "USER");
-        CacheUtils.remove("user_roles_model");
-        CacheUtils.remove("super_user_roles_model");
+        removeUserRoleCache(id);
         return true;
+    }
+
+    /**
+     * 按用户清理角色缓存
+     *
+     * @param userId 用户ID
+     */
+    private void removeUserRoleCache(Long userId) {
+        if (ObjectUtil.isNull(userId)) {
+            return;
+        }
+        CacheUtils.remove("user_roles_model_" + userId);
+        CacheUtils.remove("super_user_roles_model_" + userId);
     }
 
     @Override
@@ -325,8 +337,7 @@ public class LoginServiceImpl implements LoginService {
     @Transactional(rollbackFor = Exception.class)
     public Boolean updateUserRoles(SysUser param) {
         if (ObjectUtil.isNotEmpty(param.getSysRoleName())) {
-            CacheUtils.remove("user_roles_model");
-            CacheUtils.remove("super_user_roles_model");
+            removeUserRoleCache(param.getUserId());
             List<String> roles = Arrays.asList(param.getSysRoleName().split(","));
             sysUserRoleRepository.deleteByUserId(param.getUserId());
             Map<String, SysRole> roleMap = sysRoleRepository.findAll().stream().collect(Collectors.toMap(SysRole::getRole, s -> s, (k1, k2) -> k1));

@@ -322,9 +322,13 @@ public class SqlManagerController {
      */
     @RequestMapping("/metaDatabaseList")
     @ResponseBody
-    public AjaxResult metaDatabaseList() {
+    public AjaxResult metaDatabaseList(@RequestParam(required = false) String sort, @RequestParam(required = false) String order) {
+        if (ObjectUtil.isNotEmpty(sort) && ObjectUtil.isNotEmpty(order)) {
+            return AjaxResult.success(dbSourceService.metaDatabaseList(sort, order));
+        }
         return AjaxResult.success(dbSourceService.metaDatabaseList());
     }
+
 
     /**
      * 根据数据库名获取表列表
@@ -334,12 +338,22 @@ public class SqlManagerController {
      */
     @RequestMapping("/metaTableListByDatabase")
     @ResponseBody
-    public AjaxResult metaTableListByDatabase(@RequestParam String database) {
-        if (ObjectUtil.isEmpty(database)) {
+    public AjaxResult metaTableListByDatabase(@RequestParam String database,
+                                               @RequestParam(required = false) String sort,
+                                               @RequestParam(required = false) String order) {
+                if (ObjectUtil.isEmpty(database)) {
             return AjaxResult.error("数据库名称不能为空!");
+        }
+        if (ObjectUtil.isNotEmpty(sort) && ObjectUtil.isNotEmpty(order)) {
+            return AjaxResult.success(dbSourceService.metaTableListByDatabase(database, sort, order));
         }
         return AjaxResult.success(dbSourceService.metaTableListByDatabase(database));
     }
+
+
+
+
+
 
     /**
      * 搜索数据库和表（模糊搜索）

@@ -81,6 +81,7 @@ public interface DbSourceService {
      * @return 数据库节点列表
      */
     List<MetaTreeTable> metaDatabaseList();
+    List<MetaTreeTable> metaDatabaseList(String sort, String order);
 
     /**
      * 根据数据库名获取表列表
@@ -88,6 +89,7 @@ public interface DbSourceService {
      * @return 表节点列表
      */
     List<MetaTreeTable> metaTableListByDatabase(String database);
+    List<MetaTreeTable> metaTableListByDatabase(String database, String sort, String order);
 
     /**
      * 搜索数据库和表（模糊搜索）

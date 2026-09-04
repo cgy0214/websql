@@ -78,7 +78,7 @@
                 layer.msg("系统已关闭登录,请联系管理员!",{icon: 2});
                 return false;
             }
-            data.field.timestamp = new Date().getTime();
+            data.field.loginTimestamp = new Date().getTime();
             let param = Base64.encode(JSON.stringify(data.field));
             post(ctx + "login", param, (res) => {
                 if (res.code === 200) {

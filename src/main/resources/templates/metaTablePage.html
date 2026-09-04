@@ -105,12 +105,12 @@
         <div class="layui-row">
             <div class="layui-col-xs3">
                 <div class="layui-panel tree-panel" style="padding: 10px;">
-                    <div class="layui-input-group">
-                        <input type="text" placeholder="search..." class="layui-input small-input" id="searchInput">
-                        <div class="layui-input-suffix">
-                            <button type="button" class="layui-btn layui-btn-sm" lay-on="reload">重置</button>
-                        </div>
+                <div class="layui-input-group">
+                    <input type="text" placeholder="search..." class="layui-input small-input" id="searchInput">
+                    <div class="layui-input-suffix">
+                        <button type="button" class="layui-btn layui-btn-sm" lay-on="reload">重置</button>
                     </div>
+                </div>
                     <div id="div-tree" style="height:650px;overflow-y:auto;font-size: 15px;"></div>
                 </div>
             </div>
@@ -208,7 +208,7 @@
         </colgroup>
         <thead>
         <tr>
-            <th>字段名称</th>
+            <th id="fieldNameTh" style="cursor:pointer;">字段名称 <i class="layui-icon layui-icon-up" style="font-size:10px;color:#ccc;vertical-align:middle;"></i></th>
             <th>字段注释</th>
             <th>字段类型</th>
             <th>是否NULL</th>
@@ -288,12 +288,126 @@
         const layer = layui.layer;
 
         let treeData = [];
-        // 记录已加载表数据的数据库
+        let currentDatabase = null;
         let loadedDatabases = {};
-        // 当前是否为搜索模式
         let isSearchMode = false;
-        // 搜索延迟定时器
         let searchTimer = null;
+
+        // 三层独立排序状态
+        let dbSortOrder = 'asc';
+        let tableSortOrder = 'asc';
+        let fieldSortOrder = 'asc';
+        let currentFieldData = null;
+
+        // === 排序工具栏 ===
+        const sortBarHtml = '<div id="sortBar" style="padding:6px 0 4px 2px;font-size:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
+            '<span id="sortDbBtn" class="sort-tag" data-level="db" title="点击切换升序/降序">库名 <i class="layui-icon layui-icon-up" style="font-size:10px;"></i></span>' +
+            '<span id="sortTableBtn" class="sort-tag" data-level="table" title="点击切换升序/降序" style="display:none;">表名 <i class="layui-icon layui-icon-up" style="font-size:10px;"></i></span>' +
+            '</div>';
+        $('#div-tree').before(sortBarHtml);
+
+        // 排序标签样式（描边风格）
+        $('<style>.sort-tag{display:inline-flex;align-items:center;gap:2px;padding:2px 8px;border-radius:3px;background:#fff;color:#666;border:1px solid #ddd;cursor:pointer;user-select:none;transition:all .15s;line-height:1.6;font-size:12px;}.sort-tag:hover{border-color:#16b777;color:#16b777;}.sort-tag.active{border-color:#16b777;color:#16b777;}</style>').appendTo('head');
+
+        function updateSortBar() {
+            const $db = $('#sortDbBtn');
+            const $table = $('#sortTableBtn');
+            $db.find('i').attr('class', dbSortOrder === 'asc' ? 'layui-icon layui-icon-up' : 'layui-icon layui-icon-down');
+            $table.find('i').attr('class', tableSortOrder === 'asc' ? 'layui-icon layui-icon-up' : 'layui-icon layui-icon-down');
+            if (currentDatabase) $table.addClass('active'); else $table.removeClass('active');
+        }
+
+        function updateFieldSortIcon() {
+            var $icon = $('#fieldNameTh i');
+            if (currentFieldData && currentFieldData.length > 0) {
+                $icon.css('color', '#16b777').attr('class', fieldSortOrder === 'asc' ? 'layui-icon layui-icon-up' : 'layui-icon layui-icon-down');
+            } else {
+                $icon.css('color', '#ccc');
+            }
+        }
+
+        // 库名排序
+        $(document).on('click', '#sortDbBtn', function () {
+            dbSortOrder = dbSortOrder === 'asc' ? 'desc' : 'asc';
+            updateSortBar();
+            loadDatabaseListSorted();
+        });
+
+        // 表名排序
+        $(document).on('click', '#sortTableBtn', function () {
+            if (!currentDatabase) return;
+            tableSortOrder = tableSortOrder === 'asc' ? 'desc' : 'asc';
+            updateSortBar();
+            loadTablesByDatabaseSorted(currentDatabase);
+        });
+
+        // 字段名排序（DOM操作）
+        $(document).on('click', '#fieldNameTh', function () {
+            if (!currentFieldData) return;
+            fieldSortOrder = fieldSortOrder === 'asc' ? 'desc' : 'asc';
+            updateFieldSortIcon();
+            sortFieldRows();
+        });
+
+        function sortFieldRows() {
+            var $tbody = $('#view2 .layui-table:has(#fieldNameTh) tbody');
+            if (!$tbody.length) return;
+            var $rows = $tbody.find('tr').toArray();
+            $rows.sort(function (a, b) {
+                var va = $(a).find('td:first').text().toLowerCase();
+                var vb = $(b).find('td:first').text().toLowerCase();
+                var cmp = va < vb ? -1 : va > vb ? 1 : 0;
+                return fieldSortOrder === 'desc' ? -cmp : cmp;
+            });
+            $tbody.empty().append($rows);
+        }
+
+        function loadDatabaseListSorted() {
+            isSearchMode = false;
+            loadedDatabases = {};
+            let url = ctx + "sqlManager/metaDatabaseList?sort=dbName&order=" + dbSortOrder;
+            post(url, null, function (res) {
+                if (res.code === 200) {
+                    treeData = res.data;
+                    tree.reload('tree-id-1', { data: res.data });
+                }
+            });
+        }
+
+        function loadTablesByDatabaseSorted(database) {
+            const loadIndex = layer.load(0);
+            $.ajax({
+                type: "post",
+                url: ctx + "sqlManager/metaTableListByDatabase?database=" + encodeURIComponent(database) + "&sort=tableName&order=" + tableSortOrder,
+                async: true,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (res) {
+                    layer.close(loadIndex);
+                    if (res.code === 200) {
+                        loadedDatabases[database] = true;
+                        updateDatabaseChildren(database, res.data);
+                        setTimeout(function () {
+                            var $treeEntries = $('#div-tree .layui-tree-entry');
+                            $treeEntries.each(function () {
+                                var $entry = $(this);
+                                var title = $entry.find('.layui-tree-txt').text();
+                                if (title === database) {
+                                    var $iconClick = $entry.find('.layui-tree-iconClick');
+                                    if ($iconClick.length > 0) $iconClick.trigger('click');
+                                }
+                            });
+                        }, 100);
+                    } else {
+                        layer.msg(res.msg || '加载失败', { icon: 2 });
+                    }
+                },
+                error: function () {
+                    layer.close(loadIndex);
+                    layer.msg('加载失败', { icon: 2 });
+                }
+            });
+        }
 
         //树呈现
         tree.render({
@@ -313,23 +427,27 @@
                         $iconClick.trigger('click');
                     }
                 }
-                if (data.field === "database" && !loadedDatabases[data.title] && !isSearchMode) {
-                    loadTablesByDatabase(data.title, obj);
-                    return;
-                }
                 if (data.field === "database") {
+                    currentDatabase = data.title;
+                    $('#sortTableBtn').show();
+                    if (!loadedDatabases[data.title] && !isSearchMode) {
+                        loadTablesByDatabase(data.title, obj);
+                        return;
+                    }
                     const dbNode = findDatabaseNode(data.title);
                     if (dbNode) {
                         showDatabaseInfo(dbNode);
                         return;
                     }
                 }
+                currentDatabase = null;
+                $('#sortTableBtn').hide();
                 showDatabaseInfo(data);
             }
         });
 
         /**
-         * 显示数据库信息
+         * 显示数据库/表信息
          */
         function showDatabaseInfo(data) {
             if (!data.tableMeta) {
@@ -344,40 +462,43 @@
             });
             if (data.field === "database") {
                 $("#showView2").hide();
+                currentFieldData = null;
+                updateFieldSortIcon();
             } else {
                 const tableView = document.getElementById('tableView').innerHTML;
                 const view2 = document.getElementById('view2');
                 laytpl(tableView).render(data.tableMeta, function (str) {
                     view2.innerHTML = str;
                 });
+                currentFieldData = data.tableMeta.tablesMetaList || [];
+                updateFieldSortIcon();
                 $("#showView2").show();
             }
         }
 
         /**
-         * 加载数据库列表（只加载数据库节点）
+         * 加载数据库列表
          */
         function loadDatabaseList() {
             isSearchMode = false;
             loadedDatabases = {};
-            post(ctx + "sqlManager/metaDatabaseList", null, (res) => {
+            let url = ctx + "sqlManager/metaDatabaseList?sort=dbName&order=" + dbSortOrder;
+            post(url, null, (res) => {
                 if (res.code === 200) {
                     treeData = res.data;
-                    tree.reload('tree-id-1', {
-                        data: res.data
-                    });
+                    tree.reload('tree-id-1', { data: res.data });
                 }
             });
         }
 
         /**
-         * 根据数据库名加载表列表
+         * 加载表列表（初始加载）
          */
         function loadTablesByDatabase(database, obj) {
             const loadIndex = layer.load(0);
             $.ajax({
                 type: "post",
-                url: ctx + "sqlManager/metaTableListByDatabase?database=" + encodeURIComponent(database),
+                url: ctx + "sqlManager/metaTableListByDatabase?database=" + encodeURIComponent(database) + "&sort=tableName&order=" + tableSortOrder,
                 async: true,
                 dataType: "json",
                 contentType: "application/json",
@@ -499,6 +620,14 @@
         util.event('lay-on', {
             reload: function () {
                 $("#searchInput").val('');
+                dbSortOrder = 'asc';
+                tableSortOrder = 'asc';
+                fieldSortOrder = 'asc';
+                currentDatabase = null;
+                currentFieldData = null;
+                $('#sortTableBtn').hide();
+                updateSortBar();
+                updateFieldSortIcon();
                 loadDatabaseList();
             }
         });
