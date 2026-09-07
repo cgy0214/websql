@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -178,11 +177,11 @@ public class SseEmitterServiceImpl implements SseEmitterService {
      * 心跳检测
      */
     public void startHeartbeat() {
-        scheduler.scheduleAtFixedRate(() -> {
+        /*scheduler.scheduleAtFixedRate(() -> {
             if (!userEmitters.isEmpty()) {
                 broadcastToAll("heartbeat");
             }
-        }, 30, 30, TimeUnit.SECONDS);
+        }, 30, 30, TimeUnit.SECONDS);*/
     }
 
     /**

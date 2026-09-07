@@ -41,19 +41,21 @@ public class StpInterfaceImpl implements StpInterface {
 
     @Override
     public List<String> getRoleList(Object loginId, String s) {
-        List<String> superRoles = CacheUtils.get("super_user_roles_model", List.class);
+        String userRoleKey = "user_roles_model_" + loginId;
+        String superRoleKey = "super_user_roles_model_" + loginId;
+        List<String> superRoles = CacheUtils.get(superRoleKey, List.class);
         if (StpUtils.currentSuperAdmin()) {
             if (ObjectUtil.isNull(superRoles)) {
                 superRoles = loginService.queryRolesSelect().stream().map(SysRole::getRole).filter(role -> !"demo-admin".equals(role)).collect(Collectors.toList());
-                CacheUtils.put("super_user_roles_model", superRoles);
+                CacheUtils.put(superRoleKey, superRoles);
             }
             return superRoles;
         }
-        List<String> roles = CacheUtils.get("user_roles_model", List.class);
+        List<String> roles = CacheUtils.get(userRoleKey, List.class);
         if (ObjectUtil.isNull(roles)) {
             List<SysUserRole> userRole = sysUserRoleRepository.findUserRole(Long.valueOf(loginId.toString()));
             roles = userRole.stream().map(SysUserRole::getRole).collect(Collectors.toList());
-            CacheUtils.put("user_roles_model", roles);
+            CacheUtils.put(userRoleKey, roles);
         }
         return roles;
     }

@@ -62,7 +62,7 @@ public class SqlParserHandler {
             String methodType = getExecuteType(visitor.getTables(), statement);
             List<String> riskMethod = checkRiskMethod(methodType);
             if (ObjectUtil.isNotNull(riskMethod) && !riskMethod.isEmpty()) {
-                throw new RuntimeException("不允许执行【" + String.join(",", riskMethod) + "】SQL语句,请联系管理员!");
+                throw new RuntimeException(String.join(",", riskMethod) + " 语句不允许执行,【系统管理-参数设置-语句限制】修改限制。");
             }
             List<String> tableNameList = getTableName(visitor.getTables());
             List<String> tableColumns = getTableColumns(visitor.getColumns());

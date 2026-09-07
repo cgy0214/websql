@@ -1,6 +1,7 @@
 package com.websql.controller;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.websql.config.AiConfiguration;
 import com.websql.model.*;
 import com.websql.service.*;
 import com.websql.task.ExamineVersionFactory;
@@ -57,6 +58,9 @@ public class SettingConfigController {
 
     @Autowired
     private BackupService backupService;
+
+    @Autowired
+    private AiConfiguration aiConfiguration;
 
 
     @RequestMapping("/userRolePage")
@@ -172,7 +176,9 @@ public class SettingConfigController {
     @RequestMapping("/updateSysSetUp")
     @ResponseBody
     public AjaxResult updateSysSetUp(@RequestBody SysSetup sys) {
-        return AjaxResult.success(loginService.updateSysSetUp(sys));
+        AjaxResult result = AjaxResult.success(loginService.updateSysSetUp(sys));
+        aiConfiguration.refreshAiModels();
+        return result;
     }
 
 

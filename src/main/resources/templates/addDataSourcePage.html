@@ -145,6 +145,28 @@
     layui.use(['layer', 'form'], function () {
         const layer = layui.layer;
         const form = layui.form;
+
+        var copyData = localStorage.getItem('copyDataSource');
+        var urlParams = new URLSearchParams(window.location.search);
+        if (copyData && urlParams.get('copy') === 'true') {
+            var data = JSON.parse(copyData);
+            setTimeout(function() {
+                document.getElementById('driverTypeName').value = '复制数据源';
+                document.getElementById('dbName').value = data.dbName || '';
+                document.getElementById('dbAccount').value = '';
+                document.getElementById('dbUrl').value = data.dbUrl || '';
+                document.getElementById('driverClass').value = data.driverClass || '';
+                document.getElementById('initialSize').value = data.initialSize || 5;
+                document.getElementById('maxActive').value = data.maxActive || 20;
+                document.getElementById('maxIdle').value = data.maxIdle || 5;
+                document.getElementById('maxWait').value = data.maxWait || 5000;
+                document.getElementById('dbCheckUrl').value = data.dbCheckUrl || '';
+                document.getElementById('druidFilterType').value = data.druidFilterType || '';
+                form.render();
+                localStorage.removeItem('copyDataSource');
+            }, 500);
+        }
+
         /**
          * 保存
          */

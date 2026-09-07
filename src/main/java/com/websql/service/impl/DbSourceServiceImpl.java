@@ -819,7 +819,23 @@ public class DbSourceServiceImpl implements DbSourceService {
     }
 
     @Override
-    public List<MetaTreeTable> metaTableListByDatabase(String database) {
+    public List<MetaTreeTable> metaDatabaseList(String sort, String order) {
+        List<MetaTreeTable> list = metaDatabaseList();
+        Comparator<MetaTreeTable> comparator;
+        if ("dbName".equalsIgnoreCase(sort) || "database".equalsIgnoreCase(sort) || "title".equalsIgnoreCase(sort)) {
+            comparator = Comparator.comparing(MetaTreeTable::getTitle, String.CASE_INSENSITIVE_ORDER);
+        } else {
+            comparator = Comparator.comparing(MetaTreeTable::getTitle, String.CASE_INSENSITIVE_ORDER);
+        }
+        if ("desc".equalsIgnoreCase(order)) {
+            comparator = comparator.reversed();
+        }
+        list.sort(comparator);
+        return list;
+    }
+
+    // 原始获取表列表的实现，供内部调用
+    private List<MetaTreeTable> fetchTableListByDatabase(String database) {
         List<MetaTreeTable> tableList = new ArrayList<>();
         AjaxResult table = findTableField(database);
         if (ObjectUtil.notEqual(table.getCode(), 200)) {
@@ -848,6 +864,36 @@ public class DbSourceServiceImpl implements DbSourceService {
             }
         });
         return tableList;
+    }
+
+    @Override
+    public List<MetaTreeTable> metaTableListByDatabase(String database) {
+        return fetchTableListByDatabase(database);
+    }
+
+    @Override
+    public List<MetaTreeTable> metaTableListByDatabase(String database, String sort, String order) {
+        List<MetaTreeTable> list = fetchTableListByDatabase(database);
+        if ("tableName".equalsIgnoreCase(sort)) {
+            Comparator<MetaTreeTable> comparator = Comparator.comparing(
+                t -> t.getTableMeta() != null ? t.getTableMeta().getTableName() : t.getTitle(),
+                String.CASE_INSENSITIVE_ORDER);
+            if ("desc".equalsIgnoreCase(order)) {
+                comparator = comparator.reversed();
+            }
+            list.sort(comparator);
+        } else if ("columnName".equalsIgnoreCase(sort)) {
+            Comparator<MetaTreeTable> comparator = Comparator.comparing(MetaTreeTable::getTitle, String.CASE_INSENSITIVE_ORDER);
+            if ("desc".equalsIgnoreCase(order)) {
+                comparator = comparator.reversed();
+            }
+            for (MetaTreeTable tableNode : list) {
+                if (tableNode.getChildren() != null) {
+                    tableNode.getChildren().sort(comparator);
+                }
+            }
+        }
+        return list;
     }
 
     @Override

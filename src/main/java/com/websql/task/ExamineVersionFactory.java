@@ -43,7 +43,7 @@ public class ExamineVersionFactory implements Task {
     @Override
     public void execute() {
         try {
-            VersionModel remoteVersion = JSON.parseObject(HttpUtil.get("https://gitee.com/boy_0214/websql/raw/master/src/main/resources/version.json", CharsetUtil.CHARSET_UTF_8), VersionModel.class);
+            VersionModel remoteVersion = JSON.parseObject(HttpUtil.get("https://raw.giteeusercontent.com/boy_0214/websql/raw/master/src/main/resources/version.json", CharsetUtil.CHARSET_UTF_8), VersionModel.class);
             log.info("remote new version :{},release:{}", remoteVersion.getVersion(), remoteVersion.getDate());
             if (ObjectUtil.isNotNull(remoteVersion.getAiRecommend())) {
                 versionModel.setAiRecommend(remoteVersion.getAiRecommend());

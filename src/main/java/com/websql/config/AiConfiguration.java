@@ -52,13 +52,12 @@ public class AiConfiguration {
 
     private final SysSetUpRepository sysSetUpRepository;
 
+    private final ConcurrentHashMap<String, Object> modelCache = new ConcurrentHashMap<>();
+
     public AiConfiguration(SysSetUpRepository sysSetUpRepository) {
         this.sysSetUpRepository = sysSetUpRepository;
     }
 
-    /**
-     * 获取系统设置表中的AI配置，查询失败或表为空时返回null
-     */
     private SysSetup getSysSetup() {
         try {
             List<SysSetup> sysList = sysSetUpRepository.findAll();
@@ -70,47 +69,42 @@ public class AiConfiguration {
         return null;
     }
 
-    private String getApiKey() {
-        SysSetup sysSetup = getSysSetup();
+    private String resolveApiKey(SysSetup sysSetup) {
         if (sysSetup != null && ObjectUtil.isNotEmpty(sysSetup.getAiKey())) {
             return sysSetup.getAiKey();
         }
         return propertyApiKey;
     }
 
-    private String getApiUrl() {
-        SysSetup sysSetup = getSysSetup();
+    private String resolveApiUrl(SysSetup sysSetup) {
         if (sysSetup != null && ObjectUtil.isNotEmpty(sysSetup.getAiUrl())) {
             return sysSetup.getAiUrl();
         }
         return propertyUrl;
     }
 
-    private String getModelName() {
-        SysSetup sysSetup = getSysSetup();
+    private String resolveModelName(SysSetup sysSetup) {
         if (sysSetup != null && ObjectUtil.isNotEmpty(sysSetup.getAiModelName())) {
             return sysSetup.getAiModelName();
         }
         return propertyModelName;
     }
 
-    private double getTemperature() {
-        SysSetup sysSetup = getSysSetup();
+    private double resolveTemperature(SysSetup sysSetup) {
         if (sysSetup != null && ObjectUtil.isNotNull(sysSetup.getAiTemperature())) {
             return sysSetup.getAiTemperature();
         }
         return propertyTemperature;
     }
 
-    private int getMaxTokens() {
-        SysSetup sysSetup = getSysSetup();
+    private int resolveMaxTokens(SysSetup sysSetup) {
         if (sysSetup != null && ObjectUtil.isNotNull(sysSetup.getAiMaxTokens())) {
             return sysSetup.getAiMaxTokens();
         }
         return propertyMaxTokens;
     }
 
-    private int getMaxMessages() {
+    public int getMaxMessages() {
         SysSetup sysSetup = getSysSetup();
         if (sysSetup != null && ObjectUtil.isNotNull(sysSetup.getAiMaxMessages())) {
             return sysSetup.getAiMaxMessages();
@@ -118,32 +112,45 @@ public class AiConfiguration {
         return propertyMaxMessages;
     }
 
-    @Bean
-    public ChatLanguageModel chatLanguageModel() {
-        if (ObjectUtil.isEmpty(getApiKey())) {
-            return null;
-        }
-        return OpenAiChatModel.builder()
-                .apiKey(getApiKey())
-                .baseUrl(getApiUrl())
-                .modelName(getModelName())
-                .temperature(getTemperature())
-                .build();
+    public ChatLanguageModel getChatLanguageModel() {
+        return (ChatLanguageModel) modelCache.computeIfAbsent("chatModel", k -> {
+            SysSetup sysSetup = getSysSetup();
+            String apiKey = resolveApiKey(sysSetup);
+            if (ObjectUtil.isEmpty(apiKey)) {
+                return null;
+            }
+            return OpenAiChatModel.builder()
+                    .apiKey(apiKey)
+                    .baseUrl(resolveApiUrl(sysSetup))
+                    .modelName(resolveModelName(sysSetup))
+                    .temperature(resolveTemperature(sysSetup))
+                    .build();
+        });
     }
 
-    @Bean
-    public StreamingChatLanguageModel streamingChatLanguageModel() {
-        if (ObjectUtil.isEmpty(getApiKey())) {
-            return null;
-        }
-        return OpenAiStreamingChatModel.builder()
-                .apiKey(getApiKey())
-                .baseUrl(getApiUrl())
-                .modelName(getModelName())
-                .temperature(getTemperature())
-                .maxTokens(getMaxTokens())
-                .responseFormat(RESPONSE_FORMAT)
-                .build();
+    public StreamingChatLanguageModel getStreamingChatLanguageModel() {
+        return (StreamingChatLanguageModel) modelCache.computeIfAbsent("streamingModel", k -> {
+            SysSetup sysSetup = getSysSetup();
+            String apiKey = resolveApiKey(sysSetup);
+            if (ObjectUtil.isEmpty(apiKey)) {
+                return null;
+            }
+            return OpenAiStreamingChatModel.builder()
+                    .apiKey(apiKey)
+                    .baseUrl(resolveApiUrl(sysSetup))
+                    .modelName(resolveModelName(sysSetup))
+                    .temperature(resolveTemperature(sysSetup))
+                    .maxTokens(resolveMaxTokens(sysSetup))
+                    .responseFormat(RESPONSE_FORMAT)
+                    .build();
+        });
+    }
+
+    /**
+     * 前端保存AI配置后调用，清空缓存，下次获取时自动重建
+     */
+    public void refreshAiModels() {
+        modelCache.clear();
     }
 
     @Bean

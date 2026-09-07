@@ -2,6 +2,7 @@ package com.websql.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.websql.config.AiConfiguration;
 import com.websql.config.AiStreamingResponseHandler;
 import com.websql.config.JdbcUtils;
 import com.websql.model.DataAnalysisQo;
@@ -15,8 +16,6 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,10 +38,7 @@ import java.util.Collections;
 public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
 
     @Autowired(required = false)
-    private StreamingChatLanguageModel streamingChatLanguageModel;
-
-    @Autowired(required = false)
-    private ChatLanguageModel chatLanguageModel;
+    private AiConfiguration aiConfiguration;
 
     @Autowired
     private SseEmitterService sseEmitterService;
@@ -190,7 +186,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
             sseEmitterService.closeConnection(userId);
             return emitter;
         }
-        if (ObjectUtil.isNotNull(streamingChatLanguageModel)) {
+        if (ObjectUtil.isNotNull(aiConfiguration) && ObjectUtil.isNotNull(aiConfiguration.getStreamingChatLanguageModel())) {
             ChatMemory chatMemory = chatMemoryProvider.get(userId);
 
             boolean needSchemaInfo = chatMemory.messages().stream()
@@ -204,7 +200,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
             chatMemory.add(UserMessage.from(prompt));
 
             log.debug("开始请求AI>>tokens:{}", prompt.length());
-            streamingChatLanguageModel.generate(
+            aiConfiguration.getStreamingChatLanguageModel().generate(
                     chatMemory.messages(),
                     new AiStreamingResponseHandler(emitter, chatMemory, prompt.length())
             );
@@ -250,7 +246,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
     @Override
     public String summarizeInstance(String taskName, String instanceStatus, String startTime,
                                     String endTime, String executeResult, String sqlContent, String errorMessage) {
-        if (ObjectUtil.isNull(chatLanguageModel)) {
+        if (ObjectUtil.isNull(aiConfiguration) || ObjectUtil.isNull(aiConfiguration.getChatLanguageModel())) {
             return "AI服务未配置，请检查AI相关配置";
         }
 
@@ -291,7 +287,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
         try {
             UserMessage userMessage = UserMessage.from(prompt.toString());
             dev.langchain4j.model.output.Response<dev.langchain4j.data.message.AiMessage> response =
-                    chatLanguageModel.generate(userMessage);
+                    aiConfiguration.getChatLanguageModel().generate(userMessage);
 
             String result = response.content().text();
             if (ObjectUtil.isNotEmpty(result)) {
@@ -314,7 +310,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
             sseEmitterService.closeConnection(userId);
             return emitter;
         }
-        if (ObjectUtil.isNull(streamingChatLanguageModel)) {
+        if (ObjectUtil.isNull(aiConfiguration) || ObjectUtil.isNull(aiConfiguration.getStreamingChatLanguageModel())) {
             log.error("请检查是否配置了OpenAI API Key,wiki: https://gitee.com/boy_0214/websql/wikis/pages?sort_id=7676296&doc_id=3405209#-openai-%E6%A8%A1%E5%9E%8B%E9%85%8D%E7%BD%AE");
             sseEmitterService.sendToUser(userId, "请检查是否配置AI相关参数，请参考LOG Wiki配置！");
             sseEmitterService.closeConnection(userId);
@@ -344,7 +340,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
                         : buildDataAnalysisPrompt(dataAnalysisQo, null);
                 chatMemory.add(UserMessage.from(prompt));
                 log.debug("开始请求AI数据分析>>tokens:{}", prompt.length());
-                streamingChatLanguageModel.generate(
+                aiConfiguration.getStreamingChatLanguageModel().generate(
                         chatMemory.messages(),
                         new AiStreamingResponseHandler(emitter, chatMemory, prompt.length())
                 );
@@ -353,7 +349,7 @@ public class Text2SqlAdvancedServiceImpl implements Text2SqlAdvancedService {
                         ? DATA_ANALYSIS_FOLLOW_UP_PROMPT + dataAnalysisQo.getQuestion() + "\n数据库表结构信息:\n" + schema
                         : buildDataAnalysisPrompt(dataAnalysisQo, schema);
                 log.debug("开始请求AI数据分析>>tokens:{}", prompt.length());
-                streamingChatLanguageModel.generate(
+                aiConfiguration.getStreamingChatLanguageModel().generate(
                         Collections.singletonList(UserMessage.from(prompt)),
                         new AiStreamingResponseHandler(emitter)
                 );

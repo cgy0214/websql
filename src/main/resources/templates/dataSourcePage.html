@@ -51,13 +51,73 @@
 <script th:replace="~{base::ctx}"></script>
 <script type="text/html" id="toolbarTable">
     <div class="layui-clear-space">
-        <a class="layui-btn layui-btn-xs" lay-event="view">查看</a>
         <button type="button" class="layui-btn layui-btn-xs layui-bg-orange" lay-event="showDataSourcePassword">解密</button>
         <a class="layui-btn layui-bg-blue layui-btn-xs" lay-event="update">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-bg-green" lay-event="copy">复制</a>
         <a class="layui-btn layui-bg-red layui-btn-xs" lay-event="delete">删除</a>
     </div>
 </script>
 <script>
+    function viewDataSource(elem) {
+        layui.use(function () {
+            const layer = layui.layer;
+            const laytpl = layui.laytpl;
+            const data = JSON.parse(elem.getAttribute('data-row'));
+            let content = laytpl('<div style="margin: 20px;"><table class="layui-table"><tr><td>地址：{{= d.address }} </td></tr><tr> <td>账号：{{= d.name}}</td></tr> <tr> <td>密码： {{= d.password}} </td></tr></table></div>').render({
+                address: data.dbUrl,
+                name: data.dbAccount,
+                password: data.dbPassword
+            });
+            openContent("查看密钥", content);
+        });
+    }
+
+    function copyDataSource(data) {
+        layui.use(function () {
+            const layer = layui.layer;
+            const $ = layui.jquery;
+            // 存储复制的数据源信息
+            localStorage.setItem('copyDataSource', JSON.stringify({
+                dbName: data.dbName,
+                dbUrl: data.dbUrl,
+                dbAccount: data.dbAccount,
+                driverClass: data.driverClass,
+                initialSize: data.initialSize,
+                maxActive: data.maxActive,
+                maxIdle: data.maxIdle,
+                maxWait: data.maxWait,
+                dbCheckUrl: data.dbCheckUrl,
+                sourceIdentifier: data.sourceIdentifier,
+                druidFilterType: data.druidFilterType
+            }));
+            
+            // 检查是否已经打开了新增数据源页面
+            var tabId = 'addDataSource';
+            var checkTab = false;
+            parent.layui.$(".layui-tab-title li").each(function () {
+                var checkTabId = $(this).attr('lay-id');
+                if (checkTabId != null && checkTabId === tabId) {
+                    checkTab = true;
+                }
+            });
+            
+            if (checkTab) {
+                // 如果已经打开了，则跳转到该tab
+                parent.layui.element.tabChange('layuiminiTab', tabId);
+            } else {
+                // 如果没有打开，则新开一个tab
+                var loading = parent.layer.load(0, {shade: false, time: 2 * 1000});
+                parent.layui.element.tabAdd('layuiminiTab', {
+                    title: '<span class="layuimini-tab-active"></span><span>新增数据源</span><i class="layui-icon layui-unselect layui-tab-close">ဆ</i>',
+                    content: '<iframe width="100%" height="100%" frameborder="no" border="0" marginwidth="0" marginheight="0" src="' + ctx + 'dataSourceManager/addSourcePage?copy=true"></iframe>',
+                    id: tabId
+                });
+                parent.layui.element.tabChange('layuiminiTab', tabId);
+                parent.layer.close(loading);
+            }
+        });
+    }
+
     layui.use(function () {
         const layer = layui.layer;
         const form = layui.form;
@@ -74,7 +134,9 @@
             height: '525',
             cols: [
                 [
-                    {field: 'id', title: '主键', sort: true, fixed: true,width: 100},
+                    {field: 'id', title: '主键', sort: true, fixed: true,width: 100,templet: function(d) {
+                            return '<span style="cursor: pointer; color: #1E9FFF;" onclick="viewDataSource(this)" data-row=\'' + JSON.stringify(d).replace(/'/g, "&#39;") + '\'>' + d.id + '</span>';
+                        }},
                     {field: 'dbName', title: '连接名称', sort: true, fixed: true, width: 200,templet: function(d) {
                             return '<span style="cursor: pointer; color: #1E9FFF;" onclick="copyTableText(\'' + d.dbName + '\')">' + d.dbName + '</span>';
                         }},
@@ -106,14 +168,6 @@
         table.on('tool(dataTable)', function (obj) {
             var data = obj.data;
             switch (obj.event) {
-                case 'view':
-                    let content = laytpl('<div style="margin: 20px;"><table class="layui-table"><tr><td>地址：{{= d.address }} </td></tr><tr> <td>账号：{{= d.name}}</td></tr> <tr> <td>密码： {{= d.password}} </td></tr></table></div>').render({
-                        address: data.dbUrl,
-                        name: data.dbAccount,
-                        password: data.dbPassword
-                    });
-                    openContent("查看密钥", content);
-                    break;
                 case 'delete':
                         let sqlCount = 0;
                         let taskCount = 0;
@@ -195,6 +249,9 @@
                             layer.msg(res.msg, {icon: 2});
                         }
                     })
+                    break;
+                case 'copy':
+                    copyDataSource(data);
                     break;
             }
         });
