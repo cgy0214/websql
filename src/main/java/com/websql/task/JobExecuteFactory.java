@@ -96,6 +96,10 @@ public class JobExecuteFactory implements Task {
                     if (!itemList.isEmpty()) {
                         JSONObject jo = (JSONObject) itemList.get(0);
                         for (String key : jo.keySet()) {
+                            if (!key.matches("^[a-zA-Z0-9_]+$")) {
+                                log.error("任务名称:{},执行失败,非法的字段名:{}", jobName, key);
+                                return FAIL;
+                            }
                             param.append(",").append(key);
                             values.append(",?");
                         }
@@ -104,6 +108,10 @@ public class JobExecuteFactory implements Task {
                         String tableName = executeSql.getTableNameList().get(0);
                         if (!ObjectUtil.isEmpty(vo.getSyncTable())) {
                             tableName = vo.getSyncTable();
+                        }
+                        if (!tableName.matches("^[a-zA-Z0-9_]+$")) {
+                            log.error("任务名称:{},执行失败,非法的表名:{}", jobName, tableName);
+                            return FAIL;
                         }
                         String itemSql = "insert into " + tableName + "(" + param + ") values (" + values + ")";
                         Map<String, Object> result = JdbcUtils.updateTimers(vo.getSyncName(), itemSql, itemList, param);
