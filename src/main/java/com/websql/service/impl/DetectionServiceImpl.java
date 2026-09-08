@@ -9,6 +9,7 @@ import com.websql.dao.DetectionRepository;
 import com.websql.model.*;
 import com.websql.service.DetectionService;
 import com.websql.service.MessageTemplateService;
+import com.websql.service.TeamSourceService;
 import com.websql.util.StpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,9 @@ public class DetectionServiceImpl implements DetectionService {
 
     @Autowired
     private MessageTemplateService messageTemplateService;
+
+    @Autowired
+    private TeamSourceService teamSourceService;
 
     @Override
     public Result<SysDetectionModel> list(SysDetectionModel model) {
@@ -85,6 +89,9 @@ public class DetectionServiceImpl implements DetectionService {
             if (ObjectUtil.notEqual(sqlParserVo.getMethodType(), SqlOperationType.SELECT.getCode())) {
                 throw new RuntimeException("SQL非查询语句类不允许执行!");
             }
+        }
+        if (!teamSourceService.checkDataSourceTeam(model.getDataBaseName())) {
+            throw new RuntimeException("您没有此数据源权限");
         }
         return detectionRepository.save(model);
     }

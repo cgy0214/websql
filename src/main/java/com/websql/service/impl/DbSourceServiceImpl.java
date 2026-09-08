@@ -159,8 +159,11 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public void deleteDataBaseSource(Long id) {
-        CacheUtils.remove("data_source_model");
         DataSourceModel dataSourceModel = dbSourceRepository.selectById(id);
+        if (!teamSourceService.checkDataSourceTeam(dataSourceModel.getDbName())) {
+            throw new RuntimeException("您没有此数据源操作权限");
+        }
+        CacheUtils.remove("data_source_model");
         dbSourceRepository.deleteById(id);
         DataSourceFactory.removeDataSource(dataSourceModel.getDbName());
         teamSourceService.deleteResourceByResIds(Collections.singletonList(Long.valueOf(id)), "DATASOURCE");
@@ -246,6 +249,9 @@ public class DbSourceServiceImpl implements DbSourceService {
                     return AjaxResult.error("导出数据时,不支持非查询语句执行!");
                 }
             }
+            if (!teamSourceService.checkDataSourceTeam(sql.getDataBaseName())) {
+                return AjaxResult.error("抱歉,没有此数据源权限!");
+            }
             List<SqlExecuteResultVo> resultVos = new ArrayList<>(parserVoList.size());
             for (SqlParserVo sqlParserVo : parserVoList) {
                 TimeInterval timer = DateUtil.timer();
@@ -291,10 +297,9 @@ public class DbSourceServiceImpl implements DbSourceService {
         }
     }
 
-
     @Override
     public Integer selectDbByName(String paramName) {
-        return dbSourceRepository.findDataSourceByName(paramName);
+        return dbSourceRepository.findDataSourceByName(paramName).size();
     }
 
     @Override
@@ -876,8 +881,8 @@ public class DbSourceServiceImpl implements DbSourceService {
         List<MetaTreeTable> list = fetchTableListByDatabase(database);
         if ("tableName".equalsIgnoreCase(sort)) {
             Comparator<MetaTreeTable> comparator = Comparator.comparing(
-                t -> t.getTableMeta() != null ? t.getTableMeta().getTableName() : t.getTitle(),
-                String.CASE_INSENSITIVE_ORDER);
+                    t -> t.getTableMeta() != null ? t.getTableMeta().getTableName() : t.getTitle(),
+                    String.CASE_INSENSITIVE_ORDER);
             if ("desc".equalsIgnoreCase(order)) {
                 comparator = comparator.reversed();
             }

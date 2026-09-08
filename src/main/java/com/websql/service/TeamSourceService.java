@@ -41,4 +41,6 @@ public interface TeamSourceService {
 
     List<TeamSourceModel> selectTeamListAll();
 
+    boolean checkDataSourceTeam(String dataBaseName);
+
 }

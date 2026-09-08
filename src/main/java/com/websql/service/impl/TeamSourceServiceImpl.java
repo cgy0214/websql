@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.websql.dao.*;
 import com.websql.model.*;
 import com.websql.service.TeamSourceService;
+import com.websql.util.StpUtils;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,10 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -253,5 +251,21 @@ public class TeamSourceServiceImpl implements TeamSourceService {
     @Override
     public List<TeamSourceModel> selectTeamListAll() {
         return teamSourceRepository.findAll();
+    }
+
+    @Override
+    public boolean checkDataSourceTeam(String dataBaseName) {
+        if (ObjectUtil.isEmpty(dataBaseName)) {
+            return false;
+        }
+        List<Integer> dataSourceIds = dbSourceRepository.findDataSourceByName(dataBaseName);
+        if (ObjectUtil.isEmpty(dataSourceIds)) {
+            return false;
+        }
+        Integer id = dataSourceIds.get(0);
+        Long teamId = StpUtils.getCurrentActiveTeam().getId();
+        List<String> resourceIds = this.queryTeamResourceByTeamId(Collections.singletonList(teamId), "DATASOURCE").stream().map(s -> s.getResourceId().toString()).collect(Collectors.toList());
+        long count = resourceIds.stream().filter(s -> resourceIds.contains(String.valueOf(id))).count();
+        return count > 0;
     }
 }
