@@ -199,7 +199,12 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public void deleteSqlText(String id) {
-        dbSqlTextRepository.delsqlText(Integer.valueOf(id));
+        Long teamId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
+        DbSqlText dbSqlText = dbSqlTextRepository.selectById(id);
+        if (ObjectUtil.isNull(dbSqlText) || ObjectUtil.notEqual(dbSqlText.getTeamId(), teamId)) {
+            throw new RuntimeException("您没有此SQL文本操作权限");
+        }
+        dbSqlTextRepository.delsqlText(dbSqlText.getId());
     }
 
     @Override

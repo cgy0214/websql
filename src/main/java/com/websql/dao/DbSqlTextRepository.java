@@ -32,4 +32,7 @@ public interface DbSqlTextRepository extends JpaSpecificationExecutor<DbSqlText>
     
     @Query("SELECT COUNT(*) FROM DbSqlText WHERE dataSourceCode = ?1")
     int countByDataSourceCode(String dataSourceCode);
+
+    @Query(value = "select * from sql_text where id = ?1",nativeQuery = true)
+    DbSqlText selectById(String id);
 }
