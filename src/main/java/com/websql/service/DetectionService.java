@@ -53,4 +53,18 @@ public interface DetectionService {
      * @param taskId 任务ID
      */
     void deleteLogsByTaskId(Long taskId);
+
+    /**
+     * 给只保存了数据源名称的历史检测任务回填数据源ID
+     * @param dataBaseName 数据源名称
+     * @param dataSourceId 数据源ID
+     */
+    void fillDataSourceId(String dataBaseName, Long dataSourceId);
+
+    /**
+     * 解析检测任务执行时使用的数据源名称，优先使用任务保存的数据源ID，历史数据没有ID时降级使用数据源名称
+     * @param model 检测任务
+     * @return 数据源名称
+     */
+    String resolveExecuteDataSourceName(SysDetectionModel model);
 }

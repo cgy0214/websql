@@ -12,6 +12,7 @@ import java.util.List;
  * @author: rabbit boy_0214@sina.com
  * @create: 2019-09-16 19:28
  **/
+@Deprecated
 public interface TimingService {
     TimingVo addTimingData(TimingVo model) throws Exception;
 

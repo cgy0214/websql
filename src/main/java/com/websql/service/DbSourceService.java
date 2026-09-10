@@ -70,6 +70,22 @@ public interface DbSourceService {
     
     List<Map<String, String>> sqlTextListByDataSource(DataSourceModel model, String dataSourceCode);
 
+    /**
+     * 按数据源名称查询数据源ID，查询不到时返回null
+     *
+     * @param dataSourceName 数据源名称
+     * @return 数据源ID
+     */
+    Long resolveDataSourceIdByName(String dataSourceName);
+
+    /**
+     * 按数据源ID查询当前的数据源名称，查询不到时返回null
+     *
+     * @param dataSourceId 数据源ID
+     * @return 数据源名称
+     */
+    String resolveDataSourceNameById(Long dataSourceId);
+
     SysExportModel exportAsyncData(Long id);
 
     Result<SysExportModel> exportFilesLogList(SysExportModel model);

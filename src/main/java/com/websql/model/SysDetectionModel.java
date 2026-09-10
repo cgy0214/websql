@@ -38,6 +38,12 @@ public class SysDetectionModel extends Pages{
     private String dataBaseName;
 
     /**
+     * 执行数据源ID，记录后数据源改名依然可以定位到数据源；历史数据为空时降级使用数据源名称
+     */
+    @Column(name = "data_source_id")
+    private Long dataSourceId;
+
+    /**
      * 执行sql
      */
     @Column(columnDefinition = "TEXT")

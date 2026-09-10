@@ -73,12 +73,13 @@ public class DetectionJobFactory implements Task {
             if (ObjectUtil.isEmpty(sql)) {
                 throw new NullPointerException("监测SQL为空");
             }
-            List<SqlParserVo> parserVoList = SqlParserHandler.getParserVo(vo.getDataBaseName(), sql);
+            String executeDataSourceName = detectionService.resolveExecuteDataSourceName(vo);
+            List<SqlParserVo> parserVoList = SqlParserHandler.getParserVo(executeDataSourceName, sql);
             SqlParserVo sqlParserVo = parserVoList.get(0);
             if (!SqlOperationType.SELECT.getCode().equals(sqlParserVo.getMethodType())) {
                 throw new RuntimeException("SQL类型不是查询语句，无法执行!");
             }
-            Map<String, Object> moreResult = JdbcUtils.findMoreResult(vo.getDataBaseName(), sqlParserVo.getSqlContent(), new ArrayList<>());
+            Map<String, Object> moreResult = JdbcUtils.findMoreResult(executeDataSourceName, sqlParserVo.getSqlContent(), new ArrayList<>());
             JSONArray dataArray = (JSONArray) moreResult.get("data");
             if (!dataArray.isEmpty()) {
                 JSONObject data = JsonToLowerUtils.transToLowerObject(JSONObject.toJSONString(dataArray.get(0)));

@@ -120,7 +120,7 @@ public class SqlManagerController {
 
     @RequestMapping("/countSqlTextByDataSourceCode")
     @ResponseBody
-    public AjaxResult countSqlTextByDataSourceCode(@RequestParam String dataSourceCode) {
+    public AjaxResult countSqlTextByDataSourceCode(@RequestParam(required = false) String dataSourceCode) {
         try {
             int count = dbSourceService.countSqlTextByDataSourceCode(dataSourceCode);
             return AjaxResult.success(count);

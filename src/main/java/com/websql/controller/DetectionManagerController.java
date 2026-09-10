@@ -1,18 +1,21 @@
 package com.websql.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.websql.model.AjaxResult;
 import com.websql.model.SysDetectionLogsModel;
 import com.websql.model.SysDetectionModel;
 import com.websql.service.DetectionService;
 import com.websql.task.ScheduleUtils;
+import com.websql.util.CronUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -96,6 +99,31 @@ public class DetectionManagerController {
                 detectionService.deleteById(id);
             }
             return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 查询检测任务的下次执行时间
+     *
+     * @param id 检测任务ID
+     * @return 下次执行时间
+     */
+    @RequestMapping("/getNextExecuteTime")
+    @ResponseBody
+    public AjaxResult getNextExecuteTime(@RequestParam Long id) {
+        try {
+            SysDetectionModel task = detectionService.selectById(id);
+            if (ObjectUtil.isNull(task) || ObjectUtil.isEmpty(task.getCron())) {
+                return AjaxResult.success("");
+            }
+            Date nextDate = CronUtils.getNextDate(task.getCron());
+            if (ObjectUtil.isNotNull(nextDate)) {
+                return AjaxResult.success(DateUtil.formatDateTime(nextDate));
+            }
+            return AjaxResult.success("-");
+        } catch (Exception e) {
+            log.error("获取下次执行时间失败,{}", e.getMessage(), e);
+            return AjaxResult.error("获取失败:" + e.getMessage());
         }
     }
 

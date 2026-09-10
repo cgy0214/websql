@@ -8,101 +8,94 @@
     <link rel="stylesheet" th:href="@{/static/code/show-hint.css}" media="all"/>
     <link rel="stylesheet" th:href="@{/static/css/sqlPage.css}" media="all">
     <style>
+        /* 统一工具条内所有控件高度：原 sqlPage.css 让 select=30px，而普通 input=38px，导致高低不齐 */
+        #menu-id .layui-input,
+        #menu-id .layui-form-select .layui-input {
+            height: 30px;
+            line-height: 30px;
+        }
+
+        /* 工具栏内去掉 layui 默认的 input-inline 外边距，改用 gap 控制间距更整齐 */
+        .dt-bar .layui-input-inline {
+            margin: 0;
+        }
+
+        /* 缩小下拉框宽度 */
+        .dt-bar .layui-input-inline.layui-select-sm {
+            width: 170px;
+        }
+
+        /* 状态 / 紧急类型 选项短，进一步收窄 */
+        .dt-bar .layui-input-inline.layui-select-sm.short {
+            width: 120px;
+        }
+
+        /* 任务名称输入框收窄 */
+        .dt-bar .layui-input-inline.narrow {
+            width: 150px;
+        }
     </style>
 </head>
 <body>
-<div id="menu-id">
-    <form class="layui-form card">
-        <div class="layui-form-item button-row">
-            <div class="layui-inline">
-                <label class="layui-form-label">名称:</label>
-                <div class="layui-input-inline">
-                    <input type="text" id="name" name="name" class="layui-input" lay-affix="clear"
-                           placeholder="检测任务名称"/>
-                </div>
+<div class="card" id="menu-id" style="padding: 0;">
+    <form class="layui-form">
+        <!-- 工具栏：所有控件 + 按钮，与 SQL 页面同构（按钮必须在 .button-row 内才能正常渲染） -->
+        <div class="layui-form-item button-row dt-bar" style="margin: 0; padding: 10px 12px; background: #fafbfc; flex-wrap: wrap; gap: 14px; align-items: center; border-radius: 8px 8px 0 0;">
+            <!-- 1. 数据源选择 -->
+            <div class="layui-input-inline layui-select-sm">
+                <select name="dataBaseName" id="dataBaseName" lay-filter="dataBaseName" lay-search="" lay-affix="clear"></select>
             </div>
 
-            <div class="layui-inline">
-                <label class="layui-form-label">数据源:</label>
-                <div class="layui-input-inline">
-                    <select name="dataBaseName" id="dataBaseName" lay-filter="dataBaseName" lay-search=""
-                            lay-affix="clear"></select>
-                </div>
+            <!-- 2. 任务名称 -->
+            <div class="layui-input-inline narrow">
+                <input type="text" id="name" name="name" class="layui-input" lay-affix="clear" placeholder="任务名称"/>
             </div>
 
-            <div class="layui-inline">
-                <label class="layui-form-label">CRON:</label>
-                <div class="layui-input-inline">
-                    <input type="text" id="cron" name="cron" class="layui-input" value="0/30 * * * * ?"
-                           lay-affix="clear"
-                           placeholder="定时表达式"/>
-                </div>
+            <!-- 3. 表达式 -->
+            <div class="layui-input-inline">
+                <input type="text" id="cron" name="cron" class="layui-input" value="" lay-affix="clear" placeholder="定时表达式"/>
             </div>
 
-            <div class="layui-inline">
-                <label class="layui-form-label">状态:</label>
-                <div class="layui-input-inline">
-                    <select name="state" lay-verify="required" lay-search="">
-                        <option value="开始监控">开始监控</option>
-                        <option value="停止监控">停止监控</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="layui-form-item button-row">
-            <div class="layui-inline">
-                <label class="layui-form-label">列名:</label>
-                <div class="layui-input-inline">
-                    <input type="text" id="columnName" name="columnName" class="layui-input" lay-affix="clear"
-                           placeholder="SQL结果中列名"/>
-                </div>
+            <!-- 4. 结果列名 -->
+            <div class="layui-input-inline">
+                <input type="text" id="columnName" name="columnName" class="layui-input" lay-affix="clear" placeholder="结果值列名"/>
             </div>
 
-            <div class="layui-inline">
-                <label class="layui-form-label">告警表达式:</label>
-                <div class="layui-input-inline">
-                    <input type="text" name="expression" id="expression" class="layui-input"
-                           placeholder="result-2>0"
-                           lay-affix="clear"/>
-                </div>
+            <!-- 5. 计算表达式 -->
+            <div class="layui-input-inline">
+                <input type="text" name="expression" id="expression" class="layui-input" placeholder="计算结果表达式" lay-affix="clear"/>
             </div>
 
-            <div class="layui-inline">
-                <label class="layui-form-label">告警级别:</label>
-                <div class="layui-input-inline">
-                    <select name="alarmLevel" lay-verify="required" lay-search="">
-                        <option value="普通">普通</option>
-                        <option value="紧急">紧急</option>
-                    </select>
-                </div>
+            <!-- 6. 紧急类型 -->
+            <div class="layui-input-inline layui-select-sm short">
+                <select name="alarmLevel" lay-search="">
+                    <option value="普通">普通</option>
+                    <option value="紧急">紧急</option>
+                </select>
             </div>
 
-            <div class="layui-inline">
-                <label class="layui-form-label">告警模板:</label>
-                <div class="layui-input-inline">
-                    <select name="messageTemplate" id="messageTemplate" lay-filter="messageTemplate" lay-search=""
-                            lay-affix="clear"></select>
-                </div>
+            <!-- 7. 告警模板 -->
+            <div class="layui-input-inline layui-select-sm">
+                <select name="messageTemplate" id="messageTemplate" lay-filter="messageTemplate" lay-search="" lay-affix="clear"></select>
             </div>
 
-            <div class="layui-inline">
-                <button class="layui-btn layui-btn-primary layui-btn-sm layui-border-green" lay-submit
-                        lay-filter="save">
-                    <i class="layui-icon layui-icon-add-circle"></i> 保存
-                </button>
-
-                <button class="layui-btn layui-btn-primary layui-btn-sm layui-border-blue"
-                        onclick="openPage('在线生成Cron后 复制Cron 表达式','http://cron.qqe2.com/',3001);return false">
-                    <i class="layui-icon layui-icon-time"></i> CRON
-                </button>
+            <!-- 8. 状态 -->
+            <div class="layui-input-inline layui-select-sm short">
+                <select name="state" lay-search="">
+                    <option value="开始监控">开始监控</option>
+                    <option value="停止监控">停止监控</option>
+                </select>
             </div>
+
+            <button class="layui-btn layui-btn-primary layui-btn-sm layui-border-green" lay-submit lay-filter="save">
+                <i class="layui-icon layui-icon-add-circle"></i> 保存
+            </button>
+
+            <i class="layui-icon layui-icon-tips" id="dt-help" title="填写说明"
+               style="margin-left: 10px; cursor: pointer; color: #16baaa; font-size: 16px;"></i>
         </div>
     </form>
-</div>
-
-<div class="card sqlText" id="ID-dropdown-contextmenu">
-    <textarea id='sqlText' style="width: 99%;height: 650px;align-content: center;"></textarea>
+    <textarea id='sqlText' style="width: 99%;height: 500px;align-content: center;"></textarea>
 </div>
 
 <script th:src="@{/static/layui.js}"></script>
@@ -123,10 +116,6 @@
         const $ = layui.jquery;
         const select = layui.laySelect;
 
-        /**
-         * 编辑器初始化
-         * @type {CodeMirror}
-         */
         const editor = CodeMirror.fromTextArea(document.getElementById("sqlText"), {
             mode: {
                 name: "text/x-plsql"
@@ -148,25 +137,41 @@
             },
             hintOptions: {completeSingle: false}
         });
-        editor.setSize(null,600);
-        editor.getWrapperElement().style.fontSize = '18px';
+        editor.setSize(null, 500);
+        editor.getWrapperElement().style.fontSize = '14px';
         editor.on('keypress', () => {
             editor.showHint();
         });
 
-        //进入页面后,让编辑器获得焦点
         editor.focus();
 
-        document.addEventListener('scroll', function () {
-            var navContainer = document.getElementById("menu-id");
-            if (window.pageYOffset > 0) {
-                navContainer.classList.add('nav-container', 'show');
-            } else {
-                navContainer.classList.remove('nav-container', 'show');
-            }
+        //填写说明：点击问号图标，逐字段展示提示（一行一个）
+        $('#dt-help').on('click', function () {
+            const html = [
+                '<div style="line-height: 24px; padding: 2px 2px;">',
+                '<div><b>数据源</b>：要执行检测任务的数据源</div>',
+                '<div><b>任务名称</b>：检测任务名称</div>',
+                '<div><b>表达式</b>：定时执行表达式，如 0/30 * * * * ?（每30秒执行一次）</div>',
+                '<div><b>结果列名</b>：SQL 查询结果集中的列名，用于取值计算，如 result</div>',
+                '<div><b>计算表达式</b>：计算表达式，如 result-2&gt;0（结果列减2大于0则告警）</div>',
+                '<div><b>紧急类型</b>：告警紧急程度</div>',
+                '<div><b>告警模板</b>：告警模板，配置：系统管理-参数设置-告警模板</div>',
+                '<div><b>状态</b>：监控状态（开始/停止）</div>',
+                '<div><b>SQL内容</b>：查询语句,如select amount as result from order </div>',
+                '<div><b>wiki</b>：<a  href="https://gitee.com/boy_0214/websql/wikis/pages?sort_id=16605240&doc_id=3405209" target="_blank" style="color: blue">Gitee Wiki</a></div>',
+                '</div>'
+            ].join('');
+            layer.open({
+                type: 0,
+                title: '字段填写说明',
+                content: html,
+                shade: 0,
+                btn: ['知道了'],
+                area: ['460px', 'auto']
+            });
         });
 
-        let activeDataSource;//选中的数据源
+        let activeDataSource;
         select.render({
             elem: "#dataBaseName",
             url: ctx + 'dataSourceManager/findDataSourceList',
@@ -185,7 +190,6 @@
             }
         });
 
-        //告警模板列表
         let activeMessageTemplate;
         select.render({
             elem: "#messageTemplate",
@@ -204,9 +208,6 @@
         });
 
 
-        /**
-         * 设置编辑器提示表名及字段功能
-         */
         function editorHintSettings() {
             if (activeDataSource === "" || activeDataSource == null) {
                 return false;
@@ -223,9 +224,6 @@
             });
         }
 
-        /**
-         * 执行SQL
-         */
         form.on('submit(save)', function (data) {
             let sqlContent = editor.getValue().trim();
             if (sqlContent === "" || sqlContent == null) {
@@ -234,8 +232,6 @@
             }
             if (activeDataSource === "" || activeDataSource == null) {
                 layer.msg("请选择数据源~", {icon: 2});
-                $("#msgDiv").show();
-                $("#msgSpan").text("ERROR:请选择数据来源~");
                 return false;
             }
             data.field.sqlContent = Base64.encode(sqlContent);

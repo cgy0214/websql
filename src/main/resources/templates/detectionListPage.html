@@ -5,6 +5,43 @@
     <title>检测任务管理</title>
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/img/favicon.ico}" media="screen"/>
     <link rel="stylesheet" th:href="@{/static/css/layui.css}" media="all"/>
+    <style>
+        td[data-field="messageName"] .layui-table-cell {
+            overflow: visible;
+        }
+
+        td[data-field="messageName"] .layui-form-select {
+            width: 100%;
+        }
+
+        td[data-field="messageName"] .layui-form-select .layui-select-title,
+        td[data-field="messageName"] .layui-form-select .layui-select-title input {
+            height: 28px;
+            line-height: 28px;
+        }
+
+        td[data-field="messageName"] .layui-form-select .layui-edge {
+            top: 45%;
+        }
+
+        td[data-field="messageName"] .layui-form-select dl {
+            top: 32px;
+            padding: 2px 0;
+            max-height: 220px;
+        }
+
+        /* 选项尺寸与列表框保持一致，layui默认行高36px偏大 */
+        td[data-field="messageName"] .layui-form-select dl dd,
+        td[data-field="messageName"] .layui-form-select dl dt {
+            line-height: 28px;
+            padding: 0 10px;
+        }
+
+        td[data-field="messageName"] .layui-form-selectup dl {
+            top: auto;
+            bottom: 32px;
+        }
+    </style>
 </head>
 <body>
 <form class="layui-form">
@@ -66,6 +103,10 @@
         const laytpl = layui.laytpl;
         const util = layui.util;
 
+        //告警模板列表，用于渲染行内的告警模板下拉框
+        let messageTemplateList = [];
+
+        const renderTable = function () {
         table.render({
             elem: '#dataTable',
             url: ctx + 'detectionManager/list',
@@ -83,18 +124,70 @@
                     },
                     {field: 'dataBaseName', title: '作业数据源', sort: true, fixed: true},
                     {field: 'expression', title: '告警表达式', sort: true, fixed: true},
-                    {field: 'cron', title: 'CRON表达式', sort: true, fixed: true, width: 200},
+                    {
+                        field: 'cron', title: 'CRON表达式', sort: true, fixed: true, width: 200, templet: function (d) {
+                            if (!d.cron) {
+                                return '';
+                            }
+                            return '<a href="javascript:;" class="layui-table-link" lay-event="cronTimes">' + d.cron + '</a>';
+                        }
+                    },
                     {field: 'alarmLevel', title: '告警级别', sort: true, fixed: true},
-                    {field: 'messageName', title: '告警模板', sort: true, fixed: true, templet: function (d) {
-                            return '<a href="javascript:;" class="layui-table-link" lay-event="editTemplate" lay-data="'+ d.id +'|'+ d.messageId +'">' + (d.messageName || '未设置') + '</a>'
-                        }},
+                    {
+                        field: 'messageName', title: '告警模板', sort: true, fixed: true, width: 180, templet: function (d) {
+                            let options = '<option value="">未设置</option>';
+                            messageTemplateList.forEach(item => {
+                                const selected = String(item.code) === String(d.messageId) ? 'selected' : '';
+                                options += '<option value="' + item.code + '" ' + selected + '>' + item.value + '</option>';
+                            });
+                            return '<select lay-filter="templateSelect" data-id="' + d.id + '" lay-search>' + options + '</select>';
+                        }
+                    },
                     {field: 'state', title: '状态', sort: true, fixed: true},
                     {field: 'createUser', title: '创建人', sort: true, fixed: true},
                     {field: 'createTime', title: '创建时间', width: 200, sort: true, fixed: true},
                     {fixed: 'right', title: '操作', width: 270, toolbar: '#toolbarTable'}
                 ]
             ],
-            parseData: res => parseData(res)
+            parseData: res => parseData(res),
+            done: function () {
+                form.render('select');
+            }
+        });
+        };
+
+        post(ctx + "settingManager/findMessageTemplateList", null, (res) => {
+            if (res && res.code === 0) {
+                messageTemplateList = res.data || [];
+            }
+            renderTable();
+        });
+
+        $(document).on('mousedown', 'td[data-field="messageName"] .layui-form-select', function () {
+            const $select = $(this);
+            const $body = $select.closest('.layui-table-body');
+            if ($body.length === 0) {
+                return;
+            }
+            const remainHeight = $body.offset().top + $body.height() - ($select.offset().top + $select.height());
+            $select.toggleClass('layui-form-selectup', remainHeight < 240);
+        });
+
+        form.on('select(templateSelect)', function (obj) {
+            const taskId = $(obj.elem).attr('data-id');
+            const messageId = obj.value;
+            if (!messageId) {
+                layer.msg('暂不支持清空告警模板', {icon: 2});
+                table.reloadData('dataTable');
+                return;
+            }
+            post(ctx + "detectionManager/executeOnce/6/" + taskId + "?messageId=" + messageId, null, (res) => {
+                layer.msg(res.msg, {icon: res.code === 200 ? 1 : 2}, () => {
+                    if (res.code === 200) {
+                        table.reloadData('dataTable');
+                    }
+                });
+            });
         });
 
         table.on('tool(dataTable)', function (obj) {
@@ -106,39 +199,13 @@
                         .render({content: str});
                     openContent("查看作业SQL内容", content);
                     break;
-                case 'editTemplate':
-                    post(ctx + "settingManager/findMessageTemplateList", null, (res) => {
-                        if (res.code !== 0) {
+                case 'cronTimes':
+                    post(ctx + "detectionManager/getNextExecuteTime?id=" + data.id, null, (res) => {
+                        if (res.code === 200) {
+                            layer.msg('下次执行时间: ' + (res.msg || '无'), {icon: 1});
+                        } else {
                             layer.msg(res.msg, {icon: 2});
-                            return;
                         }
-                        const templateList = res.data || [];
-                        const currentMessageId = data.messageId;
-                        let selectHtml = '<select id="templateSelect" lay-filter="templateSelect" lay-search>';
-                        templateList.forEach(item => {
-                            const selected = item.code == currentMessageId ? 'selected' : '';
-                            selectHtml += '<option value="' + item.code + '" ' + selected + '>' + item.value + '</option>';
-                        });
-                        selectHtml += '</select>';
-                        layer.open({
-                            type: 1,
-                            title: '选择告警模板',
-                            area: ['300px', '250px'],
-                            content: '<div style="padding: 20px;"><form class="layui-form">' + selectHtml + '</form></div>',
-                            btn: ['确认', '取消'],
-                            yes: function (index, layero) {
-                                const newMessageId = $('#templateSelect').val();
-                                post(ctx + "detectionManager/executeOnce/6/" + data.id + "?messageId=" + newMessageId, null, (res2) => {
-                                    layer.msg(res2.msg, {icon: res2.code === 200 ? 1 : 2}, () => {
-                                        if (res2.code === 200) {
-                                            $(".search-btn").click();
-                                            layer.closeAll();
-                                        }
-                                    });
-                                });
-                            }
-                        });
-                        form.render('select');
                     });
                     break;
                 case 'updateCron':

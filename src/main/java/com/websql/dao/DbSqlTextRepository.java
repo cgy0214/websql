@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -27,11 +28,11 @@ public interface DbSqlTextRepository extends JpaSpecificationExecutor<DbSqlText>
     
     @Transactional
     @Modifying
-    @Query("DELETE FROM DbSqlText WHERE dataSourceCode = ?1")
-    void deleteByDataSourceCode(String dataSourceCode);
-    
-    @Query("SELECT COUNT(*) FROM DbSqlText WHERE dataSourceCode = ?1")
-    int countByDataSourceCode(String dataSourceCode);
+    @Query("DELETE FROM DbSqlText WHERE dataSourceCode IN ?1")
+    void deleteByDataSourceCodeIn(Collection<String> dataSourceCodes);
+
+    @Query("SELECT COUNT(*) FROM DbSqlText WHERE dataSourceCode IN ?1")
+    int countByDataSourceCodeIn(Collection<String> dataSourceCodes);
 
     @Query(value = "select * from sql_text where id = ?1",nativeQuery = true)
     DbSqlText selectById(String id);

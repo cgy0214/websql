@@ -7,6 +7,7 @@ import com.websql.config.SqlParserHandler;
 import com.websql.dao.DetectionLogsRepository;
 import com.websql.dao.DetectionRepository;
 import com.websql.model.*;
+import com.websql.service.DbSourceService;
 import com.websql.service.DetectionService;
 import com.websql.service.MessageTemplateService;
 import com.websql.service.TeamSourceService;
@@ -14,6 +15,7 @@ import com.websql.util.StpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,6 +43,10 @@ public class DetectionServiceImpl implements DetectionService {
 
     @Autowired
     private TeamSourceService teamSourceService;
+
+    @Lazy
+    @Autowired
+    private DbSourceService dbSourceService;
 
     @Override
     public Result<SysDetectionModel> list(SysDetectionModel model) {
@@ -93,6 +99,7 @@ public class DetectionServiceImpl implements DetectionService {
         if (!teamSourceService.checkDataSourceTeam(model.getDataBaseName())) {
             throw new RuntimeException("您没有此数据源权限");
         }
+        model.setDataSourceId(dbSourceService.resolveDataSourceIdByName(model.getDataBaseName()));
         return detectionRepository.save(model);
     }
 
@@ -367,5 +374,22 @@ public class DetectionServiceImpl implements DetectionService {
         logModel.setTeamId(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId());
         logModel.setTaskId(taskId);
         detectionLogsRepository.deleteAll(detectionLogsRepository.findAll(Example.of(logModel)));
+    }
+
+    @Override
+    public void fillDataSourceId(String dataBaseName, Long dataSourceId) {
+        if (ObjectUtil.isEmpty(dataBaseName) || ObjectUtil.isNull(dataSourceId)) {
+            return;
+        }
+        detectionRepository.updateDataSourceId(dataSourceId, dataBaseName);
+    }
+
+    @Override
+    public String resolveExecuteDataSourceName(SysDetectionModel model) {
+        String dataSourceName = dbSourceService.resolveDataSourceNameById(model.getDataSourceId());
+        if (ObjectUtil.isNotEmpty(dataSourceName)) {
+            return dataSourceName;
+        }
+        return model.getDataBaseName();
     }
 }

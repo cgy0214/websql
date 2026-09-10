@@ -56,6 +56,11 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DbSourceServiceImpl.class);
 
+    /**
+     * 数据源ID与名称映射的缓存KEY
+     */
+    private static final String DATA_SOURCE_ID_NAME_MAP = "data_source_id_name_map";
+
     @Resource
     private DbSourceRepository dbSourceRepository;
 
@@ -164,10 +169,12 @@ public class DbSourceServiceImpl implements DbSourceService {
             throw new RuntimeException("您没有此数据源操作权限");
         }
         CacheUtils.remove("data_source_model");
+        CacheUtils.remove(DATA_SOURCE_ID_NAME_MAP);
         dbSourceRepository.deleteById(id);
         DataSourceFactory.removeDataSource(dataSourceModel.getDbName());
         teamSourceService.deleteResourceByResIds(Collections.singletonList(Long.valueOf(id)), "DATASOURCE");
         try {
+            deleteSqlTextByDataSourceCode(String.valueOf(dataSourceModel.getId()));
             deleteSqlTextByDataSourceCode(dataSourceModel.getDbName());
             log.info("成功删除与数据源[{}]关联的SQL文本", dataSourceModel.getDbName());
         } catch (Exception e) {
@@ -341,6 +348,7 @@ public class DbSourceServiceImpl implements DbSourceService {
             throw new RuntimeException(e);
         }
         CacheUtils.remove("data_source_model");
+        CacheUtils.remove(DATA_SOURCE_ID_NAME_MAP);
         if (ObjectUtil.isNotEmpty(model.getDbPassword())) {
             String encrypt = PasswordUtil.encrypt(model.getDbPassword());
             model.setDbPassword(encrypt);
@@ -411,7 +419,83 @@ public class DbSourceServiceImpl implements DbSourceService {
         if (ObjectUtil.isNull(model.getTeamId())) {
             model.setTeamId(Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId());
         }
+        if (ObjectUtil.isNotEmpty(model.getDataSourceCode())) {
+            Long dataSourceId = resolveDataSourceIdByName(model.getDataSourceCode());
+            if (ObjectUtil.isNotNull(dataSourceId)) {
+                model.setDataSourceCode(String.valueOf(dataSourceId));
+            }
+        }
         dbSqlTextRepository.save(model);
+    }
+
+    @Override
+    public Long resolveDataSourceIdByName(String dataSourceName) {
+        if (ObjectUtil.isEmpty(dataSourceName)) {
+            return null;
+        }
+        List<Integer> ids = dbSourceRepository.findDataSourceByName(dataSourceName);
+        if (!ids.isEmpty() && ObjectUtil.isNotNull(ids.get(0))) {
+            return Long.valueOf(ids.get(0));
+        }
+        return null;
+    }
+
+    @Override
+    public String resolveDataSourceNameById(Long dataSourceId) {
+        if (ObjectUtil.isNull(dataSourceId)) {
+            return null;
+        }
+        return dataSourceIdNameMap().get(String.valueOf(dataSourceId));
+    }
+
+    /**
+     * 构建数据源ID与名称的映射，缓存30秒
+     *
+     * @return key=数据源ID，value=数据源名称
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, String> dataSourceIdNameMap() {
+        Map<String, String> idNameMap = CacheUtils.get(DATA_SOURCE_ID_NAME_MAP, Map.class);
+        if (ObjectUtil.isNotNull(idNameMap)) {
+            return idNameMap;
+        }
+        idNameMap = new HashMap<>();
+        for (DataSourceModel dataSourceModel : dbSourceRepository.findAll()) {
+            if (ObjectUtil.isNotNull(dataSourceModel.getId())) {
+                idNameMap.put(String.valueOf(dataSourceModel.getId()), dataSourceModel.getDbName());
+            }
+        }
+        CacheUtils.put(DATA_SOURCE_ID_NAME_MAP, idNameMap, 30000);
+        return idNameMap;
+    }
+
+    /**
+     * SQL文本的数据源编码统一为数据源ID。入参可能是数据源ID也可能是数据源名称，
+     * 历史数据保存的也可能是数据源名称，这里做双向匹配，保证新旧数据都能命中
+     *
+     * @param dataSourceCode 数据源ID或数据源名称
+     * @param idNameMap      数据源ID与名称的映射
+     * @return 可用于匹配的编码集合
+     */
+    private List<String> matchDataSourceCodes(String dataSourceCode, Map<String, String> idNameMap) {
+        if (ObjectUtil.isEmpty(dataSourceCode)) {
+            return new ArrayList<>();
+        }
+        Set<String> dataSourceCodes = new LinkedHashSet<>();
+        dataSourceCodes.add(dataSourceCode);
+        idNameMap.forEach((id, name) -> {
+            if (dataSourceCode.equals(id) && ObjectUtil.isNotEmpty(name)) {
+                dataSourceCodes.add(name);
+            }
+            if (dataSourceCode.equals(name)) {
+                dataSourceCodes.add(id);
+            }
+        });
+        return new ArrayList<>(dataSourceCodes);
+    }
+
+    private List<String> matchDataSourceCodes(String dataSourceCode) {
+        return matchDataSourceCodes(dataSourceCode, dataSourceIdNameMap());
     }
 
     @Override
@@ -460,16 +544,26 @@ public class DbSourceServiceImpl implements DbSourceService {
     @Override
     public void updateDataSourceName(Long id, String name) throws SQLException {
         DataSourceModel dataSourceModel = dbSourceRepository.selectById(id);
+        String oldName = dataSourceModel.getDbName();
+        if (ObjectUtil.equal(oldName, name)) {
+            return;
+        }
         dataSourceModel.setDbName(name);
         dbSourceRepository.save(dataSourceModel);
         CacheUtils.remove("data_source_model");
-        if (ObjectUtil.isNotEmpty(dataSourceModel.getDbPassword()) && ObjectUtil.isNotEmpty(dataSourceModel.getDbAccount())) {
-            String account = PasswordUtil.decrypt(dataSourceModel.getDbAccount());
-            dataSourceModel.setDbAccount(account);
-            String password = PasswordUtil.decrypt(dataSourceModel.getDbPassword());
-            dataSourceModel.setDbPassword(password);
-            DataSourceFactory.initDataSource(Collections.singletonList(dataSourceModel));
+        CacheUtils.remove(DATA_SOURCE_ID_NAME_MAP);
+        detectionService.fillDataSourceId(oldName, dataSourceModel.getId());
+
+        DataSourceFactory.removeDataSource(oldName);
+        DataSourceModel initModel = new DataSourceModel();
+        BeanUtil.copyProperties(dataSourceModel, initModel);
+        if (ObjectUtil.isNotEmpty(initModel.getDbPassword())) {
+            initModel.setDbPassword(PasswordUtil.decrypt(initModel.getDbPassword()));
         }
+        if (ObjectUtil.isNotEmpty(initModel.getDbAccount())) {
+            initModel.setDbAccount(PasswordUtil.decrypt(initModel.getDbAccount()));
+        }
+        DataSourceFactory.initDataSource(Collections.singletonList(initModel));
     }
 
     @Override
@@ -573,21 +667,32 @@ public class DbSourceServiceImpl implements DbSourceService {
 
     @Override
     public void deleteSqlTextByDataSourceCode(String dataSourceCode) {
-        dbSqlTextRepository.deleteByDataSourceCode(dataSourceCode);
+        List<String> dataSourceCodes = matchDataSourceCodes(dataSourceCode);
+        if (!dataSourceCodes.isEmpty()) {
+            dbSqlTextRepository.deleteByDataSourceCodeIn(dataSourceCodes);
+        }
     }
 
     @Override
     public int countSqlTextByDataSourceCode(String dataSourceCode) {
-        return dbSqlTextRepository.countByDataSourceCode(dataSourceCode);
+        List<String> dataSourceCodes = matchDataSourceCodes(dataSourceCode);
+        if (dataSourceCodes.isEmpty()) {
+            return 0;
+        }
+        return dbSqlTextRepository.countByDataSourceCodeIn(dataSourceCodes);
     }
 
     @Override
     public List<Map<String, String>> sqlTextListByDataSource(DataSourceModel model, String dataSourceCode) {
         List<Map<String, String>> sqlTextModelList = new ArrayList<>();
         Long itemId = Objects.requireNonNull(StpUtils.getCurrentActiveTeam()).getId();
+        Map<String, String> idNameMap = dataSourceIdNameMap();
+        List<String> dataSourceCodes = matchDataSourceCodes(dataSourceCode, idNameMap);
+        //默认数据源DEFAULT-H2需要兼容早期没有保存数据源编码的SQL文本
+        boolean defaultH2 = "DEFAULT-H2".equals(dataSourceCode) || "DEFAULT-H2".equals(idNameMap.get(dataSourceCode));
         List<DbSqlText> all = dbSqlTextRepository.findAll().stream()
                 .filter(s -> s.getTeamId().equals(itemId))
-                .filter(s -> dataSourceCode.equals(s.getDataSourceCode()) || ("DEFAULT-H2".equals(dataSourceCode) && ObjectUtil.isEmpty(s.getDataSourceCode())))
+                .filter(s -> dataSourceCodes.contains(s.getDataSourceCode()) || (defaultH2 && ObjectUtil.isEmpty(s.getDataSourceCode())))
                 .sorted(Comparator.comparing(DbSqlText::getId).reversed())
                 .collect(Collectors.toList());
         for (DbSqlText dbSqlText : all) {
