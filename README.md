@@ -19,7 +19,7 @@
 - [快速开始](https://gitee.com/boy_0214/websql/wikis/Home)
 
 
-- **voyagerGate渡桥**  >> 微服务本地联调网关 —— 本地与远端，一桥相连；本地离线，自动渡回[去体验](https://gitee.com/boy_0214/voyagerGate)
+- **voyagerGate渡桥** 微服务本地联调网关 —— 本地与远端，一桥相连；本地离线，自动渡回[去体验](https://gitee.com/boy_0214/voyagerGate)
 
 
 开源不易，点个 star 鼓励一下吧！⭐
